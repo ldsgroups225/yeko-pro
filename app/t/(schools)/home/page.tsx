@@ -4,18 +4,19 @@ import { motion } from 'framer-motion';
 import { useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import { CurrentTime, QuickAccess, SchoolInfo } from './_components'
+import { useSchool } from '@/providers/SchoolProvider';
 
 
 /**
  * The main home page component.
  */
 const HomePage: React.FC = () => {
-  const school = useQuery(api.schools.getStaffSchool, {})
+  const { school, isLoading, error } = useSchool();
+  
   const formattedSchool = {
     name: school?.name ?? '',
     imageUrl: school?.imageUrl ?? '',
   }
-  const isLoading = school === undefined;
 
   return (
     <div className="min-h-screen flex flex-col">

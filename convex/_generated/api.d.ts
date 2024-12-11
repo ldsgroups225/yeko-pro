@@ -15,6 +15,7 @@ import type {
 } from "convex/server";
 import type * as classes from "../classes.js";
 import type * as functions from "../functions.js";
+import type * as grades from "../grades.js";
 import type * as init from "../init.js";
 import type * as invites from "../invites.js";
 import type * as permissions from "../permissions.js";
@@ -38,6 +39,7 @@ import type * as utils from "../utils.js";
 declare const fullApi: ApiFromModules<{
   classes: typeof classes;
   functions: typeof functions;
+  grades: typeof grades;
   init: typeof init;
   invites: typeof invites;
   permissions: typeof permissions;

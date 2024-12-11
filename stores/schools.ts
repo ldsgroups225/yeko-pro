@@ -50,12 +50,12 @@ const CACHE_DURATION: number = 60 * 60 * 1000;
  *
  * @example
  * // Client-side usage with SSR hydration:
- * const { getSchool, setSchool, clearSchool, schoolStore } = useSchool(initialSchoolData, initialUserId);
+ * const { getSchool, setSchool, clearSchool, schoolStore } = schoolStore(initialSchoolData, initialUserId);
  *
  * // Basic usage without initial data:
- * const { getSchool, setSchool, clearSchool, schoolStore } = useSchool();
+ * const { getSchool, setSchool, clearSchool, schoolStore } = schoolStore();
  */
-export const useSchool = (initialSchool?: ISchool, initialUser?: string) => {
+export const schoolStore = (initialSchool?: ISchool, initialUser?: string) => {
   /**
    * Creates a Jotai store instance.
    *
