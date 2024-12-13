@@ -1,9 +1,9 @@
 'use client'
 
-import type { Classes } from '@/types'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
+import { Badge } from '@/components/ui/badge'
 import {
   Select,
   SelectContent,
@@ -19,19 +19,22 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { 
-  ChevronLeftIcon, 
-  ChevronRightIcon, 
-  DownloadIcon, 
-  ArchiveIcon, 
-  UploadIcon, 
+import {
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  DownloadIcon,
+  ArchiveIcon,
+  UploadIcon,
   PersonIcon,
+  PlusIcon,
+  ViewGridIcon,
+  ViewHorizontalIcon,
 } from '@radix-ui/react-icons'
 import React, { useEffect, useState } from 'react'
 import { useQuery } from 'convex/react'
 import { api } from '@/convex/_generated/api'
 import { Id } from '@/convex/_generated/dataModel'
+import { Separator } from '@/components/ui/separator'
 
 interface PaginationProps {
   currentPage: number
@@ -44,22 +47,77 @@ const Pagination: React.FC<PaginationProps> = ({
   totalPages,
   onPageChange,
 }) => {
+  const maxVisiblePages = 5;
+  let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+  let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+
+  if (endPage - startPage + 1 < maxVisiblePages) {
+    startPage = Math.max(1, endPage - maxVisiblePages + 1);
+  }
+
+  const pages = [];
+  for (let i = startPage; i <= endPage; i++) {
+    pages.push(i);
+  }
+
   return (
     <div className="flex justify-center items-center space-x-2 mt-4">
       <Button
         variant="outline"
-        size="sm"
+        size="icon"
         onClick={() => onPageChange(currentPage - 1)}
         disabled={currentPage === 1}
+        aria-label="Previous Page"
       >
         <ChevronLeftIcon width={16} height={16} />
       </Button>
-      <span>{`Page ${currentPage} of ${totalPages}`}</span>
+
+      {startPage > 1 && (
+        <>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => onPageChange(1)}
+            aria-label="Go to Page 1"
+          >
+            1
+          </Button>
+          {startPage > 2 && <span className="mx-1">...</span>}
+        </>
+      )}
+
+      {pages.map((page) => (
+        <Button
+          key={page}
+          variant={page === currentPage ? "default" : "ghost"}
+          size="icon"
+          onClick={() => onPageChange(page)}
+          aria-label={`Go to Page ${page}`}
+        >
+          {page}
+        </Button>
+      ))}
+
+      {endPage < totalPages && (
+        <>
+          {endPage < totalPages - 1 && <span className="mx-1">...</span>}
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => onPageChange(totalPages)}
+            aria-label={`Go to Page ${totalPages}`}
+          >
+            {totalPages}
+          </Button>
+        </>
+      )}
+
       <Button
         variant="outline"
-        size="sm"
+        size="icon"
         onClick={() => onPageChange(currentPage + 1)}
         disabled={currentPage === totalPages}
+        aria-label="Next Page"
       >
         <ChevronRightIcon width={16} height={16} />
       </Button>
@@ -69,36 +127,51 @@ const Pagination: React.FC<PaginationProps> = ({
 
 export default function ClassesPage() {
   const [selectedGrade, setSelectedGrade] = useState<Id<'grades'>>()
-  const [selectedCycle, setSelectedCycle] = useState<Id<'cycles'>>()
-  const [classesActiveState, setClassesActiveState] = useState<boolean>()
+  const [schoolCycleId, setSchoolCycleId] = useState<Id<'cycles'>>()
+  const [classesActiveState, setClassesActiveState] = useState<boolean | undefined>(undefined)
+  const [hasMainTeacher, setHasMainTeacher] = useState<boolean | undefined>(undefined);
   const [currentSchoolId, setCurrentSchoolId] = useState<Id<'schools'>>()
   const [searchTerm, setSearchTerm] = useState<string>('')
   const [selectedYear, setSelectedYear] = useState<string>('2024-2025')
   const [currentPage, setCurrentPage] = useState(1)
   const itemsPerPage = 10
+  const [isTableViewMode, setIsTableViewMode] = useState(true); // State for view mode
 
   const school = useQuery(api.schools.getStaffSchool, {});
-  const grades = useQuery(api.grades.getGrades, { cycleId: selectedCycle });
+  const grades = useQuery(api.grades.getGrades, { cycleId: schoolCycleId });
   const classes = useQuery(api.classes.getClasses, {
     schoolId: currentSchoolId,
     gradeId: selectedGrade,
     isActive: classesActiveState,
+    hasMainTeacher: hasMainTeacher,
+    // search: searchTerm
   });
+
+  // // Pagination logic
+  // const totalPages = Math.ceil((filteredClasses?.length ?? 0) / itemsPerPage);
+  // const startIndex = (currentPage - 1) * itemsPerPage;
+  // const endIndex = startIndex + itemsPerPage;
+  // const classes = filteredClasses?.slice(startIndex, endIndex);
 
   useEffect(() => {
     setCurrentSchoolId(school?._id)
-    setSelectedCycle(school?.cycleId)
+    setSchoolCycleId(school?.cycleId)
   }, [school])
 
+  // // Reset current page when filters change
+  // useEffect(() => {
+  //   setCurrentPage(1);
+  // }, [selectedGrade, searchTerm, classesActiveState, hasMainTeacher, classes]);
+
   return (
-    <div className="space-y-6 p-6 bg-orange-50 h-screen">
+    <div className="space-y-6 p-6 min-h-screen bg-orange-50">
       <div className="flex justify-end items-center">
         <div className="flex items-center space-x-2">
-          <Button variant="outline" size="icon">
+          <Button variant="outline" size="icon" aria-label="Profile">
             <PersonIcon width={16} height={16} className='text-secondary' />
           </Button>
           <Select value={selectedYear} onValueChange={setSelectedYear}>
-            <SelectTrigger className="w-[180px] text-secondary">
+            <SelectTrigger className="w-[180px] text-secondary" aria-label="School Year">
               <SelectValue placeholder="Année scolaire" />
             </SelectTrigger>
             <SelectContent>
@@ -111,15 +184,18 @@ export default function ClassesPage() {
       </div>
 
       <Card className="bg-card">
-        <CardHeader>
+        <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
           <CardTitle>Liste des classes</CardTitle>
+          <Button variant="outline">
+            <PlusIcon className="mr-2 h-4 w-4" /> Nouvelle classe
+          </Button>
         </CardHeader>
         <CardContent className="p-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
             <div>
-              <h3 className="text-lg font-medium mb-2">Niveau</h3>
+              <label htmlFor="grade-select" className="text-sm font-medium block mb-2">Niveau</label>
               <Select value={selectedGrade} onValueChange={(value) => setSelectedGrade(value === '' ? undefined : value as Id<'grades'>)}>
-                <SelectTrigger>
+                <SelectTrigger aria-label="Select Grade">
                   <SelectValue placeholder="Choisir un niveau" />
                 </SelectTrigger>
                 <SelectContent>
@@ -133,8 +209,9 @@ export default function ClassesPage() {
               </Select>
             </div>
             <div>
-              <h3 className="text-lg font-medium mb-2">Recherche</h3>
+              <label htmlFor="search-input" className="text-sm font-medium block mb-2">Recherche</label>
               <Input
+                id="search-input"
                 type="text"
                 placeholder="Rechercher une classe..."
                 value={searchTerm}
@@ -143,83 +220,116 @@ export default function ClassesPage() {
             </div>
           </div>
 
-          <Tabs defaultValue="table" className="w-full">
-            <TabsList>
-              <TabsTrigger value="table">Vue Tableau</TabsTrigger>
-              <TabsTrigger value="kanban">Vue Kanban</TabsTrigger>
-            </TabsList>
-            <TabsContent value="table">
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg font-medium">Here later will be the filters part</h3>
-                <div className="flex space-x-2">
-                  <Button variant="outline" size="icon">
-                    <ArchiveIcon width={16} height={16} />
-                  </Button>
-                  <Button variant="outline" size="icon">
-                    <DownloadIcon width={16} height={16} />
-                  </Button>
-                  <Button variant="outline" size="icon">
-                    <UploadIcon width={16} height={16} />
-                  </Button>
-                </div>
+          {/* Filters and View Mode Toggle */}
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4">
+            <div className='flex flex-wrap items-center gap-4'>
+              <div>
+                <label htmlFor="status-filter" className="text-sm font-medium">Statut:</label>
+                <Select value={classesActiveState === undefined ? '' : classesActiveState.toString()} onValueChange={(value) => setClassesActiveState(value === '' ? undefined : value === 'true')}>
+                  <SelectTrigger className="w-[180px]" aria-label="Filter by Status">
+                    <SelectValue placeholder="Tous" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">Tous</SelectItem>
+                    <SelectItem value="true">Actif</SelectItem>
+                    <SelectItem value="false">Inactif</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
               
+              <div>
+                <label htmlFor="has-main-teacher-filter" className="text-sm font-medium">PP:</label>
+                <Select value={hasMainTeacher === undefined ? '' : hasMainTeacher.toString()} onValueChange={(value) => setHasMainTeacher(value === '' ? undefined : value === 'true')}>
+                  <SelectTrigger className="w-[180px]" aria-label="Filter by Main Teacher">
+                    <SelectValue placeholder="Tous" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">Tous</SelectItem>
+                    <SelectItem value="true">Avec PP</SelectItem>
+                    <SelectItem value="false">Sans PP</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="flex space-x-2">
+              <Button
+                variant="outline"
+                size="icon"
+                aria-label="Toggle View Mode"
+                onClick={() => setIsTableViewMode(!isTableViewMode)}
+              >
+                {isTableViewMode ? <ViewHorizontalIcon width={16} height={16} /> : <ViewGridIcon width={16} height={16} />}
+              </Button>
+              <Separator orientation="vertical" className="w-2" />
+              <Button variant="outline" size="icon" aria-label="Archive">
+                <ArchiveIcon width={16} height={16} />
+              </Button>
+              <Button variant="outline" size="icon" aria-label="Download">
+                <DownloadIcon width={16} height={16} />
+              </Button>
+              <Button variant="outline" size="icon" aria-label="Upload">
+                <UploadIcon width={16} height={16} />
+              </Button>
+            </div>
+          </div>
 
-                <>
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>N°</TableHead>
-                        <TableHead>Nom de la classe</TableHead>
-                        <TableHead>Niveau</TableHead>
-                        <TableHead>Enseignant principal</TableHead>
-                        <TableHead>Actions</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {classes?.map((cls, index) => (
-                        <TableRow key={cls._id}>
-                          <TableCell>{(currentPage - 1) * itemsPerPage + index + 1}</TableCell>
-                          <TableCell>{cls.name}</TableCell>
-                          <TableCell>
-                            {grades?.find((grade) => grade._id === cls.gradeId)?.name                            }
-                          </TableCell>
-                          <TableCell>
-                            {/* TODO: fix mainTeacherId */}
-                            {/* {cls.mainTeacherId
-                              ? `Teacher ID: ${cls.mainTeacherId}`
-                              : 'Non assigné'} */}
-                              Non assigné
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex space-x-2">
-                              <Button variant="outline" size="sm">
-                                Modifier
-                              </Button>
-                              <Button variant="outline" size="sm">
-                                Voir
-                              </Button>
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </>
-              
-            </TabsContent>
-            <TabsContent value="kanban">
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                {classes?.map((cls) => (
-                  <Card key={cls._id} className="p-4">
-                    <h3 className="font-semibold">{cls.name}</h3>
-                    <p className="text-sm">Niveau: {cls.gradeId}</p>
-                    <p className="text-sm">
+          {/* Conditional Rendering based on View Mode */}
+          {isTableViewMode ? (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>N°</TableHead>
+                  <TableHead>Nom de la classe</TableHead>
+                  <TableHead>Enseignant principal</TableHead>
+                  <TableHead className='text-center'>Status</TableHead>
+                  <TableHead className='text-center'>Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {classes?.map((cls, index) => (
+                  <TableRow key={cls._id}>
+                    {/* <TableCell>{startIndex + index + 1}</TableCell> */}
+                    <TableCell>{index + 1}</TableCell>
+                    <TableCell>{cls.name}</TableCell>
+                    <TableCell>
+                      {/* TODO: fix mainTeacherId */}
+                      {/* {cls.mainTeacherId
+                        ? `Teacher ID: ${cls.mainTeacherId}`
+                        : 'Non assigné'} */}
+                        Non assigné
+                    </TableCell>
+                    <TableCell className='flex justify-center'>
+                      <Badge variant={cls.isActive ? 'outline' : 'destructive'}>{cls.isActive ? 'Active' : 'Inactive'}</Badge>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex space-x-2 justify-center">
+                        <Button variant="outline" size="sm">
+                          Modifier
+                        </Button>
+                        <Button variant="outline" size="sm">
+                          Voir
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+              {classes?.map((cls) => (
+                <Card key={cls._id} className="p-4">
+                  <CardHeader className='p-0 pb-2'>
+                    <CardTitle>{cls.name}</CardTitle>
+                  </CardHeader>
+                  <CardContent className='p-0'>
+                    <Badge variant={cls.isActive ? 'outline' : 'destructive'}>{cls.isActive ? 'Active' : 'Inactive'}</Badge>
+                    <p className="text-sm mt-2">
                       {/* TODO: fix mainTeacherId */}
                             {/* {cls.mainTeacherId
                               ? `Teacher ID: ${cls.mainTeacherId}`
                               : 'Non assigné'} */}
-                              Non assigné
+                              PP: Non assigné
                     </p>
                     <div className="mt-2 flex space-x-2">
                       <Button variant="outline" size="sm">
@@ -229,11 +339,11 @@ export default function ClassesPage() {
                         Voir
                       </Button>
                     </div>
-                  </Card>
-                ))}
-              </div>
-            </TabsContent>
-          </Tabs>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
 
           {/* <Pagination
             currentPage={currentPage}
