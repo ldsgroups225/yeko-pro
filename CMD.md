@@ -1,3 +1,5 @@
+// cSpell:disable
+
 Data generation for the Yeko app.
 
 ## Generate a school
@@ -13,6 +15,16 @@ Data generation for the Yeko app.
   name: "Jules Verne",
   phone: "0707000000",
   stateId: "kn7cyeq1h4j7dm9rnkqpf7ervh76410b",
+}
+```
+
+## Generate a school member
+
+```json
+{
+  roleId: "jx7fcx8g6jb1zfkj9jtg03bk9h76dymw",
+  schoolId: "kh77tq1ybcnxmpre33fmwqwa4s765kqb",
+  userId: "k97dvyz7gxhn1pxyqgszh1za59765b1g",
 }
 ```
 

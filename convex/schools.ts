@@ -29,9 +29,7 @@ export const getStaffSchool = query({
     schoolId: v.optional(v.id("schools")),
   },
   handler: async (ctx, args) => {
-    if (ctx.viewer === null) {
-      return null;
-    }
+    if (ctx.viewer === null) throw new Error("Unauthorized");
 
     const schoolMembers = await ctx.viewer.edge("school_members");
 
@@ -55,6 +53,10 @@ export const getStaffSchool = query({
       (item) => item?.role === "Director",
     )?.school;
 
-    return adminSchool || directorSchool || null;
+    const school = adminSchool || directorSchool
+    
+    if (school === undefined) throw new Error("No school found");
+    
+    return school;
   },
 });

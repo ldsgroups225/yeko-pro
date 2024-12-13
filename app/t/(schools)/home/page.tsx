@@ -4,14 +4,15 @@ import { motion } from 'framer-motion';
 import { useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import { CurrentTime, QuickAccess, SchoolInfo } from './_components'
-import { useSchool } from '@/providers/SchoolProvider';
 
 
 /**
  * The main home page component.
  */
 const HomePage: React.FC = () => {
-  const { school, isLoading, error } = useSchool();
+  const school = useQuery(api.schools.getStaffSchool, {})
+  const isLoading = school === undefined
+
   
   const formattedSchool = {
     name: school?.name ?? '',
