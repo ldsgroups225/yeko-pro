@@ -35,6 +35,7 @@ import { useQuery } from 'convex/react'
 import { api } from '@/convex/_generated/api'
 import { Id } from '@/convex/_generated/dataModel'
 import { Separator } from '@/components/ui/separator'
+import { useSchool } from '@/providers/SchoolProvider'
 
 interface PaginationProps {
   currentPage: number
@@ -137,7 +138,7 @@ export default function ClassesPage() {
   const itemsPerPage = 10
   const [isTableViewMode, setIsTableViewMode] = useState(true); // State for view mode
 
-  const school = useQuery(api.schools.getStaffSchool, {});
+  const { school, isLoading, error } = useSchool();
   const grades = useQuery(api.grades.getGrades, { cycleId: schoolCycleId });
   const classes = useQuery(api.classes.getClasses, {
     schoolId: currentSchoolId,
