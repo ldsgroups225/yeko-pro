@@ -71,9 +71,9 @@ const schema = defineEntSchema(
     as: defineEnt({ ["b"]: v.any() }).index("b", ["b"]),
 
     cycles: defineEnt({
-      name: v.string(),
       description: v.string(),
     })
+      .field("name", v.string(), { unique: true })
       .edges("grades", { ref: true }),
 
     states: defineEnt({
@@ -98,7 +98,8 @@ const schema = defineEntSchema(
       email: v.string(),
       imageUrl: v.optional(v.string()),
     })
-      .edges('school_members', { ref: true }),
+      .edges('school_members', { ref: true })
+      .edges('classes', { ref: true }),
 
     school_members: defineEnt({})
       .edge('school')
@@ -112,6 +113,20 @@ const schema = defineEntSchema(
         // TODO: mainTeacherId: V.optional(v.id('teachers')),
       })
         .field('name', v.string(), { unique: true })
+        .field('isActive', v.boolean(), { default: false })
+        .edge('school'),
+      
+        schoolYears: defineEnt({
+          startDate: v.number(),
+          endDate: v.number(),
+        })
+          .field("academicYearName", v.string(), { unique: true })
+          .field("startYear", v.number(), { index: true })
+          .field("endYear", v.number(), { index: true })
+          .field("semesterCount", v.number(), { default: 3 })
+          .field("isCurrent", v.boolean(), { default: false })
+          .index('isCurrent', ['isCurrent'])
+          .index("byUniqueSchoolYear", ["startYear", "endYear"]),
   },
   { schemaValidation: true },
 );

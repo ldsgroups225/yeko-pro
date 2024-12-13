@@ -2,27 +2,23 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 
-// Define a more specific type for your school data using Ent
-import { DataModel } from '@/convex/_generated/dataModel'; // Import DataModel
+import { DataModel } from '@/convex/_generated/dataModel';
 type School = DataModel['schools']['document']
 
-// Updated interface to allow undefined
 interface ISchoolData {
-  school: School | null | undefined;
+  school: School | null;
   isLoading: boolean;
-  error: any; // You might want to define a more specific error type later
+  error: any; // TODO: define error type
 }
 
-// Create the context with the updated interface
 const SchoolContext = createContext<ISchoolData>({
   school: null,
   isLoading: true,
   error: null,
 });
 
-// Create the provider component
 export const SchoolProvider = ({ children }: { children: React.ReactNode }) => {
-  const [schoolData, setSchoolData] = useState<ISchoolData>({ // Add type here
+  const [schoolData, setSchoolData] = useState<ISchoolData>({
     school: null,
     isLoading: true,
     error: null,
@@ -40,7 +36,7 @@ export const SchoolProvider = ({ children }: { children: React.ReactNode }) => {
     } else {
       // Data is fetched
       setSchoolData({
-        school: fetchedSchool, // No need for casting anymore
+        school: fetchedSchool,
         isLoading: false,
         error: null,
       });

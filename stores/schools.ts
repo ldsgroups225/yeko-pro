@@ -1,21 +1,13 @@
+import { DataModel } from '@/convex/_generated/dataModel';
 import { atom, createStore, Atom, WritableAtom } from 'jotai';
 import { useHydrateAtoms } from 'jotai/utils';
 import { useMemo } from 'react';
 
+
 /**
  * Represents the data structure for a school.
- */
-interface ISchool {
-  cycleId: any;
-  stateId?: any;
-  name: string;
-  code: string;
-  phone: string;
-  email: string;
-  address?: string;
-  imageUrl?: string;
-  isTechnicalEducation?: boolean;
-}
+*/
+type School = DataModel['schools']['document']
 
 /**
  * Jotai atom to store the current user's ID.
@@ -27,7 +19,7 @@ const userAtom: WritableAtom<string | null, [string | null], void> = atom<string
  * Jotai atom to store the current school data.
  * Initialized to null, indicating no school is initially selected.
  */
-const schoolAtom: WritableAtom<ISchool | null, [ISchool | null], void> = atom<ISchool | null>(null);
+const schoolAtom: WritableAtom<School | null, [School | null], void> = atom<School | null>(null);
 
 /**
  * Jotai atom to store the timestamp when the school data was last cached.
@@ -55,7 +47,7 @@ const CACHE_DURATION: number = 60 * 60 * 1000;
  * // Basic usage without initial data:
  * const { getSchool, setSchool, clearSchool, schoolStore } = schoolStore();
  */
-export const schoolStore = (initialSchool?: ISchool, initialUser?: string) => {
+export const schoolStore = (initialSchool?: School, initialUser?: string) => {
   /**
    * Creates a Jotai store instance.
    *
@@ -89,9 +81,8 @@ export const schoolStore = (initialSchool?: ISchool, initialUser?: string) => {
    *
    * @returns The cached school data and user ID, or null if the cache is invalid or expired.
    */
-  const getSchool = (): (ISchool & { userId: string | null }) | null => {
+  const getSchool = (): School | null => {
     const currentSchool = schoolStore.get(schoolAtom);
-    const currentUser = schoolStore.get(userAtom);
     const cachedAt = schoolStore.get(cachedAtAtom);
     const currentTimestamp = Date.now();
 
@@ -100,7 +91,7 @@ export const schoolStore = (initialSchool?: ISchool, initialUser?: string) => {
       cachedAt > 0 &&
       (currentTimestamp - cachedAt) < CACHE_DURATION
     ) {
-      return { ...currentSchool, userId: currentUser ?? null };
+      return currentSchool;
     }
 
     return null;
@@ -112,7 +103,7 @@ export const schoolStore = (initialSchool?: ISchool, initialUser?: string) => {
    * @param school - (Optional) The school data to set. If null or undefined, it effectively clears the school data.
    * @param userId - (Optional) The user ID associated with the school. If null or undefined it will be cleared.
    */
-  const setSchool = (school?: ISchool, userId?: string): void => {
+  const setSchool = (school?: School, userId?: string): void => {
     schoolStore.set(schoolAtom, school ?? null);
     schoolStore.set(cachedAtAtom, school ? Date.now() : 0);
     schoolStore.set(userAtom, userId ?? null);
