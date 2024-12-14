@@ -29,7 +29,7 @@ export const SchoolYearSelector: React.FC<SchoolYearSelectorProps> = ({
 
   return (
     <Select value={selectedYear} onValueChange={handleYearChange}>
-      <SelectTrigger className="w-[180px]" aria-label="School Year">
+      <SelectTrigger className="w-[180px] text-secondary" aria-label="School Year">
         <SelectValue placeholder="Année scolaire" />
       </SelectTrigger>
       <SelectContent>
