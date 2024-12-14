@@ -9,6 +9,12 @@ import {
   ViewGridIcon,
   ViewHorizontalIcon,
 } from '@radix-ui/react-icons'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip'
 
 interface ActionsAndViewModeToggleProps {
   isTableViewMode: boolean
@@ -32,50 +38,80 @@ export const ActionsAndViewModeToggle: React.FC<ActionsAndViewModeToggleProps> =
   onUpload,
 }) => {
   return (
-    <div className="flex space-x-2">
-      <Button
-        variant="outline"
-        size="icon"
-        aria-label="Toggle View Mode"
-        onClick={onToggleViewMode}
-      >
-        {isTableViewMode ? (
-          <ViewHorizontalIcon width={16} height={16} />
-        ) : (
-          <ViewGridIcon width={16} height={16} />
+    <TooltipProvider>
+      <div className="flex space-x-2">
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="outline"
+              size="icon"
+              aria-label="Toggle View Mode"
+              onClick={onToggleViewMode}
+            >
+              {isTableViewMode ? (
+                <ViewHorizontalIcon width={16} height={16} />
+              ) : (
+                <ViewGridIcon width={16} height={16} />
+              )}
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>{isTableViewMode ? 'Vue en Grille' : 'Vue en Tableau'}</p>
+          </TooltipContent>
+        </Tooltip>
+        <Separator orientation="vertical" className="h-6 w-[1.5px]" />
+        {onArchive && (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="outline"
+                size="icon"
+                aria-label="Archive"
+                onClick={onArchive}
+              >
+                <ArchiveIcon width={16} height={16} />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Archive</p>
+            </TooltipContent>
+          </Tooltip>
         )}
-      </Button>
-      <Separator orientation="vertical" className="h-6 w-[1.5px]" />
-      {onArchive && (
-        <Button
-          variant="outline"
-          size="icon"
-          aria-label="Archive"
-          onClick={onArchive}
-        >
-          <ArchiveIcon width={16} height={16} />
-        </Button>
-      )}
-      {onDownload && (
-        <Button
-          variant="outline"
-          size="icon"
-          aria-label="Download"
-          onClick={onDownload}
-        >
-          <DownloadIcon width={16} height={16} />
-        </Button>
-      )}
-      {onUpload && (
-        <Button
-          variant="outline"
-          size="icon"
-          aria-label="Upload"
-          onClick={onUpload}
-        >
-          <UploadIcon width={16} height={16} />
-        </Button>
-      )}
-    </div>
+        {onDownload && (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="outline"
+                size="icon"
+                aria-label="Download"
+                onClick={onDownload}
+              >
+                <DownloadIcon width={16} height={16} />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Exporter</p>
+            </TooltipContent>
+          </Tooltip>
+        )}
+        {onUpload && (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="outline"
+                size="icon"
+                aria-label="Upload"
+                onClick={onUpload}
+              >
+                <UploadIcon width={16} height={16} />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Importer</p>
+            </TooltipContent>
+          </Tooltip>
+        )}
+      </div>
+    </TooltipProvider>
   )
 }
