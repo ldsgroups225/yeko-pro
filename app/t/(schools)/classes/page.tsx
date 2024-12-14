@@ -31,16 +31,16 @@ import {
   ViewHorizontalIcon,
 } from '@radix-ui/react-icons'
 import React, { useEffect, useState } from 'react'
-import { useQuery } from 'convex/react'
+import { usePaginatedQuery, useQuery } from 'convex/react'
 import { api } from '@/convex/_generated/api'
 import { Id } from '@/convex/_generated/dataModel'
 import { Separator } from '@/components/ui/separator'
 import { useSchool } from '@/providers/SchoolProvider'
 
 interface PaginationProps {
-  currentPage: number
-  totalPages: number
-  onPageChange: (page: number) => void
+  currentPage: number;
+  totalPages: number;
+  onPageChange: (page: number) => void;
 }
 
 const Pagination: React.FC<PaginationProps> = ({
@@ -123,49 +123,61 @@ const Pagination: React.FC<PaginationProps> = ({
         <ChevronRightIcon width={16} height={16} />
       </Button>
     </div>
-  )
-}
+  );
+};
 
 export default function ClassesPage() {
   const [selectedGrade, setSelectedGrade] = useState<Id<'grades'>>()
   const [schoolCycleId, setSchoolCycleId] = useState<Id<'cycles'>>()
-  const [classesActiveState, setClassesActiveState] = useState<boolean | undefined>(undefined)
-  const [hasMainTeacher, setHasMainTeacher] = useState<boolean | undefined>(undefined);
+  const [classesActiveState, setClassesActiveState] = useState<boolean | undefined>(undefined);
+  const [hasMainTeacher, setHasMainTeacher] = useState<boolean | undefined>(undefined); // Currently not in use, but you can uncomment the filter in convex/classes.ts
   const [currentSchoolId, setCurrentSchoolId] = useState<Id<'schools'>>()
   const [searchTerm, setSearchTerm] = useState<string>('')
   const [selectedYear, setSelectedYear] = useState<string>('2024-2025')
   const [currentPage, setCurrentPage] = useState(1)
   const itemsPerPage = 10
-  const [isTableViewMode, setIsTableViewMode] = useState(true); // State for view mode
+  const [isTableViewMode, setIsTableViewMode] = useState(true);
 
-  const { school, isLoading, error } = useSchool();
+  const { school, isLoading: schoolLoading, error: schoolError } = useSchool();
   const grades = useQuery(api.grades.getGrades, { cycleId: schoolCycleId });
-  const classes = useQuery(api.classes.getClasses, {
-    schoolId: currentSchoolId,
-    gradeId: selectedGrade,
-    isActive: classesActiveState,
-    hasMainTeacher: hasMainTeacher,
-    // search: searchTerm
-  });
-
-  // // Pagination logic
-  // const totalPages = Math.ceil((filteredClasses?.length ?? 0) / itemsPerPage);
-  // const startIndex = (currentPage - 1) * itemsPerPage;
-  // const endIndex = startIndex + itemsPerPage;
-  // const classes = filteredClasses?.slice(startIndex, endIndex);
+  const { results, status, loadMore } = usePaginatedQuery(
+    api.classes.getClasses,
+    {
+      schoolId: currentSchoolId,
+      gradeId: selectedGrade,
+      isActive: classesActiveState,
+      hasMainTeacher: hasMainTeacher,
+      search: searchTerm,
+      paginationOpts: {
+        numItems: itemsPerPage,
+        cursor: null,
+      }
+    },
+    { initialNumItems: itemsPerPage }
+  );
 
   useEffect(() => {
     setCurrentSchoolId(school?._id)
     setSchoolCycleId(school?.cycleId)
   }, [school])
 
-  // // Reset current page when filters change
-  // useEffect(() => {
-  //   setCurrentPage(1);
-  // }, [selectedGrade, searchTerm, classesActiveState, hasMainTeacher, classes]);
+  // Reset current page when filters change, excluding the pagination itself
+  useEffect(() => {
+    if (currentPage !== 1) {
+      setCurrentPage(1);
+    }
+  }, [selectedGrade, searchTerm, classesActiveState, hasMainTeacher]);
+
+  if (schoolLoading) {
+    return <div>Loading school data...</div>;
+  }
+
+  if (schoolError) {
+    return <div>Error loading school: {schoolError.message}</div>;
+  }
 
   return (
-    <div className="space-y-6 p-6 min-h-screen bg-orange-50">
+    <div className="space-y-2 px-6 py-2 h-full bg-orange-50">
       <div className="flex justify-end items-center">
         <div className="flex items-center space-x-2">
           <Button variant="outline" size="icon" aria-label="Profile">
@@ -191,8 +203,8 @@ export default function ClassesPage() {
             <PlusIcon className="mr-2 h-4 w-4" /> Nouvelle classe
           </Button>
         </CardHeader>
-        <CardContent className="p-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+        <CardContent className="px-6 py-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-3">
             <div>
               <label htmlFor="grade-select" className="text-sm font-medium block mb-2">Niveau</label>
               <Select value={selectedGrade} onValueChange={(value) => setSelectedGrade(value === '' ? undefined : value as Id<'grades'>)}>
@@ -238,7 +250,7 @@ export default function ClassesPage() {
                 </Select>
               </div>
               
-              <div>
+              <div className="hidden">
                 <label htmlFor="has-main-teacher-filter" className="text-sm font-medium">PP:</label>
                 <Select value={hasMainTeacher === undefined ? '' : hasMainTeacher.toString()} onValueChange={(value) => setHasMainTeacher(value === '' ? undefined : value === 'true')}>
                   <SelectTrigger className="w-[180px]" aria-label="Filter by Main Teacher">
@@ -275,9 +287,11 @@ export default function ClassesPage() {
           </div>
 
           {/* Conditional Rendering based on View Mode */}
-          {isTableViewMode ? (
-            <Table>
-              <TableHeader>
+          {status === "LoadingFirstPage" && <div>Loading...</div>}
+          {status !== "LoadingFirstPage" &&
+            (isTableViewMode ? (
+              <Table>
+                <TableHeader>
                 <TableRow>
                   <TableHead>N°</TableHead>
                   <TableHead>Nom de la classe</TableHead>
@@ -286,24 +300,44 @@ export default function ClassesPage() {
                   <TableHead className='text-center'>Actions</TableHead>
                 </TableRow>
               </TableHeader>
-              <TableBody>
-                {classes?.map((cls, index) => (
-                  <TableRow key={cls._id}>
-                    {/* <TableCell>{startIndex + index + 1}</TableCell> */}
-                    <TableCell>{index + 1}</TableCell>
-                    <TableCell>{cls.name}</TableCell>
-                    <TableCell>
-                      {/* TODO: fix mainTeacherId */}
-                      {/* {cls.mainTeacherId
-                        ? `Teacher ID: ${cls.mainTeacherId}`
-                        : 'Non assigné'} */}
+                <TableBody>
+                  {results?.map((cls, index) => (
+                    <TableRow key={cls._id}>
+                      <TableCell>{index + 1}</TableCell>
+                      <TableCell>{cls.name}</TableCell>
+                      <TableCell>
                         Non assigné
-                    </TableCell>
-                    <TableCell className='flex justify-center'>
+                      </TableCell>
+                      <TableCell className='flex justify-center'>
+                        <Badge variant={cls.isActive ? 'outline' : 'destructive'}>{cls.isActive ? 'Active' : 'Inactive'}</Badge>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex space-x-2 justify-center">
+                          <Button variant="outline" size="sm">
+                            Modifier
+                          </Button>
+                          <Button variant="outline" size="sm">
+                            Voir
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                {results?.map((cls) => (
+                  <Card key={cls._id} className="p-4">
+                    <CardHeader className='p-0 pb-2'>
+                      <CardTitle>{cls.name}</CardTitle>
+                    </CardHeader>
+                    <CardContent className='p-0'>
                       <Badge variant={cls.isActive ? 'outline' : 'destructive'}>{cls.isActive ? 'Active' : 'Inactive'}</Badge>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex space-x-2 justify-center">
+                      <p className="text-sm mt-2">
+                        PP: Non assigné
+                      </p>
+                      <div className="mt-2 flex space-x-2">
                         <Button variant="outline" size="sm">
                           Modifier
                         </Button>
@@ -311,46 +345,25 @@ export default function ClassesPage() {
                           Voir
                         </Button>
                       </div>
-                    </TableCell>
-                  </TableRow>
+                    </CardContent>
+                  </Card>
                 ))}
-              </TableBody>
-            </Table>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-              {classes?.map((cls) => (
-                <Card key={cls._id} className="p-4">
-                  <CardHeader className='p-0 pb-2'>
-                    <CardTitle>{cls.name}</CardTitle>
-                  </CardHeader>
-                  <CardContent className='p-0'>
-                    <Badge variant={cls.isActive ? 'outline' : 'destructive'}>{cls.isActive ? 'Active' : 'Inactive'}</Badge>
-                    <p className="text-sm mt-2">
-                      {/* TODO: fix mainTeacherId */}
-                            {/* {cls.mainTeacherId
-                              ? `Teacher ID: ${cls.mainTeacherId}`
-                              : 'Non assigné'} */}
-                              PP: Non assigné
-                    </p>
-                    <div className="mt-2 flex space-x-2">
-                      <Button variant="outline" size="sm">
-                        Modifier
-                      </Button>
-                      <Button variant="outline" size="sm">
-                        Voir
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          )}
+              </div>
+            ))}
 
-          {/* <Pagination
-            currentPage={currentPage}
-            totalPages={totalPages}
-            onPageChange={setCurrentPage}
-          /> */}
+          {/* Pagination Controls */}
+          {status !== "LoadingFirstPage" && (
+            <Pagination
+              currentPage={currentPage}
+              totalPages={status === "Exhausted" ? currentPage : currentPage + 1}
+              onPageChange={(newPage) => {
+                if (newPage > currentPage) {
+                  loadMore(itemsPerPage);
+                }
+                setCurrentPage(newPage);
+              }}
+            />
+          )}
         </CardContent>
       </Card>
     </div>
