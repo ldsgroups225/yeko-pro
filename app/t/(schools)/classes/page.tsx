@@ -1,23 +1,17 @@
 'use client'
 
+import { useDebouncedCallback } from 'use-debounce';
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import {
-  ArchiveIcon,
-  DownloadIcon,
   PersonIcon,
   PlusIcon,
-  UploadIcon,
-  ViewGridIcon,
-  ViewHorizontalIcon,
 } from '@radix-ui/react-icons'
-import { Separator } from '@/components/ui/separator'
 import { useClassesData, useSchool } from '@/hooks'
 import { SchoolYearSelector } from '@/components/SchoolYearSelector'
 import { ClassesFilters, ClassesTable, ClassesGrid } from './_components'
 import { Pagination } from '@/components/Pagination'
-import { useState } from 'react'
-import { ActionsAndViewModeToggle } from '@/components/ActionsAndViewModeToggle'
+import { useEffect, useState } from 'react'
 
 const ITEMS_PER_PAGE = 10
 
@@ -29,6 +23,7 @@ const ITEMS_PER_PAGE = 10
 export default function ClassesPage() {
   const [selectedYear, setSelectedYear] = useState<string>('2024-2025')
   const [isTableViewMode, setIsTableViewMode] = useState(true)
+  const [localeSearch, setLocaleSearch] = useState('')
   const {
     grades,
     results,
@@ -49,9 +44,16 @@ export default function ClassesPage() {
 
   const { isLoading: schoolLoading, error: schoolError } = useSchool()
 
-  if (schoolLoading) {
-    return <div>Loading school data...</div>
-  }
+
+  const handleSearch = useDebouncedCallback((term: string) => {
+    setSearchTerm(term)
+  }, 500)
+
+  // watch locale search changes then update searchTerm with debounced callback
+
+  useEffect(() => {
+    handleSearch(localeSearch)
+  }, [localeSearch])
 
   if (schoolError) {
     return <div>Error loading school: {schoolError.message}</div>
@@ -86,8 +88,8 @@ export default function ClassesPage() {
             onGradeChange={(value) =>
               setSelectedGrade(value === '' ? undefined : value)
             }
-            searchTerm={searchTerm}
-            onSearchTermChange={setSearchTerm}
+            searchTerm={localeSearch}
+            onSearchTermChange={setLocaleSearch}
             classesActiveState={classesActiveState}
             onClassesActiveStateChange={setClassesActiveState}
             hasMainTeacher={hasMainTeacher}
@@ -97,13 +99,13 @@ export default function ClassesPage() {
           />
 
           {/* Conditional Rendering based on View Mode */}
-          {status === 'LoadingFirstPage' && <div>Loading...</div>}
-          {status !== 'LoadingFirstPage' &&
-            (isTableViewMode ? (
-              <ClassesTable classes={results} />
-            ) : (
-              <ClassesGrid classes={results} />
-            ))}
+          {(
+            isTableViewMode ? (
+            <ClassesTable classes={results} isLoading={status === 'LoadingFirstPage'} />
+          ) : (
+            <ClassesGrid classes={results} isLoading={status === 'LoadingFirstPage'} />
+            )
+          )}
 
           {/* Pagination Controls */}
           {status !== 'LoadingFirstPage' && (

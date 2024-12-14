@@ -70,6 +70,7 @@
     "tailwindcss": "3.3.3",
     "tailwindcss-animate": "^1.0.7",
     "typescript": "^5.3.3",
+    "use-debounce": "^10.0.4",
     "usehooks-ts": "^2.10.0",
     "zod": "^3.22.4"
   },

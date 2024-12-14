@@ -114,7 +114,11 @@ const schema = defineEntSchema(
       })
         .field('name', v.string(), { unique: true })
         .field('isActive', v.boolean(), { default: false })
-        .edge('school'),
+        .edge('school')
+        .searchIndex("searchable", {
+          searchField: "name",
+          filterFields: ["schoolId"],
+        }),
       
         schoolYears: defineEnt({
           startDate: v.number(),

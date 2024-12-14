@@ -39,7 +39,7 @@ export const ActionsAndViewModeToggle: React.FC<ActionsAndViewModeToggleProps> =
 }) => {
   return (
     <TooltipProvider>
-      <div className="flex space-x-2">
+      <div className="flex items-center space-x-2">
         <Tooltip>
           <TooltipTrigger asChild>
             <Button

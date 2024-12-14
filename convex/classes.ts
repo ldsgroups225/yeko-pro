@@ -1,6 +1,7 @@
 import { query } from "./functions";
 import { v } from "convex/values";
 import { paginationOptsValidator } from "convex/server";
+import { normalizeStringForSearch } from "./utils";
 
 export const getClasses = query({
   args: {
@@ -30,9 +31,18 @@ export const getClasses = query({
       };
     }
 
-    let classesQuery = ctx.table("classes", "schoolId", (q) =>
-      q.eq("schoolId", args.schoolId!)
-    );
+    let classesQuery
+
+    if (args.search !== undefined && args.search !== "") {
+      classesQuery = ctx.table('classes').search(
+        'searchable',
+        (q) => q.search('name', normalizeStringForSearch(args.search))
+      )
+    } else {
+      classesQuery = ctx.table("classes", "schoolId", (q) =>
+        q.eq("schoolId", args.schoolId!)
+      );
+    }
 
     if (args.gradeId !== undefined) {
       classesQuery = classesQuery.filter((q) =>

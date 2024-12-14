@@ -8,9 +8,14 @@ import {
 } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
 import { ClassTableRowActions } from './ClassTableRowActions'
+import { DataModel } from '@/convex/_generated/dataModel'
+import { Skeleton } from '@/components/ui/skeleton'
+
+type IClass = DataModel['classes']['document']
 
 interface ClassesTableProps {
-  classes: any[] | undefined // Replace 'any' with your actual Class type
+  classes?: IClass[]
+  isLoading: boolean
 }
 
 /**
@@ -19,7 +24,10 @@ interface ClassesTableProps {
  * @param {ClassesTableProps} props - The component props.
  * @returns {JSX.Element} The rendered component.
  */
-export const ClassesTable: React.FC<ClassesTableProps> = ({ classes }) => {
+export const ClassesTable: React.FC<ClassesTableProps> = ({
+  classes,
+  isLoading,
+}) => {
   return (
     <Table>
       <TableHeader>
@@ -32,21 +40,45 @@ export const ClassesTable: React.FC<ClassesTableProps> = ({ classes }) => {
         </TableRow>
       </TableHeader>
       <TableBody>
-        {classes?.map((cls, index) => (
-          <TableRow key={cls._id}>
-            <TableCell>{index + 1}</TableCell>
-            <TableCell>{cls.name}</TableCell>
-            <TableCell>Non assigné</TableCell>
-            <TableCell className="flex justify-center">
-              <Badge variant={cls.isActive ? 'outline' : 'destructive'}>
-                {cls.isActive ? 'Active' : 'Inactive'}
-              </Badge>
-            </TableCell>
-            <TableCell>
-              <ClassTableRowActions />
-            </TableCell>
-          </TableRow>
-        ))}
+        {isLoading ? (
+          <>
+            {Array.from({ length: 10 }).map((_, index) => (
+              <TableRow key={index}>
+                <TableCell>
+                  <Skeleton className="h-4 w-[20px]" />
+                </TableCell>
+                <TableCell>
+                  <Skeleton className="h-4 w-[150px]" />
+                </TableCell>
+                <TableCell>
+                  <Skeleton className="h-4 w-[100px]" />
+                </TableCell>
+                <TableCell className="flex justify-center">
+                  <Skeleton className="h-7 w-[80px] rounded-md" />
+                </TableCell>
+                <TableCell>
+                  <Skeleton className="h-7 w-[100px] rounded-md" />
+                </TableCell>
+              </TableRow>
+            ))}
+          </>
+        ) : (
+          classes?.map((cls, index) => (
+            <TableRow key={cls._id}>
+              <TableCell>{index + 1}</TableCell>
+              <TableCell>{cls.name}</TableCell>
+              <TableCell>Non assigné</TableCell>
+              <TableCell className="flex justify-center">
+                <Badge variant={cls.isActive ? 'outline' : 'destructive'}>
+                  {cls.isActive ? 'Active' : 'Inactive'}
+                </Badge>
+              </TableCell>
+              <TableCell>
+                <ClassTableRowActions />
+              </TableCell>
+            </TableRow>
+          ))
+        )}
       </TableBody>
     </Table>
   )
