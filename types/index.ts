@@ -1,3 +1,5 @@
+export * from './convexTypes'
+
 export interface Classes {
   id: string; // uuid
   schoolId: string; // uuid

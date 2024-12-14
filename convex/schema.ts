@@ -115,6 +115,7 @@ const schema = defineEntSchema(
         .field('name', v.string(), { unique: true })
         .field('isActive', v.boolean(), { default: false })
         .edge('school')
+        .index("by_gradeId", ["gradeId"])
         .searchIndex("searchable", {
           searchField: "name",
           filterFields: ["schoolId"],

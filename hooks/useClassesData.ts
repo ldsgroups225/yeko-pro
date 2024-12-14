@@ -50,7 +50,7 @@ export const useClassesData = ({
   const itemsPerPage = initialItemsPerPage
   const [isTableViewMode, setIsTableViewMode] = useState(true)
 
-  const { school, isLoading: schoolLoading, error: schoolError } = useSchool()
+  const { school } = useSchool()
   const grades = useQuery(api.grades.getGrades, { cycleId: school?.cycleId })
   const { results, status, loadMore } = usePaginatedQuery(
     api.classes.getClasses,

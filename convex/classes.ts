@@ -1,4 +1,4 @@
-import { query } from "./functions";
+import { mutation, query } from "./functions";
 import { v } from "convex/values";
 import { paginationOptsValidator } from "convex/server";
 import { normalizeStringForSearch } from "./utils";
@@ -70,5 +70,24 @@ export const getClasses = query({
     const page = await classesQuery.paginate(args.paginationOpts);
 
     return page;
+  },
+});
+
+export const createClass = mutation({
+  args: {
+    name: v.string(),
+    schoolId: v.id('schools'),
+    gradeId: v.id('grades'),
+  },
+  handler: async (ctx, args) => {
+    const newClassId = await ctx.table('classes')
+    .insert({
+      'name': args.name,
+      schoolId: args.schoolId,
+      gradeId: args.gradeId,
+      isActive: false
+    })
+
+    return newClassId;
   },
 });
