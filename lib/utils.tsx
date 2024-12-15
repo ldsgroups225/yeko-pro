@@ -1,29 +1,56 @@
-import { type ClassValue, clsx } from "clsx";
-import { ForwardRefRenderFunction, forwardRef } from "react";
-import { twMerge } from "tailwind-merge";
+import {
+  type ClassValue,
+  clsx,
+} from 'clsx'
+import {
+  createElement,
+  type ElementType,
+  type HTMLAttributes,
+  type ReactNode,
+} from 'react'
+import { twMerge } from 'tailwind-merge'
 
-export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs));
+/**
+ * Combines multiple class names using clsx and tailwind-merge
+ * @param inputs - Class names or conditional classes
+ * @returns Merged class names string
+ */
+export function cn(...inputs: ClassValue[]): string {
+  return twMerge(clsx(inputs))
 }
 
-// forward refs
-export function fr<T = HTMLElement, P = React.HTMLAttributes<T>>(
-  component: ForwardRefRenderFunction<T, P>
-) {
-  const wrapped = forwardRef(component);
-  wrapped.displayName = component.name;
-  return wrapped;
-}
-
-// styled element
+/**
+ * Creates a styled HTML element component with ref support
+ * @param tag - HTML tag name
+ * @param classNames - Additional class names to apply
+ * @returns Styled component
+ */
 export function se<
   T = HTMLElement,
-  P extends React.HTMLAttributes<T> = React.HTMLAttributes<T>
->(Tag: keyof React.ReactHTML, ...classNames: ClassValue[]) {
-  const component = fr<T, P>(({ className, ...props }, ref) => (
-    // @ts-expect-error Too complicated for TypeScript
-    <Tag ref={ref} className={cn(...classNames, className)} {...props} />
-  ));
-  component.displayName = Tag[0].toUpperCase() + Tag.slice(1);
-  return component;
+  P extends HTMLAttributes<T> = HTMLAttributes<T>,
+>(tag: ElementType, ...classNames: ClassValue[]) {
+  // Use a more explicit type definition
+  const StyledComponent = function ({
+    className,
+    ref,
+    children,
+    ...props
+  }: P & { ref?: React.Ref<T>, children?: ReactNode }) {
+    const combinedClassName = cn(...classNames, className)
+    return createElement(tag, {
+      ref,
+      className: combinedClassName,
+      ...props,
+      children,
+    })
+  } as React.FC<P & { ref?: React.Ref<T>, children?: ReactNode }>
+
+  // Generate a meaningful display name
+  StyledComponent.displayName = `Styled${
+    typeof tag === 'string'
+      ? tag.charAt(0).toUpperCase() + tag.slice(1)
+      : tag.toString()
+  }`
+
+  return StyledComponent
 }

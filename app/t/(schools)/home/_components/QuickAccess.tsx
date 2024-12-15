@@ -1,26 +1,25 @@
-'use client';
+'use client'
 
-import QuickAccessButton from './QuickAccessButton';
 import {
-  BellIcon,
-  PersonIcon,
-  CalendarIcon,
-  ClockIcon,
-  BarChartIcon,
-  FileTextIcon,
   BackpackIcon,
+  BarChartIcon,
+  BellIcon,
+  CalendarIcon,
   ChatBubbleIcon,
+  ClockIcon,
+  FileTextIcon,
   MixIcon,
-} from '@radix-ui/react-icons';
-
+  PersonIcon,
+} from '@radix-ui/react-icons'
+import QuickAccessButton from './QuickAccessButton'
 
 /**
  * Represents a button in the quick access section.
  */
 interface QuickAccessButtonProps {
-  icon: React.ReactNode;
-  label: string;
-  href: string;
+  icon: React.ReactNode
+  label: string
+  href: string
 }
 
 /**
@@ -72,9 +71,7 @@ const quickAccessButtonsData: QuickAccessButtonProps[] = [
     label: 'Discussion',
     href: '/discussion',
   },
-];
-
-
+]
 
 /**
  * Displays the quick access buttons.
@@ -82,7 +79,7 @@ const quickAccessButtonsData: QuickAccessButtonProps[] = [
 export const QuickAccess: React.FC<{ isLoading: boolean }> = ({ isLoading }) => {
   return (
     <div className="grid grid-cols-2 md:grid-cols-3 gap-4 w-full md:w-3/5 mb-6 md:mb-0">
-      {quickAccessButtonsData.map((button) => (
+      {quickAccessButtonsData.map(button => (
         <QuickAccessButton
           key={button.label.replaceAll(' ', '-').toLowerCase()}
           disabled={isLoading}
@@ -90,5 +87,5 @@ export const QuickAccess: React.FC<{ isLoading: boolean }> = ({ isLoading }) => 
         />
       ))}
     </div>
-  );
-};
+  )
+}

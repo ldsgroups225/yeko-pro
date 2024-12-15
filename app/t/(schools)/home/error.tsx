@@ -1,7 +1,6 @@
 'use client'
 
-import { useEffect } from 'react'
-import Link from 'next/link';
+import { Button } from '@/components/ui/button'
 import {
   Card,
   CardContent,
@@ -9,17 +8,18 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card"
-import {Button} from "@/components/ui/button"
+} from '@/components/ui/card'
+import Link from 'next/link'
+import { useEffect } from 'react'
 
 interface ErrorProps {
-  error: Error & { digest?: string };
-  reset: () => void;
+  error: Error & { digest?: string }
+  reset: () => void
 }
 
 export default function Error({ error, reset }: ErrorProps) {
-  const isUnauthorizedError = error.message.includes('Unauthorized');
-  const isNoSchoolFoundError = error.message.includes('No school found');
+  const isUnauthorizedError = error.message.includes('Unauthorized')
+  const isNoSchoolFoundError = error.message.includes('No school found')
 
   useEffect(() => {
     console.error(error)
@@ -43,7 +43,7 @@ export default function Error({ error, reset }: ErrorProps) {
           {isNoSchoolFoundError && (
             <>
               <CardDescription>
-               Vous ne figurez pas dans l'école une école ou n'avez pas accès à cette page. Veuillez vous connecter avec les informations d'identification appropriées.
+                Vous ne figurez pas dans l'école une école ou n'avez pas accès à cette page. Veuillez vous connecter avec les informations d'identification appropriées.
               </CardDescription>
             </>
           )}
@@ -57,25 +57,27 @@ export default function Error({ error, reset }: ErrorProps) {
           )}
         </CardContent>
         <CardFooter className="flex justify-between">
-          {isUnauthorizedError ? (
-            <Button asChild>
-              <Link href="/login">
-                Se connecter
-              </Link>
-            </Button>
-          ) : (
-            <div className="flex gap-2 items-center justify-between w-full">
-              <Button onClick={reset} variant="ghost">
-                Réessayer
-              </Button>
+          {isUnauthorizedError
+            ? (
+                <Button asChild>
+                  <Link href="/login">
+                    Se connecter
+                  </Link>
+                </Button>
+              )
+            : (
+                <div className="flex gap-2 items-center justify-between w-full">
+                  <Button onClick={reset} variant="ghost">
+                    Réessayer
+                  </Button>
 
-              <Button onClick={reset} variant="secondary">
-                Se déconnecter
-              </Button>
-            </div>
-          )}
+                  <Button onClick={reset} variant="secondary">
+                    Se déconnecter
+                  </Button>
+                </div>
+              )}
         </CardFooter>
       </Card>
     </div>
-  );
+  )
 }

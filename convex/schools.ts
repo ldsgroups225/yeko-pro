@@ -1,5 +1,5 @@
-import { query } from "./functions";
-import { v } from "convex/values";
+import { v } from 'convex/values'
+import { query } from './functions'
 
 /**
  * Retrieves the school associated with the currently logged-in staff member.
@@ -26,37 +26,39 @@ import { v } from "convex/values";
  */
 export const getStaffSchool = query({
   args: {
-    schoolId: v.optional(v.id("schools")),
+    schoolId: v.optional(v.id('schools')),
   },
   handler: async (ctx, args) => {
-    if (ctx.viewer === null) throw new Error("Unauthorized");
+    if (ctx.viewer === null)
+      throw new Error('Unauthorized')
 
-    const schoolMembers = await ctx.viewer.edge("school_members");
+    const schoolMembers = await ctx.viewer.edge('school_members')
 
     const schools = await Promise.all(
       schoolMembers.map(async (schoolMember) => {
-        const role = await schoolMember.edge("role");
-        const school = await schoolMember.edge("school");
+        const role = await schoolMember.edge('role')
+        const school = await schoolMember.edge('school')
 
         if (args.schoolId && school._id !== args.schoolId) {
-          return null;
+          return null
         }
 
-        return { school, role: role.name };
+        return { school, role: role.name }
       }),
-    );
+    )
 
-    let adminSchool = schools.find(
-      (item) => item?.role === "Admin",
-    )?.school;
-    let directorSchool = schools.find(
-      (item) => item?.role === "Director",
-    )?.school;
+    const adminSchool = schools.find(
+      item => item?.role === 'Admin',
+    )?.school
+    const directorSchool = schools.find(
+      item => item?.role === 'Director',
+    )?.school
 
     const school = adminSchool || directorSchool
-    
-    if (school === undefined) throw new Error("No school found");
-    
-    return school;
+
+    if (school === undefined)
+      throw new Error('No school found')
+
+    return school
   },
-});
+})

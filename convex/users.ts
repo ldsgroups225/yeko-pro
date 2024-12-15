@@ -1,12 +1,12 @@
-import { internalMutation, mutation } from "./functions";
-import { getUniqueSlug } from "./users/teams";
+import { internalMutation, mutation } from './functions'
+import { getUniqueSlug } from './users/teams'
 
 export const store = mutation({
   args: {},
   handler: async (ctx) => {
-    const identity = await ctx.auth.getUserIdentity();
+    const identity = await ctx.auth.getUserIdentity()
     if (identity === null) {
-      throw new Error("Called api.users.store without valid auth token");
+      throw new Error('Called api.users.store without valid auth token')
     }
 
     // const existingUser = await ctx
@@ -16,10 +16,10 @@ export const store = mutation({
     //   return defaultToAccessTeamSlug(existingUser);
     // }
     if (identity.email === undefined) {
-      throw new Error("User does not have an email address");
+      throw new Error('User does not have an email address')
     }
-    let user = await ctx.table("users").get("email", identity.email);
-    const nameFallback = emailUserName(identity.email);
+    let user = await ctx.table('users').get('email', identity.email)
+    const nameFallback = emailUserName(identity.email)
     const userFields = {
       fullName: identity.name ?? nameFallback,
       tokenIdentifier: identity.tokenIdentifier,
@@ -27,14 +27,16 @@ export const store = mutation({
       pictureUrl: identity.pictureUrl,
       firstName: identity.givenName,
       lastName: identity.familyName,
-    };
-    if (user !== null) {
-      await user.patch({ ...userFields, deletionTime: undefined });
-    } else {
-      user = await ctx.table("users").insert(userFields).get();
     }
-    const name = `${user.firstName ?? nameFallback}'s Team`;
-    const slug = await getUniqueSlug(ctx, identity.nickname ?? name);
+    if (user !== null) {
+      await user.patch({ ...userFields, deletionTime: undefined })
+    }
+    else {
+      user = await ctx.table('users').insert(userFields).get()
+    }
+
+    const name = `${user.firstName ?? nameFallback}'s Team`
+    const slug = await getUniqueSlug(ctx, identity.nickname ?? name)
     // const teamId = await ctx
     //   .table("teams")
     //   .insert({ name, slug, isPersonal: true });
@@ -44,17 +46,17 @@ export const store = mutation({
     //   user,
     //   roleId: (await getRole(ctx, "Admin"))._id,
     // });
-    return slug;
+    return slug
   },
-});
+})
 
 function emailUserName(email: string) {
-  return email.split("@")[0];
+  return email.split('@')[0]
 }
 
 export const foo = internalMutation({
   args: {},
   handler: async (ctx) => {
-    await ctx.table("as", "b", (q) => q.eq("_creationTime" as any, 3 as any));
+    await ctx.table('as', 'b', q => q.eq('_creationTime' as any, 3 as any))
   },
-});
+})

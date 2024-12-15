@@ -1,1 +1,1 @@
-export const INVITE_PARAM = "invite";
+export const INVITE_PARAM = 'invite'

@@ -1,7 +1,12 @@
-import React from 'react'
-
 import { Button } from '@/components/ui/button'
+
 import { Separator } from '@/components/ui/separator'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip'
 import {
   ArchiveIcon,
   DownloadIcon,
@@ -9,12 +14,7 @@ import {
   ViewGridIcon,
   ViewHorizontalIcon,
 } from '@radix-ui/react-icons'
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip'
+import React from 'react'
 
 interface ActionsAndViewModeToggleProps {
   isTableViewMode: boolean
@@ -48,11 +48,13 @@ export const ActionsAndViewModeToggle: React.FC<ActionsAndViewModeToggleProps> =
               aria-label="Toggle View Mode"
               onClick={onToggleViewMode}
             >
-              {isTableViewMode ? (
-                <ViewHorizontalIcon width={16} height={16} />
-              ) : (
-                <ViewGridIcon width={16} height={16} />
-              )}
+              {isTableViewMode
+                ? (
+                    <ViewHorizontalIcon width={16} height={16} />
+                  )
+                : (
+                    <ViewGridIcon width={16} height={16} />
+                  )}
             </Button>
           </TooltipTrigger>
           <TooltipContent>

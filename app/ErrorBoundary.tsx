@@ -1,6 +1,7 @@
-import { Code } from "@/components/typography/code";
-import { Link } from "@/components/typography/link";
-import { Component, ReactNode } from "react";
+import type { ReactNode } from 'react'
+import { Code } from '@/components/typography/code'
+import { Link } from '@/components/typography/link'
+import { Component } from 'react'
 
 // NOTE: Once you get Clerk working you can remove this error boundary
 export class ErrorBoundary extends Component<
@@ -8,43 +9,56 @@ export class ErrorBoundary extends Component<
   { error: ReactNode | null }
 > {
   constructor(props: { children: ReactNode }) {
-    super(props);
-    this.state = { error: null };
+    super(props)
+    this.state = { error: null }
   }
 
   static getDerivedStateFromError(error: unknown) {
-    const errorText = "" + (error as string).toString();
+    const errorText = `${(error as string).toString()}`
     if (
-      errorText.includes("@clerk/clerk-react") &&
-      errorText.includes("publishableKey")
+      errorText.includes('@clerk/clerk-react')
+      && errorText.includes('publishableKey')
     ) {
-      const [clerkDashboardUrl] = errorText.match(/https:\S+/) ?? [];
+      const [clerkDashboardUrl] = errorText.match(/https:\S+/) ?? []
       return {
         error: (
           <>
             <p>
-              Add{" "}
+              Add
+              {' '}
               <Code>
-                NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY={'"<your publishable key>"'}
-              </Code>{" "}
-              to the <Code>.env.local</Code> file
+                NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=
+                {'"<your publishable key>"'}
+              </Code>
+              {' '}
+              to the
+              {' '}
+              <Code>.env.local</Code>
+              {' '}
+              file
             </p>
-            {clerkDashboardUrl ? (
-              <p>
-                You can find it at{" "}
-                <Link href={clerkDashboardUrl} target="_blank">
-                  {clerkDashboardUrl}
-                </Link>
-              </p>
-            ) : null}
-            <p className="pl-8 text-muted-foreground">Raw error: {errorText}</p>
+            {clerkDashboardUrl
+              ? (
+                  <p>
+                    You can find it at
+                    {' '}
+                    <Link href={clerkDashboardUrl} target="_blank">
+                      {clerkDashboardUrl}
+                    </Link>
+                  </p>
+                )
+              : null}
+            <p className="pl-8 text-muted-foreground">
+              Raw error:
+              {errorText}
+            </p>
           </>
         ),
-      };
+      }
     }
 
     // propagate error to Next.js provided error boundary
-    throw error;
+    throw error
   }
 
   componentDidCatch() {}
@@ -58,9 +72,9 @@ export class ErrorBoundary extends Component<
           </h1>
           {this.state.error}
         </div>
-      );
+      )
     }
 
-    return this.props.children;
+    return this.props.children
   }
 }

@@ -1,2 +1,2 @@
 export * from './useClassesData'
-export { useSchool } from '@/providers/SchoolProvider'
+export { useSchool } from './useSchool'

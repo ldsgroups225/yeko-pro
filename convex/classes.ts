@@ -1,12 +1,12 @@
-import { mutation, query } from "./functions";
-import { v } from "convex/values";
-import { paginationOptsValidator } from "convex/server";
-import { normalizeStringForSearch } from "./utils";
+import { paginationOptsValidator } from 'convex/server'
+import { v } from 'convex/values'
+import { mutation, query } from './functions'
+import { normalizeStringForSearch } from './utils'
 
 export const getClasses = query({
   args: {
-    schoolId: v.optional(v.id("schools")),
-    gradeId: v.optional(v.id("grades")),
+    schoolId: v.optional(v.id('schools')),
+    gradeId: v.optional(v.id('grades')),
     isActive: v.optional(v.boolean()),
     hasMainTeacher: v.optional(v.boolean()),
     search: v.string(), // If empty, returns all classes
@@ -18,8 +18,8 @@ export const getClasses = query({
       return {
         page: [],
         isDone: true,
-        continueCursor: "",
-      };
+        continueCursor: '',
+      }
     }
 
     // Return an empty PaginationResult if schoolId is undefined
@@ -27,33 +27,33 @@ export const getClasses = query({
       return {
         page: [],
         isDone: true,
-        continueCursor: "",
-      };
+        continueCursor: '',
+      }
     }
 
     let classesQuery
 
-    if (args.search !== undefined && args.search !== "") {
+    if (args.search !== undefined && args.search !== '') {
       classesQuery = ctx.table('classes').search(
         'searchable',
-        (q) => q.search('name', normalizeStringForSearch(args.search))
+        q => q.search('name', normalizeStringForSearch(args.search)),
       )
-    } else {
-      classesQuery = ctx.table("classes", "schoolId", (q) =>
-        q.eq("schoolId", args.schoolId!)
-      );
+    }
+    else {
+      classesQuery = ctx.table('classes', 'schoolId', q =>
+        q.eq('schoolId', args.schoolId!))
     }
 
     if (args.gradeId !== undefined) {
-      classesQuery = classesQuery.filter((q) =>
-        q.eq(q.field("gradeId"), args.gradeId!)
-      );
+      classesQuery = classesQuery.filter(q =>
+        q.eq(q.field('gradeId'), args.gradeId!),
+      )
     }
 
     if (args.isActive !== undefined) {
-      classesQuery = classesQuery.filter((q) =>
-        q.eq(q.field("isActive"), args.isActive!)
-      );
+      classesQuery = classesQuery.filter(q =>
+        q.eq(q.field('isActive'), args.isActive!),
+      )
     }
 
     // TODO: implement search term into class name and main teacher name
@@ -67,11 +67,11 @@ export const getClasses = query({
     //   );
     // }
 
-    const page = await classesQuery.paginate(args.paginationOpts);
+    const page = await classesQuery.paginate(args.paginationOpts)
 
-    return page;
+    return page
   },
-});
+})
 
 export const createClass = mutation({
   args: {
@@ -81,13 +81,13 @@ export const createClass = mutation({
   },
   handler: async (ctx, args) => {
     const newClassId = await ctx.table('classes')
-    .insert({
-      'name': args.name,
-      schoolId: args.schoolId,
-      gradeId: args.gradeId,
-      isActive: false
-    })
+      .insert({
+        name: args.name,
+        schoolId: args.schoolId,
+        gradeId: args.gradeId,
+        isActive: false,
+      })
 
-    return newClassId;
+    return newClassId
   },
-});
+})

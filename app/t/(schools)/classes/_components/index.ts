@@ -1,5 +1,5 @@
+export * from './ClassCreationDialog'
 export * from './ClassesFilters'
 export * from './ClassesGrid'
 export * from './ClassesTable'
 export * from './ClassTableRowActions'
-export * from './ClassCreationDialog'

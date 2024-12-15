@@ -1,11 +1,11 @@
-import { FakeParagraphs } from "@/components/helpers/FakeParagraphs";
-import { FakeWordList } from "@/components/helpers/FakeWordList";
-import { Footer } from "@/components/layout/footer";
-import { Paragraph } from "@/components/layout/paragraph";
-import { ResponsiveSidebarButton } from "@/components/layout/responsive-sidebar-button";
-import { StickyHeader } from "@/components/layout/sticky-header";
-import { StickySidebar } from "@/components/layout/sticky-sidebar";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import { FakeParagraphs } from '@/components/helpers/FakeParagraphs'
+import { FakeWordList } from '@/components/helpers/FakeWordList'
+import { Footer } from '@/components/layout/footer'
+import { Paragraph } from '@/components/layout/paragraph'
+import { ResponsiveSidebarButton } from '@/components/layout/responsive-sidebar-button'
+import { StickyHeader } from '@/components/layout/sticky-header'
+import { StickySidebar } from '@/components/layout/sticky-sidebar'
+import { ScrollArea } from '@/components/ui/scroll-area'
 
 // You control the responsive page layout breakpoint, in this example
 // we use `sm:` (640px).
@@ -16,7 +16,7 @@ export default function Layout() {
       <FakeWordList count={80} length={[4, 15]} capitalize />
       Last
     </>
-  );
+  )
   return (
     <>
       <StickyHeader className="p-2 flex items-center justify-between h-[3.25rem]">
@@ -38,5 +38,5 @@ export default function Layout() {
       </div>
       <Footer>Footer below fold</Footer>
     </>
-  );
+  )
 }

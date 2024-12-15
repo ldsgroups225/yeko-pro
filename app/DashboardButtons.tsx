@@ -1,15 +1,15 @@
-"use client";
+'use client'
 
-import { ErrorBoundary } from "@/app/ErrorBoundary";
-import { Button } from "@/components/ui/button";
-import { SignInButton, SignUpButton } from "@clerk/clerk-react";
+import { ErrorBoundary } from '@/app/ErrorBoundary'
+import { Button } from '@/components/ui/button'
+import { SignInButton, SignUpButton } from '@clerk/clerk-react'
 import {
   ClerkLoading,
   ClerkProvider,
   SignedIn,
   SignedOut,
-} from "@clerk/nextjs";
-import Link from "next/link";
+} from '@clerk/nextjs'
+import Link from 'next/link'
 
 export function DashboardButtons() {
   return (
@@ -33,7 +33,7 @@ export function DashboardButtons() {
         </SignedOut>
       </ClerkProvider>
     </ErrorBoundary>
-  );
+  )
 }
 
 function OpenDashboardLinkButton() {
@@ -41,5 +41,5 @@ function OpenDashboardLinkButton() {
     <Link href="/t" className="animate-[fade-in_0.2s]">
       <Button>Dashboard</Button>
     </Link>
-  );
+  )
 }

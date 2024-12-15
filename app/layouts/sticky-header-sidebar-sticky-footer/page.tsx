@@ -1,9 +1,9 @@
-import { FakeParagraphs } from "@/components/helpers/FakeParagraphs";
-import { FakeWordList } from "@/components/helpers/FakeWordList";
-import { Paragraph } from "@/components/layout/paragraph";
-import { StickyFooter } from "@/components/layout/sticky-footer";
-import { StickyHeader } from "@/components/layout/sticky-header";
-import { StickySidebar } from "@/components/layout/sticky-sidebar";
+import { FakeParagraphs } from '@/components/helpers/FakeParagraphs'
+import { FakeWordList } from '@/components/helpers/FakeWordList'
+import { Paragraph } from '@/components/layout/paragraph'
+import { StickyFooter } from '@/components/layout/sticky-footer'
+import { StickyHeader } from '@/components/layout/sticky-header'
+import { StickySidebar } from '@/components/layout/sticky-sidebar'
 
 export default function Layout() {
   return (
@@ -24,5 +24,5 @@ export default function Layout() {
       </div>
       <StickyFooter className="p-2">Sticky footer</StickyFooter>
     </>
-  );
+  )
 }

@@ -1,17 +1,17 @@
 'use client'
 
-import { useDebouncedCallback } from 'use-debounce';
+import { Pagination } from '@/components/Pagination'
+import { SchoolYearSelector } from '@/components/SchoolYearSelector'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { useClassesData, useSchool } from '@/hooks'
 import {
   PersonIcon,
   PlusIcon,
 } from '@radix-ui/react-icons'
-import { useClassesData, useSchool } from '@/hooks'
-import { SchoolYearSelector } from '@/components/SchoolYearSelector'
-import { ClassesFilters, ClassesTable, ClassesGrid, ClassCreationDialog } from './_components'
-import { Pagination } from '@/components/Pagination'
 import { useEffect, useState } from 'react'
+import { useDebouncedCallback } from 'use-debounce'
+import { ClassCreationDialog, ClassesFilters, ClassesGrid, ClassesTable } from './_components'
 
 const ITEMS_PER_PAGE = 10
 
@@ -21,7 +21,7 @@ const ITEMS_PER_PAGE = 10
  * @returns {JSX.Element} The rendered component.
  */
 export default function ClassesPage() {
-  const [selectedYear, setSelectedYear] = useState<string>('2024-2025')
+  const [_selectedYear, setSelectedYear] = useState<string>('2024-2025')
   const [isTableViewMode, setIsTableViewMode] = useState(true)
   const [localeSearch, setLocaleSearch] = useState('')
   const [isClassCreationModalOpen, setIsClassCreationModalOpen] = useState(false)
@@ -45,7 +45,6 @@ export default function ClassesPage() {
 
   const { error: schoolError } = useSchool()
 
-
   const handleSearch = useDebouncedCallback((term: string) => {
     setSearchTerm(term)
   }, 500)
@@ -55,7 +54,12 @@ export default function ClassesPage() {
   }, [localeSearch])
 
   if (schoolError) {
-    return <div>Error loading school: {schoolError.message}</div>
+    return (
+      <div>
+        Error loading school:
+        {schoolError.message}
+      </div>
+    )
   }
 
   function openClassCreationModal() {
@@ -81,16 +85,17 @@ export default function ClassesPage() {
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle>Liste des classes</CardTitle>
           <Button variant="outline" aria-label="New Class" onClick={openClassCreationModal}>
-            <PlusIcon className="mr-2 h-4 w-4" /> Nouvelle classe
+            <PlusIcon className="mr-2 h-4 w-4" />
+            {' '}
+            Nouvelle classe
           </Button>
         </CardHeader>
         <CardContent className="px-6 py-3">
           <ClassesFilters
             grades={grades}
             selectedGrade={selectedGrade}
-            onGradeChange={(value) =>
-              setSelectedGrade(value === '' ? undefined : value)
-            }
+            onGradeChange={value =>
+              setSelectedGrade(value === '' ? undefined : value)}
             searchTerm={localeSearch}
             onSearchTermChange={setLocaleSearch}
             classesActiveState={classesActiveState}
@@ -103,11 +108,13 @@ export default function ClassesPage() {
 
           {/* Conditional Rendering based on View Mode */}
           {(
-            isTableViewMode ? (
-            <ClassesTable classes={results} isLoading={status === 'LoadingFirstPage'} />
-          ) : (
-            <ClassesGrid classes={results} isLoading={status === 'LoadingFirstPage'} />
-            )
+            isTableViewMode
+              ? (
+                  <ClassesTable classes={results} isLoading={status === 'LoadingFirstPage'} />
+                )
+              : (
+                  <ClassesGrid classes={results} isLoading={status === 'LoadingFirstPage'} />
+                )
           )}
 
           {/* Pagination Controls */}

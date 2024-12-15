@@ -1,3 +1,4 @@
+import type { DataModel, Id } from '@/convex/_generated/dataModel'
 import { ActionsAndViewModeToggle } from '@/components/ActionsAndViewModeToggle'
 import { Input } from '@/components/ui/input'
 import {
@@ -7,8 +8,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { DataModel, Id } from '@/convex/_generated/dataModel'
-import { is } from 'date-fns/locale'
 import React from 'react'
 
 type IGrade = DataModel['grades']['document']
@@ -46,6 +45,10 @@ export const ClassesFilters: React.FC<ClassesFiltersProps> = ({
   isTableViewMode,
   onToggleViewMode,
 }) => {
+  async function handleUploadData() {}
+  async function handleDownloadData() {}
+  async function handleArchiveData() {}
+
   return (
     <>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-3">
@@ -61,16 +64,16 @@ export const ClassesFilters: React.FC<ClassesFiltersProps> = ({
               <SelectValue placeholder="Choisir un niveau" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value={''}>Tous les niveaux</SelectItem>
-              {grades &&
-                grades.map((grade) => (
-                  <SelectItem
-                    key={grade?._id}
-                    value={(grade?._id ?? '').toString()}
-                  >
-                    {`Niveau ${grade?.name}`}
-                  </SelectItem>
-                ))}
+              <SelectItem value="">Tous les niveaux</SelectItem>
+              {grades
+              && grades.map(grade => (
+                <SelectItem
+                  key={grade?._id}
+                  value={(grade?._id ?? '').toString()}
+                >
+                  {`Niveau ${grade?.name}`}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>
@@ -86,7 +89,7 @@ export const ClassesFilters: React.FC<ClassesFiltersProps> = ({
             type="text"
             placeholder="Rechercher une classe..."
             value={searchTerm}
-            onChange={(e) => onSearchTermChange(e.target.value)}
+            onChange={e => onSearchTermChange(e.target.value)}
           />
         </div>
       </div>
@@ -107,11 +110,10 @@ export const ClassesFilters: React.FC<ClassesFiltersProps> = ({
                     ? ''
                     : classesActiveState.toString()
                 }
-                onValueChange={(value) =>
+                onValueChange={value =>
                   onClassesActiveStateChange(
-                    value === '' ? undefined : value === 'true'
-                  )
-                }
+                    value === '' ? undefined : value === 'true',
+                  )}
               >
                 <SelectTrigger
                   className="w-[180px]"
@@ -138,11 +140,10 @@ export const ClassesFilters: React.FC<ClassesFiltersProps> = ({
                 value={
                   hasMainTeacher === undefined ? '' : hasMainTeacher.toString()
                 }
-                onValueChange={(value) =>
+                onValueChange={value =>
                   onHasMainTeacherChange(
-                    value === '' ? undefined : value === 'true'
-                  )
-                }
+                    value === '' ? undefined : value === 'true',
+                  )}
               >
                 <SelectTrigger
                   className="w-[180px]"
@@ -162,9 +163,9 @@ export const ClassesFilters: React.FC<ClassesFiltersProps> = ({
           <ActionsAndViewModeToggle
             isTableViewMode={isTableViewMode}
             onToggleViewMode={() => onToggleViewMode()}
-            onArchive={() => console.log('Archive clicked')}
-            onDownload={() => console.log('Download clicked')}
-            onUpload={() => console.log('Upload clicked')}
+            onArchive={handleArchiveData}
+            onDownload={handleDownloadData}
+            onUpload={handleUploadData}
           />
         </div>
       </div>

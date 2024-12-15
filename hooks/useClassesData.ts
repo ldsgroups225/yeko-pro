@@ -1,8 +1,8 @@
-import { useState, useEffect } from 'react'
-import { usePaginatedQuery, useQuery } from 'convex/react'
+import type { DataModel, Id } from '@/convex/_generated/dataModel'
 import { api } from '@/convex/_generated/api'
-import { DataModel, Id } from '@/convex/_generated/dataModel'
-import { useSchool } from '@/providers/SchoolProvider'
+import { usePaginatedQuery, useQuery } from 'convex/react'
+import { useEffect, useState } from 'react'
+import { useSchool } from './useSchool'
 
 interface UseClassesDataProps {
   initialItemsPerPage: number
@@ -35,20 +35,19 @@ interface UseClassesDataReturn {
  * @param {UseClassesDataProps} props - The props for the hook.
  * @returns {UseClassesDataReturn} - The data and functions for managing classes.
  */
-export const useClassesData = ({
+export function useClassesData({
   initialItemsPerPage,
-}: UseClassesDataProps): UseClassesDataReturn => {
+}: UseClassesDataProps): UseClassesDataReturn {
   const [selectedGrade, setSelectedGrade] = useState<Id<'grades'>>()
   const [classesActiveState, setClassesActiveState] = useState<
     boolean | undefined
   >(undefined)
   const [hasMainTeacher, setHasMainTeacher] = useState<boolean | undefined>(
-    undefined
+    undefined,
   )
   const [searchTerm, setSearchTerm] = useState<string>('')
   const [currentPage, setCurrentPage] = useState(1)
   const itemsPerPage = initialItemsPerPage
-  const [isTableViewMode, setIsTableViewMode] = useState(true)
 
   const { school } = useSchool()
   const grades = useQuery(api.grades.getGrades, { cycleId: school?.cycleId })
@@ -58,14 +57,14 @@ export const useClassesData = ({
       schoolId: school?._id,
       gradeId: selectedGrade,
       isActive: classesActiveState,
-      hasMainTeacher: hasMainTeacher,
+      hasMainTeacher,
       search: searchTerm,
       paginationOpts: {
         numItems: itemsPerPage,
         cursor: null,
       },
     },
-    { initialNumItems: itemsPerPage }
+    { initialNumItems: itemsPerPage },
   )
 
   // Reset current page when filters change

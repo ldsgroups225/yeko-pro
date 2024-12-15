@@ -1,15 +1,14 @@
-'use client';
+'use client'
 
-import { motion } from 'framer-motion';
+import { useSchool } from '@/hooks'
+import { motion } from 'framer-motion'
 import { CurrentTime, QuickAccess, SchoolInfo } from './_components'
-import { useSchool } from '@/providers/SchoolProvider';
-
 
 /**
  * The main home page component.
  */
 const HomePage: React.FC = () => {
-  const { school, isLoading, error } = useSchool();
+  const { school, isLoading } = useSchool()
 
   const formattedSchool = {
     name: school?.name ?? '',
@@ -41,7 +40,7 @@ const HomePage: React.FC = () => {
         </div>
       </motion.div>
     </main>
-  );
-};
+  )
+}
 
 export default HomePage

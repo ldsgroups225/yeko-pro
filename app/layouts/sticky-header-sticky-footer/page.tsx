@@ -1,7 +1,7 @@
-import { FakeParagraphs } from "@/components/helpers/FakeParagraphs";
-import { Paragraph } from "@/components/layout/paragraph";
-import { StickyFooter } from "@/components/layout/sticky-footer";
-import { StickyHeader } from "@/components/layout/sticky-header";
+import { FakeParagraphs } from '@/components/helpers/FakeParagraphs'
+import { Paragraph } from '@/components/layout/paragraph'
+import { StickyFooter } from '@/components/layout/sticky-footer'
+import { StickyHeader } from '@/components/layout/sticky-header'
 
 export default function Layout() {
   return (
@@ -16,5 +16,5 @@ export default function Layout() {
       </main>
       <StickyFooter className="p-2">Sticky footer</StickyFooter>
     </>
-  );
+  )
 }

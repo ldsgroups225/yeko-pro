@@ -24,11 +24,11 @@ export const Pagination: React.FC<PaginationProps> = ({
   const maxVisiblePages = 5
   const startPage = Math.max(
     1,
-    currentPage - Math.floor(maxVisiblePages / 2)
+    currentPage - Math.floor(maxVisiblePages / 2),
   )
   const endPage = Math.min(
     totalPages,
-    startPage + maxVisiblePages - 1
+    startPage + maxVisiblePages - 1,
   )
 
   const pages = []
@@ -62,7 +62,7 @@ export const Pagination: React.FC<PaginationProps> = ({
         </>
       )}
 
-      {pages.map((page) => (
+      {pages.map(page => (
         <Button
           key={page}
           variant={page === currentPage ? 'default' : 'ghost'}

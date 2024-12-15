@@ -1,5 +1,5 @@
-import { Code } from "@/components/typography/code";
-import { Link } from "@/components/typography/link";
+import { Code } from '@/components/typography/code'
+import { Link } from '@/components/typography/link'
 
 export default function Layouts() {
   return (
@@ -139,8 +139,12 @@ export default function Layouts() {
         </div>
       </Link>
       <p>
-        Done with layouts? Simply delete the <Code>app/layouts</Code> directory.
+        Done with layouts? Simply delete the
+        {' '}
+        <Code>app/layouts</Code>
+        {' '}
+        directory.
       </p>
     </main>
-  );
+  )
 }

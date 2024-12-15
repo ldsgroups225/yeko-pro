@@ -1,3 +1,3 @@
-export { CurrentTime } from './CurrentTime';
-export { SchoolInfo } from './SchoolInfo';
-export { QuickAccess } from './QuickAccess';
+export { CurrentTime } from './CurrentTime'
+export { QuickAccess } from './QuickAccess'
+export { SchoolInfo } from './SchoolInfo'

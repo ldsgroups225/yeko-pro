@@ -1,7 +1,5 @@
-
-import { motion } from 'framer-motion';
-import { useEffect, useState } from 'react';
-
+import { motion } from 'framer-motion'
+import { useEffect, useState } from 'react'
 
 /**
  * Displays the current time, refreshed every minute.
@@ -11,8 +9,8 @@ export const CurrentTime: React.FC = () => {
     new Date().toLocaleTimeString('fr-FR', {
       hour: '2-digit',
       minute: '2-digit',
-    })
-  );
+    }),
+  )
 
   useEffect(() => {
     const intervalId = setInterval(() => {
@@ -20,12 +18,12 @@ export const CurrentTime: React.FC = () => {
         new Date().toLocaleTimeString('fr-FR', {
           hour: '2-digit',
           minute: '2-digit',
-        })
-      );
-    }, 60000); // Update every 60 seconds
+        }),
+      )
+    }, 60000) // Update every 60 seconds
 
-    return () => clearInterval(intervalId);
-  }, []);
+    return () => clearInterval(intervalId)
+  }, [])
 
   return (
     <motion.div
@@ -36,5 +34,5 @@ export const CurrentTime: React.FC = () => {
     >
       {currentTime}
     </motion.div>
-  );
-};
+  )
+}
