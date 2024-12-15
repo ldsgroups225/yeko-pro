@@ -46,6 +46,7 @@ export const ClassesTable: React.FC<ClassesTableProps> = ({
         <TableRow>
           <TableHead>N°</TableHead>
           <TableHead>Nom de la classe</TableHead>
+          <TableHead>Nombre d'élèves</TableHead>
           <TableHead>Enseignant principal</TableHead>
           <TableHead className="text-center">Status</TableHead>
           <TableHead className="text-center">Actions</TableHead>
@@ -66,6 +67,9 @@ export const ClassesTable: React.FC<ClassesTableProps> = ({
                     <TableCell>
                       <Skeleton className="h-4 w-[100px]" />
                     </TableCell>
+                    <TableCell>
+                      <Skeleton className="h-4 w-[100px]" />
+                    </TableCell>
                     <TableCell className="flex justify-center">
                       <Skeleton className="h-7 w-[80px] rounded-md" />
                     </TableCell>
@@ -81,10 +85,11 @@ export const ClassesTable: React.FC<ClassesTableProps> = ({
                 <TableRow key={cls._id}>
                   <TableCell>{index + 1}</TableCell>
                   <TableCell>{cls.name}</TableCell>
+                  <TableCell>TODO</TableCell>
                   <TableCell>Non assigné</TableCell>
                   <TableCell className="flex justify-center">
-                    <Badge variant={cls.isActive ? 'outline' : 'destructive'}>
-                      {cls.isActive ? 'Active' : 'Inactive'}
+                    <Badge variant={cls.isActive ? 'default' : 'destructive'}>
+                      {cls.isActive ? 'Actif' : 'Inactif'}
                     </Badge>
                   </TableCell>
                   <TableCell>

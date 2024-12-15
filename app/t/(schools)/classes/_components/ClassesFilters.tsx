@@ -136,11 +136,11 @@ export const ClassesFilters: React.FC<ClassesFiltersProps> = ({
               </label>
               <Select
                 value={
-                  hasMainTeacher === undefined ? '' : hasMainTeacher.toString()
+                  hasMainTeacher === undefined ? 'all' : hasMainTeacher.toString()
                 }
                 onValueChange={value =>
                   onHasMainTeacherChange(
-                    value === '' ? undefined : value === 'true',
+                    value === 'all' ? undefined : value === 'true',
                   )}
               >
                 <SelectTrigger

@@ -6,6 +6,10 @@ import { useSchool } from './useSchool'
 
 interface UseClassesDataProps {
   initialItemsPerPage: number
+  initialGrade?: GradeId
+  initialSearchTerm?: string
+  initialClassesActiveState?: boolean
+  initialHasMainTeacher?: boolean
 }
 
 interface UseClassesDataReturn {
@@ -34,15 +38,19 @@ interface UseClassesDataReturn {
  */
 export function useClassesData({
   initialItemsPerPage,
+  initialGrade,
+  initialSearchTerm = '',
+  initialClassesActiveState,
+  initialHasMainTeacher,
 }: UseClassesDataProps): UseClassesDataReturn {
-  const [selectedGrade, setSelectedGrade] = useState<GradeId>()
+  const [selectedGrade, setSelectedGrade] = useState<GradeId | undefined>(initialGrade)
   const [classesActiveState, setClassesActiveState] = useState<
     boolean | undefined
-  >(undefined)
+  >(initialClassesActiveState)
   const [hasMainTeacher, setHasMainTeacher] = useState<boolean | undefined>(
-    undefined,
+    initialHasMainTeacher,
   )
-  const [searchTerm, setSearchTerm] = useState<string>('')
+  const [searchTerm, setSearchTerm] = useState<string>(initialSearchTerm)
   const [currentPage, setCurrentPage] = useState(1)
   const itemsPerPage = initialItemsPerPage
 
