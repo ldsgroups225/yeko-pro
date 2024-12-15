@@ -44,7 +44,6 @@ interface Props {
   }
 }
 
-// Define the form schema using Zod
 const formSchema = z.object({
   name: z.string().min(2, {
     message: 'Le nom de la classe doit contenir au moins 2 caractères.',
@@ -64,19 +63,16 @@ export function ClassCreationOrUpdateDialog({
   const createClass = useMutation(api.classes.createClass)
   const updateClass = useMutation(api.classes.updateClass)
 
-  // Initialize the form using useForm hook
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
   })
 
-  // Destructure form state for easier access
   const {
     handleSubmit,
     formState: { isSubmitting },
     reset,
   } = form
 
-  // Handle form submission
   const onSubmit = async (data: z.infer<typeof formSchema>) => {
     if (!school) {
       toast.error('École non trouvée.')
@@ -106,9 +102,7 @@ export function ClassCreationOrUpdateDialog({
     }
     catch (error) {
       console.error(
-        oldClass
-          ? 'Error updating class'
-          : 'Error creating class',
+        oldClass ? 'Error updating class' : 'Error creating class',
         error,
       )
       toast.error(
@@ -129,6 +123,7 @@ export function ClassCreationOrUpdateDialog({
       form.setValue('name', oldClass.name)
       form.setValue('gradeId', oldClass.gradeId)
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [oldClass])
 
   return (
@@ -144,10 +139,7 @@ export function ClassCreationOrUpdateDialog({
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
-          <form
-            onSubmit={handleSubmit(onSubmit)}
-            className="space-y-4 py-4"
-          >
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 py-4">
             <FormField
               control={form.control}
               name="gradeId"
@@ -206,9 +198,7 @@ export function ClassCreationOrUpdateDialog({
                 Annuler
               </Button>
               <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting
-                  ? 'Enregistrement...'
-                  : 'Enregistrer'}
+                {isSubmitting ? 'Enregistrement...' : 'Enregistrer'}
               </Button>
             </DialogFooter>
           </form>

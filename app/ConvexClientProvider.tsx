@@ -1,7 +1,6 @@
 'use client'
 
 import type { ReactNode } from 'react'
-// import process from 'node:process'
 import { api } from '@/convex/_generated/api'
 import { ClerkProvider, useAuth, useUser } from '@clerk/nextjs'
 import { dark } from '@clerk/themes'
@@ -11,6 +10,7 @@ import { useEffect } from 'react'
 import { useMediaQuery } from 'usehooks-ts'
 import { ErrorBoundary } from './ErrorBoundary'
 
+// eslint-disable-next-line node/prefer-global/process
 const convex = new ConvexReactClient(process.env.NEXT_PUBLIC_CONVEX_URL!)
 
 export function ConvexClientProvider({ children }: { children: ReactNode }) {

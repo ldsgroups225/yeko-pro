@@ -37,7 +37,7 @@
     --sidebar-accent-foreground: 240 5.9% 10%;
     --sidebar-border: 220 13% 91%;
     --sidebar-ring: 217.2 91.2% 59.8%;
-    
+
     /* New gradient-specific variables */
     --gradient-start: 21 100% 95%;
     --gradient-end: 21 50% 90%;
@@ -80,7 +80,7 @@
       --sidebar-accent-foreground: 240 4.8% 95.9%;
       --sidebar-border: 240 3.7% 15.9%;
       --sidebar-ring: 217.2 91.2% 59.8%;
-      
+
       /* Updated dark mode gradient variables */
       --gradient-start: 21 50% 5%;
       --gradient-end: 21 30% 10%;
@@ -90,28 +90,28 @@
 
 @layer base {
   html {
-    font-feature-settings: "cv02","cv03","cv04","cv11";
+    font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
-  
+
   * {
     @apply border-border;
   }
-  
+
   body {
-    @apply bg-gradient-to-br from-[hsl(var(--gradient-start))] to-[hsl(var(--gradient-end))] 
-           via-[hsl(var(--background))] 
-           text-foreground 
-           min-h-screen 
+    @apply bg-gradient-to-br from-[hsl(var(--gradient-start))] to-[hsl(var(--gradient-end))]
+           via-[hsl(var(--background))]
+           text-foreground
+           min-h-screen
            bg-fixed;
-    
+
     @apply transition-all duration-500 ease-in-out;
-    
+
     background-size: 200% 200%;
     animation: gradientAnimation 15s ease infinite;
   }
-  
+
   @keyframes gradientAnimation {
     0% {
       background-position: 0% 50%;
@@ -129,11 +129,11 @@
   * {
     @apply border-border;
   }
-  
+
   body {
     @apply bg-background text-foreground min-h-full;
   }
-  
+
   .fonts-loaded body {
     @apply opacity-100;
   }
@@ -145,6 +145,6 @@
   display: none;
 }
 
-.hide-lastpass-icon [data-lastpass-icon-root="true"] {
+.hide-lastpass-icon [data-lastpass-icon-root='true'] {
   display: none;
 }

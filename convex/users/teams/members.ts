@@ -1,5 +1,4 @@
 import type { RoleId, TeamId } from '../../../types'
-import type { Id } from '../../_generated/dataModel'
 import type { Ent, MutationCtx, QueryCtx } from '../../types'
 import { paginationOptsValidator } from 'convex/server'
 import { ConvexError, v } from 'convex/values'

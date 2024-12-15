@@ -1,4 +1,4 @@
-import type { ClassId, GradeId, IClass } from '@/types'
+import type { ClassId, IClass } from '@/types'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
 import {
@@ -36,6 +36,10 @@ export const ClassesTable: React.FC<ClassesTableProps> = ({
     router.push('#')
   }
 
+  const fakeClasses = Array.from({ length: 10 }).map((_, i) => ({
+    id: i.toString(),
+  }))
+
   return (
     <Table>
       <TableHeader>
@@ -51,8 +55,8 @@ export const ClassesTable: React.FC<ClassesTableProps> = ({
         {isLoading
           ? (
               <>
-                {Array.from({ length: 10 }).map((el: any) => (
-                  <TableRow key={el?.toString()}>
+                {fakeClasses.map(el => (
+                  <TableRow key={el.id}>
                     <TableCell>
                       <Skeleton className="h-4 w-[20px]" />
                     </TableCell>

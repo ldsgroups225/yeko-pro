@@ -29,13 +29,17 @@ export const ClassesGrid: React.FC<ClassesGridProps> = ({
     router.push('#')
   }
 
+  const fakeClasses = Array.from({ length: 10 }).map((_, i) => ({
+    id: i.toString(),
+  }))
+
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
       {isLoading
         ? (
             // Show skeleton loading state when isLoading is true
-            Array.from({ length: 8 }).map((el: any) => (
-              <Card key={el?.toString()} className="p-4">
+            fakeClasses.map(el => (
+              <Card key={el.id} className="p-4">
                 <CardHeader className="p-0 pb-2">
                   <CardTitle>
                     <Skeleton className="h-6 w-[150px]" />

@@ -50,7 +50,7 @@ export default function ClassesPage() {
 
   useEffect(() => {
     handleSearch(localeSearch)
-  }, [localeSearch])
+  })
 
   if (schoolError) {
     return (
@@ -89,8 +89,14 @@ export default function ClassesPage() {
           <ClassesFilters
             grades={grades}
             selectedGrade={selectedGrade}
-            onGradeChange={value =>
-              setSelectedGrade(value === '' ? undefined : value)}
+            onGradeChange={
+              value =>
+                setSelectedGrade(
+                  (value === '' || value === 'all')
+                    ? undefined
+                    : value,
+                )
+            }
             searchTerm={localeSearch}
             onSearchTermChange={setLocaleSearch}
             classesActiveState={classesActiveState}

@@ -2,19 +2,22 @@ import Jabber from 'jabber'
 import { memo } from 'react'
 import { Paragraph } from '../layout/paragraph'
 
-const jabber = new Jabber()
-
-export const FakeParagraphs = memo(({
-  count,
-  words,
-}: {
+interface FakeParagraphsProps {
   count: number
   words: number
-}) => {
+}
+
+const jabber = new Jabber()
+
+export const FakeParagraphs = memo(({ count, words }: FakeParagraphsProps) => {
+  const fakeParagraphs = Array.from({ length: count }).map((_, i) => ({
+    id: i.toString(),
+  }))
+
   return (
     <>
-      {[...Array.from({ length: count })].map((el: any) => (
-        <Paragraph key={el?.toString()}>{jabber.createParagraph(words)}</Paragraph>
+      {fakeParagraphs.map(el => (
+        <Paragraph key={el.id}>{jabber.createParagraph(words)}</Paragraph>
       ))}
     </>
   )

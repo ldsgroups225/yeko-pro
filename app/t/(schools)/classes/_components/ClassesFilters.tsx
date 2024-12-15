@@ -12,7 +12,7 @@ import React from 'react'
 
 interface ClassesFiltersProps {
   grades?: IGrade[] | null
-  selectedGrade: GradeId | undefined
+  selectedGrade: string | GradeId | undefined
   onGradeChange: (gradeId: GradeId | undefined) => void
   searchTerm: string
   onSearchTermChange: (term: string) => void
@@ -62,7 +62,7 @@ export const ClassesFilters: React.FC<ClassesFiltersProps> = ({
               <SelectValue placeholder="Choisir un niveau" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">Tous les niveaux</SelectItem>
+              <SelectItem value="all">Tous les niveaux</SelectItem>
               {grades
               && grades.map(grade => (
                 <SelectItem
@@ -105,12 +105,12 @@ export const ClassesFilters: React.FC<ClassesFiltersProps> = ({
               <Select
                 value={
                   classesActiveState === undefined
-                    ? ''
+                    ? 'all'
                     : classesActiveState.toString()
                 }
                 onValueChange={value =>
                   onClassesActiveStateChange(
-                    value === '' ? undefined : value === 'true',
+                    value === 'all' ? undefined : value === 'true',
                   )}
               >
                 <SelectTrigger
@@ -120,7 +120,7 @@ export const ClassesFilters: React.FC<ClassesFiltersProps> = ({
                   <SelectValue placeholder="Tous" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Tous</SelectItem>
+                  <SelectItem value="all">Tous</SelectItem>
                   <SelectItem value="true">Actif</SelectItem>
                   <SelectItem value="false">Inactif</SelectItem>
                 </SelectContent>
@@ -150,7 +150,7 @@ export const ClassesFilters: React.FC<ClassesFiltersProps> = ({
                   <SelectValue placeholder="Tous" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Tous</SelectItem>
+                  <SelectItem value="all">Tous</SelectItem>
                   <SelectItem value="true">Avec PP</SelectItem>
                   <SelectItem value="false">Sans PP</SelectItem>
                 </SelectContent>

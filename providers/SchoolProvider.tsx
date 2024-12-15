@@ -16,15 +16,13 @@ export function SchoolProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (fetchedSchool === undefined) {
-      // Query is still in progress
-      setSchoolData({ ...schoolData, isLoading: true, error: null })
+      setSchoolData(s => ({ ...s, isLoading: true, error: null }))
     }
     else if (fetchedSchool === null) {
       // Query returned null, no school found or user not logged in
       setSchoolData({ school: null, isLoading: false, error: null })
     }
     else {
-      // Data is fetched
       setSchoolData({
         school: fetchedSchool,
         isLoading: false,

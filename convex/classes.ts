@@ -1,7 +1,6 @@
 import { paginationOptsValidator } from 'convex/server'
 import { v } from 'convex/values'
 import { mutation, query } from './functions'
-import { update } from './users/teams/members'
 import { normalizeStringForSearch } from './utils'
 
 export const getClasses = query({
