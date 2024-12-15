@@ -56,7 +56,7 @@ export function useClassesData({
 
   const { school } = useSchool()
   const grades = useQuery(api.grades.getGrades, { cycleId: school?.cycleId })
-  const { results, status, loadMore } = usePaginatedQuery(
+  const { results, status, loadMore } = usePaginatedQuery<any>(
     api.classes.getClasses,
     {
       schoolId: school?._id,

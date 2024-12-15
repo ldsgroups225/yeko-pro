@@ -1,9 +1,6 @@
 import type { ReactNode } from 'react'
-import { Code } from '@/components/typography/code'
-import { Link } from '@/components/typography/link'
 import { Component } from 'react'
 
-// NOTE: Once you get Clerk working you can remove this error boundary
 export class ErrorBoundary extends Component<
   { children: ReactNode },
   { error: ReactNode | null }
@@ -26,30 +23,29 @@ export class ErrorBoundary extends Component<
             <p>
               Add
               {' '}
-              <Code>
+              <code>
                 NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=
-                {'"<your publishable key>"'}
-              </Code>
+                {'<your publishable key>'}
+              </code>
               {' '}
               to the
               {' '}
-              <Code>.env.local</Code>
+              <code>.env.local</code>
               {' '}
-              file
+              file.
             </p>
             {clerkDashboardUrl
               ? (
                   <p>
                     You can find it at
                     {' '}
-                    <Link href={clerkDashboardUrl} target="_blank">
-                      {clerkDashboardUrl}
-                    </Link>
+                    <a href={clerkDashboardUrl} target="_blank">{clerkDashboardUrl}</a>
                   </p>
                 )
               : null}
-            <p className="pl-8 text-muted-foreground">
+            <p style={{ paddingLeft: '2rem', color: 'gray' }}>
               Raw error:
+              {' '}
               {errorText}
             </p>
           </>
@@ -66,8 +62,8 @@ export class ErrorBoundary extends Component<
   render() {
     if (this.state.error !== null) {
       return (
-        <div className="bg-destructive/30 p-8 flex flex-col gap-4 container">
-          <h1 className="text-xl font-bold">
+        <div style={{ backgroundColor: 'rgba(255, 0, 0, 0.3)', padding: '2rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          <h1 style={{ fontSize: '1.25rem', fontWeight: 'bold' }}>
             Caught an error while rendering:
           </h1>
           {this.state.error}

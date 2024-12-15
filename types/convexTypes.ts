@@ -1,4 +1,4 @@
-import type { DataModel, Id } from '@/convex/_generated/dataModel'
+import type { DataModel, Id } from '../convex/_generated/dataModel'
 
 export type IGrade = DataModel['grades']['document']
 export type ISchool = DataModel['schools']['document']
