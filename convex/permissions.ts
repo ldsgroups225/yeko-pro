@@ -1,5 +1,5 @@
 import type { Infer } from 'convex/values'
-import type { Id } from './_generated/dataModel'
+import type { TeamId } from '../types'
 import type { MutationCtx, QueryCtx } from './types'
 import { v } from 'convex/values'
 
@@ -25,7 +25,7 @@ export async function getRole(ctx: QueryCtx, name: Role) {
 
 export async function viewerWithPermission(
   ctx: QueryCtx,
-  teamId: Id<'teams'>,
+  teamId: TeamId,
   name: Permission,
 ) {
   const member = await ctx
@@ -47,7 +47,7 @@ export async function viewerWithPermission(
 
 export async function viewerHasPermission(
   ctx: QueryCtx,
-  teamId: Id<'teams'>,
+  teamId: TeamId,
   name: Permission,
 ) {
   const member = await viewerWithPermission(ctx, teamId, name)
@@ -56,7 +56,7 @@ export async function viewerHasPermission(
 
 export async function viewerWithPermissionX(
   ctx: MutationCtx,
-  teamId: Id<'teams'>,
+  teamId: TeamId,
   name: Permission,
 ) {
   const member = await viewerWithPermission(ctx, teamId, name)
@@ -68,7 +68,7 @@ export async function viewerWithPermissionX(
 
 export async function viewerHasPermissionX(
   ctx: MutationCtx,
-  teamId: Id<'teams'>,
+  teamId: TeamId,
   name: Permission,
 ) {
   await viewerWithPermissionX(ctx, teamId, name)

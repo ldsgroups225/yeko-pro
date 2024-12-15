@@ -1,4 +1,4 @@
-import type { DataModel, Id } from '@/convex/_generated/dataModel'
+import type { GradeId, IGrade } from '@/types'
 import { ActionsAndViewModeToggle } from '@/components/ActionsAndViewModeToggle'
 import { Input } from '@/components/ui/input'
 import {
@@ -10,12 +10,10 @@ import {
 } from '@/components/ui/select'
 import React from 'react'
 
-type IGrade = DataModel['grades']['document']
-
 interface ClassesFiltersProps {
   grades?: IGrade[] | null
-  selectedGrade: Id<'grades'> | undefined
-  onGradeChange: (gradeId: Id<'grades'> | undefined) => void
+  selectedGrade: GradeId | undefined
+  onGradeChange: (gradeId: GradeId | undefined) => void
   searchTerm: string
   onSearchTermChange: (term: string) => void
   classesActiveState: boolean | undefined

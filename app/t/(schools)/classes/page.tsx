@@ -1,17 +1,15 @@
 'use client'
 
+import type { IClass } from '@/types'
 import { Pagination } from '@/components/Pagination'
 import { SchoolYearSelector } from '@/components/SchoolYearSelector'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { useClassesData, useSchool } from '@/hooks'
-import {
-  PersonIcon,
-  PlusIcon,
-} from '@radix-ui/react-icons'
+import { PersonIcon, PlusIcon } from '@radix-ui/react-icons'
 import { useEffect, useState } from 'react'
 import { useDebouncedCallback } from 'use-debounce'
-import { ClassCreationDialog, ClassesFilters, ClassesGrid, ClassesTable } from './_components'
+import { ClassCreationOrUpdateDialog, ClassesFilters, ClassesGrid, ClassesTable } from './_components'
 
 const ITEMS_PER_PAGE = 10
 
@@ -24,7 +22,8 @@ export default function ClassesPage() {
   const [_selectedYear, setSelectedYear] = useState<string>('2024-2025')
   const [isTableViewMode, setIsTableViewMode] = useState(true)
   const [localeSearch, setLocaleSearch] = useState('')
-  const [isClassCreationModalOpen, setIsClassCreationModalOpen] = useState(false)
+  const [showClassModal, setShowClassModal] = useState(false)
+  const [classToEdit, setClassToEdit] = useState<IClass | null>(null)
 
   const {
     grades,
@@ -62,10 +61,6 @@ export default function ClassesPage() {
     )
   }
 
-  function openClassCreationModal() {
-    setIsClassCreationModalOpen(true)
-  }
-
   return (
     <div className="space-y-2 px-6 py-2 bg-orange-50">
       <div className="flex justify-end items-center">
@@ -84,7 +79,7 @@ export default function ClassesPage() {
       <Card className="bg-card">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle>Liste des classes</CardTitle>
-          <Button variant="outline" aria-label="New Class" onClick={openClassCreationModal}>
+          <Button variant="outline" aria-label="New Class" onClick={() => setShowClassModal(true)}>
             <PlusIcon className="mr-2 h-4 w-4" />
             {' '}
             Nouvelle classe
@@ -110,10 +105,24 @@ export default function ClassesPage() {
           {(
             isTableViewMode
               ? (
-                  <ClassesTable classes={results} isLoading={status === 'LoadingFirstPage'} />
+                  <ClassesTable
+                    classes={results}
+                    isLoading={status === 'LoadingFirstPage'}
+                    onClassEdit={(val: string) => {
+                      setClassToEdit(JSON.parse(val))
+                      return setShowClassModal(true)
+                    }}
+                  />
                 )
               : (
-                  <ClassesGrid classes={results} isLoading={status === 'LoadingFirstPage'} />
+                  <ClassesGrid
+                    classes={results}
+                    isLoading={status === 'LoadingFirstPage'}
+                    onClassEdit={(val: string) => {
+                      setClassToEdit(JSON.parse(val))
+                      return setShowClassModal(true)
+                    }}
+                  />
                 )
           )}
 
@@ -135,9 +144,14 @@ export default function ClassesPage() {
         </CardContent>
       </Card>
 
-      <ClassCreationDialog
-        open={isClassCreationModalOpen}
-        onOpenChange={setIsClassCreationModalOpen}
+      <ClassCreationOrUpdateDialog
+        open={showClassModal}
+        oldClass={
+          classToEdit
+            ? { id: classToEdit._id, name: classToEdit.name, gradeId: classToEdit.gradeId }
+            : undefined
+        }
+        onOpenChange={setShowClassModal}
         gradeOptions={grades ?? []}
       />
     </div>

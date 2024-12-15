@@ -1,3 +1,4 @@
+import type { RoleId, TeamId } from '../../../types'
 import type { Id } from '../../_generated/dataModel'
 import type { Ent, MutationCtx, QueryCtx } from '../../types'
 import { paginationOptsValidator } from 'convex/server'
@@ -120,7 +121,7 @@ export async function createMember(
     teamId,
     roleId,
     user,
-  }: { teamId: Id<'teams'>, roleId: Id<'roles'>, user: Ent<'users'> },
+  }: { teamId: TeamId, roleId: RoleId, user: Ent<'users'> },
 ) {
   return await ctx.table('members').insert({
     teamId,

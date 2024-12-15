@@ -1,16 +1,17 @@
 import { paginationOptsValidator } from 'convex/server'
 import { v } from 'convex/values'
 import { mutation, query } from './functions'
+import { update } from './users/teams/members'
 import { normalizeStringForSearch } from './utils'
 
 export const getClasses = query({
   args: {
+    paginationOpts: paginationOptsValidator,
     schoolId: v.optional(v.id('schools')),
     gradeId: v.optional(v.id('grades')),
     isActive: v.optional(v.boolean()),
     hasMainTeacher: v.optional(v.boolean()),
     search: v.string(), // If empty, returns all classes
-    paginationOpts: paginationOptsValidator,
   },
   handler: async (ctx, args) => {
     // Return an empty PaginationResult if ctx.viewer is null
@@ -89,5 +90,22 @@ export const createClass = mutation({
       })
 
     return newClassId
+  },
+})
+
+export const updateClass = mutation({
+  args: {
+    classId: v.id('classes'),
+    name: v.string(),
+    gradeId: v.id('grades'),
+    // mainTeacherId: v.optional(v.id('teachers')),
+  },
+  handler: async (ctx, { classId, name, gradeId }) => {
+    const oldClass = await ctx.table('classes').getX(classId)
+    return oldClass.patch({
+      name,
+      gradeId,
+      // mainTeacherId,
+    })
   },
 })

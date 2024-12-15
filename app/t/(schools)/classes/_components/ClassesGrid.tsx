@@ -1,14 +1,14 @@
-import type { DataModel } from '@/convex/_generated/dataModel'
+import type { ClassId, IClass } from '@/types'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
+import { useRouter } from 'next/navigation'
 import { ClassTableRowActions } from './ClassTableRowActions'
-
-type IClass = DataModel['classes']['document']
 
 interface ClassesGridProps {
   classes?: IClass[]
   isLoading: boolean
+  onClassEdit: (classroom: string) => void
 }
 
 /**
@@ -20,7 +20,15 @@ interface ClassesGridProps {
 export const ClassesGrid: React.FC<ClassesGridProps> = ({
   classes,
   isLoading,
+  onClassEdit,
 }) => {
+  const router = useRouter()
+
+  function navigateToClass(id: ClassId) {
+    const _ = id
+    router.push('#')
+  }
+
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
       {isLoading
@@ -58,7 +66,10 @@ export const ClassesGrid: React.FC<ClassesGridProps> = ({
                   </Badge>
                   <p className="text-sm mt-2">PP: Non assigné</p>
                   <div className="mt-2 flex space-x-2">
-                    <ClassTableRowActions />
+                    <ClassTableRowActions
+                      editButtonClicked={() => onClassEdit(JSON.stringify(cls))}
+                      navigateToClass={() => navigateToClass(cls._id)}
+                    />
                   </div>
                 </CardContent>
               </Card>

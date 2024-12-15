@@ -1,4 +1,4 @@
-import type { DataModel } from '@/convex/_generated/dataModel'
+import type { ClassId, GradeId, IClass } from '@/types'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
 import {
@@ -9,13 +9,13 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import { useRouter } from 'next/navigation'
 import { ClassTableRowActions } from './ClassTableRowActions'
-
-type IClass = DataModel['classes']['document']
 
 interface ClassesTableProps {
   classes?: IClass[]
   isLoading: boolean
+  onClassEdit: (classroom: string) => void
 }
 
 /**
@@ -27,7 +27,15 @@ interface ClassesTableProps {
 export const ClassesTable: React.FC<ClassesTableProps> = ({
   classes,
   isLoading,
+  onClassEdit,
 }) => {
+  const router = useRouter()
+
+  function navigateToClass(id: ClassId) {
+    const _ = id
+    router.push('#')
+  }
+
   return (
     <Table>
       <TableHeader>
@@ -76,7 +84,10 @@ export const ClassesTable: React.FC<ClassesTableProps> = ({
                     </Badge>
                   </TableCell>
                   <TableCell>
-                    <ClassTableRowActions />
+                    <ClassTableRowActions
+                      editButtonClicked={() => onClassEdit(JSON.stringify(cls))}
+                      navigateToClass={() => navigateToClass(cls._id)}
+                    />
                   </TableCell>
                 </TableRow>
               ))

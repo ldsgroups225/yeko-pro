@@ -1,4 +1,4 @@
-import type { DataModel, Id } from '@/convex/_generated/dataModel'
+import type { GradeId, IClass, IGrade } from '@/types'
 import { api } from '@/convex/_generated/api'
 import { usePaginatedQuery, useQuery } from 'convex/react'
 import { useEffect, useState } from 'react'
@@ -8,9 +8,6 @@ interface UseClassesDataProps {
   initialItemsPerPage: number
 }
 
-type IGrade = DataModel['grades']['document']
-type IClass = DataModel['classes']['document']
-
 interface UseClassesDataReturn {
   grades?: IGrade[] | null
   results: IClass[]
@@ -19,8 +16,8 @@ interface UseClassesDataReturn {
   currentPage: number
   setCurrentPage: (page: number) => void
   itemsPerPage: number
-  selectedGrade: Id<'grades'> | undefined
-  setSelectedGrade: (gradeId: Id<'grades'> | undefined) => void
+  selectedGrade: GradeId | undefined
+  setSelectedGrade: (gradeId: GradeId | undefined) => void
   classesActiveState: boolean | undefined
   setClassesActiveState: (isActive: boolean | undefined) => void
   searchTerm: string
@@ -38,7 +35,7 @@ interface UseClassesDataReturn {
 export function useClassesData({
   initialItemsPerPage,
 }: UseClassesDataProps): UseClassesDataReturn {
-  const [selectedGrade, setSelectedGrade] = useState<Id<'grades'>>()
+  const [selectedGrade, setSelectedGrade] = useState<GradeId>()
   const [classesActiveState, setClassesActiveState] = useState<
     boolean | undefined
   >(undefined)

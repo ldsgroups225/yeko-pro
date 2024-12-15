@@ -1,4 +1,4 @@
-export * from './ClassCreationDialog'
+export * from './ClassCreationOrUpdateDialog'
 export * from './ClassesFilters'
 export * from './ClassesGrid'
 export * from './ClassesTable'
