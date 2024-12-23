@@ -2,9 +2,15 @@
 const nextConfig = {
   images: {
     remotePatterns: [
+      // {
+      //   protocol: 'https',
+      //   hostname: 'merry-rook-953.convex.cloud',
+      //   port: '',
+      //   pathname: '/**',
+      // },
       {
         protocol: 'https',
-        hostname: 'merry-rook-953.convex.cloud',
+        hostname: 'pjpxprmqrbcvoujtiguw.supabase.co',
         port: '',
         pathname: '/**',
       },

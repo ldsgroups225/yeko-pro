@@ -1,11 +1,11 @@
 'use client'
 
-import type { GradeId, IClass } from '@/types'
+import type { IClass } from '@/types'
 import { Pagination } from '@/components/Pagination'
 import { SchoolYearSelector } from '@/components/SchoolYearSelector'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { useClassesData, useSchool } from '@/hooks'
+import { useClassesData } from '@/hooks'
 import { PersonIcon, PlusIcon } from '@radix-ui/react-icons'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { useCallback, useEffect, useState } from 'react'
@@ -15,24 +15,24 @@ import {
   ClassesFilters,
   ClassesGrid,
   ClassesTable,
+  ImportClassesDialog,
 } from './_components'
 
-const ITEMS_PER_PAGE = 10
+const ITEMS_PER_PAGE = 12
 
-/**
- * Main component for the Classes page.
- *
- * @returns {JSX.Element} The rendered component.
- */
 export default function ClassesPage() {
   const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
+
+  // Local UI state
   const [isTableViewMode, setIsTableViewMode] = useState(true)
   const [showClassModal, setShowClassModal] = useState(false)
+  const [showImportModal, setShowImportModal] = useState(false)
   const [localeSearch, setLocaleSearch] = useState('')
   const [classToEdit, setClassToEdit] = useState<IClass | null>(null)
 
+  // Initialize classes data with URL params
   const {
     grades,
     results,
@@ -40,7 +40,7 @@ export default function ClassesPage() {
     loadMore,
     currentPage,
     setCurrentPage,
-    itemsPerPage,
+    // itemsPerPage,
     selectedGrade,
     setSelectedGrade,
     searchTerm,
@@ -51,7 +51,7 @@ export default function ClassesPage() {
     setHasMainTeacher,
   } = useClassesData({
     initialItemsPerPage: ITEMS_PER_PAGE,
-    initialGrade: (searchParams.get('grade') as GradeId) || undefined,
+    initialGrade: searchParams.get('grade') || undefined,
     initialSearchTerm: searchParams.get('search') || '',
     initialClassesActiveState: searchParams.has('active')
       ? searchParams.get('active') === 'true'
@@ -61,94 +61,77 @@ export default function ClassesPage() {
       : undefined,
   })
 
-  const { error: schoolError } = useSchool()
+  // URL handling
+  const createQueryString = useCallback((params: Record<string, string>) => {
+    const newSearchParams = new URLSearchParams(searchParams.toString())
 
-  const createQueryString = useCallback(
-    (params: Record<string, string>) => {
-      const newSearchParams = new URLSearchParams(searchParams.toString())
-      for (const [key, value] of Object.entries(params)) {
-        if (value === undefined || value === '' || value === 'all') {
-          newSearchParams.delete(key)
-        }
-        else {
-          newSearchParams.set(key, value)
-        }
+    Object.entries(params).forEach(([key, value]) => {
+      if (value === undefined || value === '' || value === 'all') {
+        newSearchParams.delete(key)
       }
-      return newSearchParams.toString()
-    },
-    [searchParams],
-  )
+      else {
+        newSearchParams.set(key, value)
+      }
+    })
 
-  const updateSearchParams = useDebouncedCallback(
-    (params: Record<string, any>) => {
-      const queryString = createQueryString(params)
-      router.push(`${pathname}?${queryString}`, { scroll: false })
-    },
-    500,
-  )
+    return newSearchParams.toString()
+  }, [searchParams])
 
+  const updateSearchParams = useDebouncedCallback((params: Record<string, any>) => {
+    const queryString = createQueryString(params)
+    router.push(`${pathname}?${queryString}`, { scroll: false })
+  }, 500)
+
+  // Sync filters with URL
   useEffect(() => {
     const params: Record<string, any> = {
       grade: selectedGrade,
       active: classesActiveState?.toString(),
       teacher: hasMainTeacher?.toString(),
-    }
-    if (searchTerm !== searchParams.get('search')) {
-      params.search = searchTerm
+      ...(searchTerm !== searchParams.get('search') && { search: searchTerm }),
     }
     updateSearchParams(params)
-  }, [
-    selectedGrade,
-    classesActiveState,
-    hasMainTeacher,
-    searchTerm,
-    updateSearchParams,
-    searchParams,
-  ])
+  }, [selectedGrade, classesActiveState, hasMainTeacher, searchTerm, searchParams])
 
+  // Sync URL params with state
   useEffect(() => {
-    setSelectedGrade((searchParams.get('grade') as GradeId) || undefined)
+    setSelectedGrade(searchParams.get('grade') || undefined)
     setLocaleSearch(searchParams.get('search') || '')
-    setClassesActiveState(
-      searchParams.has('active')
-        ? searchParams.get('active') === 'true'
-        : undefined,
-    )
-    setHasMainTeacher(
-      searchParams.has('teacher')
-        ? searchParams.get('teacher') === 'true'
-        : undefined,
-    )
-  }, [
-    searchParams,
-    setSelectedGrade,
-    setClassesActiveState,
-    setHasMainTeacher,
-    setLocaleSearch,
-  ])
+    setClassesActiveState(searchParams.has('active')
+      ? searchParams.get('active') === 'true'
+      : undefined)
+    setHasMainTeacher(searchParams.has('teacher')
+      ? searchParams.get('teacher') === 'true'
+      : undefined)
+  }, [searchParams])
 
-  const handleSearchChange = useDebouncedCallback(
-    (newLocaleSearch: string) => {
-      setSearchTerm(newLocaleSearch)
-    },
-    500,
-  )
+  // Debounced search handling
+  const handleSearchChange = useDebouncedCallback((newLocaleSearch: string) => {
+    setSearchTerm(newLocaleSearch)
+  }, 500)
 
   useEffect(() => {
     handleSearchChange(localeSearch)
-  }, [localeSearch, handleSearchChange])
+  }, [localeSearch])
 
-  if (schoolError) {
-    return (
-      <div>
-        Error loading school:
-        {schoolError.message}
-      </div>
-    )
+  // Handlers
+  const handleClassEdit = (classData: string) => {
+    const parsedClass = JSON.parse(classData)
+    setClassToEdit(parsedClass)
+    setShowClassModal(true)
+  }
+
+  const handlePageChange = (newPage: number) => {
+    if (newPage > currentPage) {
+      // loadMore(itemsPerPage)
+      loadMore()
+    }
+    setCurrentPage(newPage)
   }
 
   return (
     <div className="space-y-2 px-6 py-2 bg-orange-50">
+      {/* Header */}
       <div className="flex justify-end items-center">
         <div className="flex items-center space-x-2">
           <Button variant="outline" size="icon" aria-label="Profile">
@@ -158,6 +141,7 @@ export default function ClassesPage() {
         </div>
       </div>
 
+      {/* Main Card */}
       <Card className="bg-card">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle>Liste des classes</CardTitle>
@@ -171,11 +155,13 @@ export default function ClassesPage() {
             Nouvelle classe
           </Button>
         </CardHeader>
+
         <CardContent className="px-6 py-3">
+          {/* Filters */}
           <ClassesFilters
             grades={grades}
             selectedGrade={selectedGrade || ''}
-            onGradeChange={value => setSelectedGrade(value as GradeId)}
+            onGradeChange={setSelectedGrade}
             searchTerm={localeSearch}
             onSearchTermChange={setLocaleSearch}
             classesActiveState={classesActiveState}
@@ -184,60 +170,61 @@ export default function ClassesPage() {
             onHasMainTeacherChange={setHasMainTeacher}
             isTableViewMode={isTableViewMode}
             onToggleViewMode={() => setIsTableViewMode(!isTableViewMode)}
+            onImportClick={() => setShowImportModal(true)}
+            onExportClick={() => {}}
+            onArchiveClick={() => {}}
           />
 
-          {/* Conditional Rendering based on View Mode */}
+          {/* Classes List */}
           {isTableViewMode
             ? (
                 <ClassesTable
                   classes={results}
-                  isLoading={status === 'LoadingFirstPage'}
-                  onClassEdit={(val: string) => {
-                    setClassToEdit(JSON.parse(val))
-                    return setShowClassModal(true)
-                  }}
+                  isLoading={status === 'idle' || status === 'loading'}
+                  onClassEdit={handleClassEdit}
                 />
               )
             : (
                 <ClassesGrid
                   classes={results}
-                  isLoading={status === 'LoadingFirstPage'}
-                  onClassEdit={(val: string) => {
-                    setClassToEdit(JSON.parse(val))
-                    return setShowClassModal(true)
-                  }}
+                  isLoading={status === 'idle' || status === 'loading'}
+                  onClassEdit={handleClassEdit}
                 />
               )}
 
-          {status !== 'LoadingFirstPage' && (
+          {/* Pagination */}
+          {(status !== 'idle' && status !== 'loading') && (
             <Pagination
               currentPage={currentPage}
-              totalPages={status === 'Exhausted' ? currentPage : currentPage + 1}
-              onPageChange={(newPage) => {
-                if (newPage > currentPage) {
-                  loadMore(itemsPerPage)
-                }
-                setCurrentPage(newPage)
-              }}
+              totalPages={status === 'success' ? currentPage : currentPage + 1}
+              onPageChange={handlePageChange}
             />
           )}
         </CardContent>
       </Card>
 
-      <ClassCreationOrUpdateDialog
-        open={showClassModal}
-        oldClass={
-          classToEdit
+      {/* Modals */}
+      {showClassModal && (
+        <ClassCreationOrUpdateDialog
+          open={showClassModal}
+          oldClass={classToEdit
             ? {
-                id: classToEdit._id,
+                id: classToEdit.id,
                 name: classToEdit.name,
                 gradeId: classToEdit.gradeId,
               }
-            : undefined
-        }
-        onOpenChange={setShowClassModal}
-        gradeOptions={grades ?? []}
-      />
+            : undefined}
+          onOpenChange={setShowClassModal}
+          gradeOptions={grades ?? []}
+        />
+      )}
+
+      {showImportModal && (
+        <ImportClassesDialog
+          open={showImportModal}
+          onOpenChange={setShowImportModal}
+        />
+      )}
     </div>
   )
 }

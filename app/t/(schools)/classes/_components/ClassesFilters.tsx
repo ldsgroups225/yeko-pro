@@ -1,4 +1,4 @@
-import type { GradeId, IGrade } from '@/types'
+import type { IGrade } from '@/types'
 import { ActionsAndViewModeToggle } from '@/components/ActionsAndViewModeToggle'
 import { Input } from '@/components/ui/input'
 import {
@@ -12,8 +12,8 @@ import React from 'react'
 
 interface ClassesFiltersProps {
   grades?: IGrade[] | null
-  selectedGrade: string | GradeId | undefined
-  onGradeChange: (gradeId: GradeId | undefined) => void
+  selectedGrade?: string
+  onGradeChange: (gradeId?: string) => void
   searchTerm: string
   onSearchTermChange: (term: string) => void
   classesActiveState: boolean | undefined
@@ -22,6 +22,9 @@ interface ClassesFiltersProps {
   onHasMainTeacherChange: (hasTeacher: boolean | undefined) => void
   isTableViewMode: boolean
   onToggleViewMode: () => void
+  onImportClick: () => void
+  onExportClick: () => void
+  onArchiveClick: () => void
 }
 
 /**
@@ -42,11 +45,10 @@ export const ClassesFilters: React.FC<ClassesFiltersProps> = ({
   onHasMainTeacherChange,
   isTableViewMode,
   onToggleViewMode,
+  onImportClick,
+  onExportClick,
+  onArchiveClick,
 }) => {
-  async function handleUploadData() {}
-  async function handleDownloadData() {}
-  async function handleArchiveData() {}
-
   return (
     <>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-3">
@@ -66,8 +68,8 @@ export const ClassesFilters: React.FC<ClassesFiltersProps> = ({
               {grades
               && grades.map(grade => (
                 <SelectItem
-                  key={grade?._id}
-                  value={(grade?._id ?? '').toString()}
+                  key={grade?.id}
+                  value={(grade?.id ?? '').toString()}
                 >
                   {`Niveau ${grade?.name}`}
                 </SelectItem>
@@ -161,9 +163,9 @@ export const ClassesFilters: React.FC<ClassesFiltersProps> = ({
           <ActionsAndViewModeToggle
             isTableViewMode={isTableViewMode}
             onToggleViewMode={() => onToggleViewMode()}
-            onArchive={handleArchiveData}
-            onDownload={handleDownloadData}
-            onUpload={handleUploadData}
+            onArchive={onArchiveClick}
+            onDownload={onExportClick}
+            onUpload={onImportClick}
           />
         </div>
       </div>

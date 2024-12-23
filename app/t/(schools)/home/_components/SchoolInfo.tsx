@@ -9,6 +9,8 @@ import Image from 'next/image'
 interface School {
   name: string
   imageUrl: string
+  classCount: number
+  effective: number
 }
 
 interface Props {
@@ -52,10 +54,15 @@ export const SchoolInfo: React.FC<Props> = ({ school, isLoading }) => {
                       {' '}
                       {school?.name}
                     </h2>
-                    <p className="text-muted-foreground">Effectif : 3677</p>
-                    <p className="text-muted-foreground">Classe : 39</p>
-                    <p className="text-destructive text-xs animate-bounce">
-                      TODO: Fix effective and class count
+                    <p className="text-muted-foreground">
+                      Effectif :
+                      {' '}
+                      {school?.effective}
+                    </p>
+                    <p className="text-muted-foreground">
+                      Classe :
+                      {' '}
+                      {school?.classCount}
                     </p>
                   </>
                 )}

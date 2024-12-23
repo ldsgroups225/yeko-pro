@@ -1,4 +1,4 @@
-import type { ClassId, GradeId, IGrade } from '@/types'
+import type { IGrade } from '@/types'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -24,10 +24,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { api } from '@/convex/_generated/api'
-import { useSchool } from '@/hooks'
+import { useClasses, useUser } from '@/hooks'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useMutation } from 'convex/react'
 import { useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { toast } from 'sonner'
@@ -38,9 +36,9 @@ interface Props {
   onOpenChange: (open: boolean) => void
   gradeOptions: IGrade[]
   oldClass?: {
-    id: ClassId
+    id: string
     name: string
-    gradeId: string
+    gradeId: number
   }
 }
 
@@ -48,8 +46,12 @@ const formSchema = z.object({
   name: z.string().min(2, {
     message: 'Le nom de la classe doit contenir au moins 2 caractères.',
   }),
-  gradeId: z.string({
+  gradeId: z.number({
     required_error: 'Veuillez sélectionner un niveau scolaire.',
+  }).min(1, {
+    message: 'Veuillez sélectionner un niveau scolaire.',
+  }).max(13, {
+    message: 'Veuillez sélectionner un niveau scolaire.',
   }),
 })
 
@@ -59,9 +61,8 @@ export function ClassCreationOrUpdateDialog({
   gradeOptions,
   oldClass,
 }: Props) {
-  const { school } = useSchool()
-  const createClass = useMutation(api.classes.createClass)
-  const updateClass = useMutation(api.classes.updateClass)
+  const { user } = useUser()
+  const { addClass, updateClass } = useClasses()
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -74,7 +75,7 @@ export function ClassCreationOrUpdateDialog({
   } = form
 
   const onSubmit = async (data: z.infer<typeof formSchema>) => {
-    if (!school) {
+    if (!user?.school) {
       toast.error('École non trouvée.')
       return
     }
@@ -84,15 +85,15 @@ export function ClassCreationOrUpdateDialog({
         await updateClass({
           classId: oldClass.id,
           name: data.name,
-          gradeId: data.gradeId as GradeId,
+          gradeId: data.gradeId,
         })
         toast.success('Classe modifiée avec succès!')
       }
       else {
-        await createClass({
+        await addClass({
           name: data.name,
-          schoolId: school._id,
-          gradeId: data.gradeId as GradeId,
+          schoolId: user?.school.id,
+          gradeId: data.gradeId,
         })
         toast.success('Classe créée avec succès!')
       }
@@ -147,9 +148,9 @@ export function ClassCreationOrUpdateDialog({
                 <FormItem>
                   <FormLabel>Niveau Scolaire</FormLabel>
                   <Select
-                    onValueChange={field.onChange}
-                    value={field.value}
-                    defaultValue={field.value}
+                    onValueChange={val => field.onChange(Number(val))}
+                    value={field.value?.toString()}
+                    defaultValue={field.value?.toString()}
                   >
                     <FormControl>
                       <SelectTrigger>
@@ -158,7 +159,7 @@ export function ClassCreationOrUpdateDialog({
                     </FormControl>
                     <SelectContent>
                       {gradeOptions.map(grade => (
-                        <SelectItem key={grade._id} value={grade._id}>
+                        <SelectItem key={grade.id} value={grade.id.toString()}>
                           {grade.name}
                         </SelectItem>
                       ))}

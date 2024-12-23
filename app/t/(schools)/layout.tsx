@@ -1,8 +1,7 @@
 'use client'
 
-import { ConvexClientProvider } from '@/app/ConvexClientProvider'
 import { cn } from '@/lib/utils'
-import { SchoolProvider } from '@/providers/SchoolProvider'
+import { UserProvider } from '@/providers/UserProvider'
 import { usePathname } from 'next/navigation'
 import { Suspense } from 'react'
 
@@ -23,11 +22,9 @@ export default function HomeLayout({
       </header>
 
       <Suspense>
-        <ConvexClientProvider>
-          <SchoolProvider>
-            {children}
-          </SchoolProvider>
-        </ConvexClientProvider>
+        <UserProvider>
+          {children}
+        </UserProvider>
       </Suspense>
     </div>
   )

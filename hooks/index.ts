@@ -1,2 +1,4 @@
+export * from './useClasses'
 export * from './useClassesData'
-export { useSchool } from './useSchool'
+export * from './useGrade'
+export * from './useUser'

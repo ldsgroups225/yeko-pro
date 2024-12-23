@@ -1,4 +1,4 @@
-import type { ClassId, IClass } from '@/types'
+import type { IClass } from '@/types'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -24,7 +24,7 @@ export const ClassesGrid: React.FC<ClassesGridProps> = ({
 }) => {
   const router = useRouter()
 
-  function navigateToClass(id: ClassId) {
+  function navigateToClass(id: string) {
     const _ = id
     router.push('#')
   }
@@ -60,7 +60,7 @@ export const ClassesGrid: React.FC<ClassesGridProps> = ({
         : (
             // Show actual data when isLoading is false
             classes?.map(cls => (
-              <Card key={cls._id} className="p-4">
+              <Card key={cls.id} className="p-4">
                 <CardHeader className="p-0 pb-2">
                   <CardTitle>{cls.name}</CardTitle>
                 </CardHeader>
@@ -72,7 +72,7 @@ export const ClassesGrid: React.FC<ClassesGridProps> = ({
                   <div className="mt-2 flex space-x-2">
                     <ClassTableRowActions
                       editButtonClicked={() => onClassEdit(JSON.stringify(cls))}
-                      navigateToClass={() => navigateToClass(cls._id)}
+                      navigateToClass={() => navigateToClass(cls.id)}
                     />
                   </div>
                 </CardContent>

@@ -1,4 +1,4 @@
-import type { ClassId, IClass } from '@/types'
+import type { IClass } from '@/types'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
 import {
@@ -31,7 +31,7 @@ export const ClassesTable: React.FC<ClassesTableProps> = ({
 }) => {
   const router = useRouter()
 
-  function navigateToClass(id: ClassId) {
+  function navigateToClass(id: string) {
     const _ = id
     router.push('#')
   }
@@ -82,7 +82,7 @@ export const ClassesTable: React.FC<ClassesTableProps> = ({
             )
           : (
               classes?.map((cls, index) => (
-                <TableRow key={cls._id}>
+                <TableRow key={cls.id}>
                   <TableCell>{index + 1}</TableCell>
                   <TableCell>{cls.name}</TableCell>
                   <TableCell>TODO</TableCell>
@@ -95,7 +95,7 @@ export const ClassesTable: React.FC<ClassesTableProps> = ({
                   <TableCell>
                     <ClassTableRowActions
                       editButtonClicked={() => onClassEdit(JSON.stringify(cls))}
-                      navigateToClass={() => navigateToClass(cls._id)}
+                      navigateToClass={() => navigateToClass(cls.id)}
                     />
                   </TableCell>
                 </TableRow>

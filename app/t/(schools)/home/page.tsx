@@ -1,6 +1,6 @@
 'use client'
 
-import { useSchool } from '@/hooks'
+import { useUserContext } from '@/providers/UserContext'
 import { motion } from 'framer-motion'
 import { CurrentTime, QuickAccess, SchoolInfo } from './_components'
 
@@ -8,11 +8,13 @@ import { CurrentTime, QuickAccess, SchoolInfo } from './_components'
  * The main home page component.
  */
 const HomePage: React.FC = () => {
-  const { school, isLoading } = useSchool()
+  const { user, isLoading } = useUserContext()
 
   const formattedSchool = {
-    name: school?.name ?? '',
-    imageUrl: school?.imageUrl ?? '',
+    name: user?.school?.name ?? '',
+    imageUrl: user?.school?.imageUrl ?? '',
+    classCount: user?.school?.classCount ?? 0,
+    effective: user?.school?.studentCount ?? 0,
   }
 
   return (

@@ -1,41 +1,35 @@
-import type { GradeId, IClass, IGrade } from '@/types'
-import { api } from '@/convex/_generated/api'
-import { usePaginatedQuery, useQuery } from 'convex/react'
+import type { IClass, IGrade } from '@/types'
 import { useEffect, useState } from 'react'
-import { useSchool } from './useSchool'
+import { useClasses } from './useClasses'
+import { useGrade } from './useGrade'
+import { useUser } from './useUser'
 
 interface UseClassesDataProps {
   initialItemsPerPage: number
-  initialGrade?: GradeId
+  initialGrade?: string
   initialSearchTerm?: string
   initialClassesActiveState?: boolean
   initialHasMainTeacher?: boolean
 }
 
 interface UseClassesDataReturn {
-  grades?: IGrade[] | null
+  grades?: IGrade[]
   results: IClass[]
-  status: string
-  loadMore: (numItems: number) => void
+  status: 'idle' | 'loading' | 'error' | 'success'
+  loadMore: () => void
   currentPage: number
   setCurrentPage: (page: number) => void
   itemsPerPage: number
-  selectedGrade: GradeId | undefined
-  setSelectedGrade: (gradeId: GradeId | undefined) => void
-  classesActiveState: boolean | undefined
-  setClassesActiveState: (isActive: boolean | undefined) => void
+  selectedGrade?: string
+  setSelectedGrade: (gradeId?: string) => void
+  classesActiveState?: boolean
+  setClassesActiveState: (isActive?: boolean) => void
   searchTerm: string
   setSearchTerm: (term: string) => void
-  hasMainTeacher: boolean | undefined
-  setHasMainTeacher: (hasTeacher: boolean | undefined) => void
+  hasMainTeacher?: boolean
+  setHasMainTeacher: (hasTeacher?: boolean) => void
 }
 
-/**
- * Custom hook to fetch and manage classes data.
- *
- * @param {UseClassesDataProps} props - The props for the hook.
- * @returns {UseClassesDataReturn} - The data and functions for managing classes.
- */
 export function useClassesData({
   initialItemsPerPage,
   initialGrade,
@@ -43,39 +37,73 @@ export function useClassesData({
   initialClassesActiveState,
   initialHasMainTeacher,
 }: UseClassesDataProps): UseClassesDataReturn {
-  const [selectedGrade, setSelectedGrade] = useState<GradeId | undefined>(initialGrade)
-  const [classesActiveState, setClassesActiveState] = useState<
-    boolean | undefined
-  >(initialClassesActiveState)
-  const [hasMainTeacher, setHasMainTeacher] = useState<boolean | undefined>(
-    initialHasMainTeacher,
-  )
-  const [searchTerm, setSearchTerm] = useState<string>(initialSearchTerm)
-  const [currentPage, setCurrentPage] = useState(1)
-  const itemsPerPage = initialItemsPerPage
+  const { user } = useUser()
+  const { grades } = useGrade()
+  const {
+    classes: results,
+    isLoading,
+    error,
+    loadClasses,
+    setPage,
+    setItemsPerPage,
+    setFilters,
+    currentPage,
+  } = useClasses()
 
-  const { school } = useSchool()
-  const grades = useQuery(api.grades.getGrades, { cycleId: school?.cycleId })
-  const { results, status, loadMore } = usePaginatedQuery<any>(
-    api.classes.getClasses,
-    {
-      schoolId: school?._id,
-      gradeId: selectedGrade,
-      isActive: classesActiveState,
-      hasMainTeacher,
-      search: searchTerm,
-      paginationOpts: {
-        numItems: itemsPerPage,
-        cursor: null,
-      },
-    },
-    { initialNumItems: itemsPerPage },
-  )
+  // Track if initial load has happened
+  const [hasInitialized, setHasInitialized] = useState(false)
 
-  // Reset current page when filters change
+  // Initialize filters with props
   useEffect(() => {
-    setCurrentPage(1)
-  }, [selectedGrade, searchTerm, classesActiveState, hasMainTeacher])
+    setFilters({
+      gradeId: initialGrade,
+      isActive: initialClassesActiveState,
+      hasMainTeacher: initialHasMainTeacher,
+      searchTerm: initialSearchTerm,
+    })
+    setItemsPerPage(initialItemsPerPage)
+    setHasInitialized(true)
+  }, [])
+
+  // Fetch classes when dependencies change
+  useEffect(() => {
+    if (user?.school?.id && hasInitialized) {
+      loadClasses(user.school.id)
+    }
+  }, [user?.school?.id, currentPage, hasInitialized])
+
+  // Derive status with improved logic
+  const status = (() => {
+    if (!hasInitialized)
+      return 'idle'
+    if (isLoading)
+      return 'loading'
+    if (error)
+      return 'error'
+    if (results.length > 0)
+      return 'success'
+    return 'idle'
+  })()
+
+  const setSelectedGrade = (gradeId?: string) => {
+    setFilters({ gradeId })
+  }
+
+  const setClassesActiveState = (isActive?: boolean) => {
+    setFilters({ isActive })
+  }
+
+  const setSearchTerm = (term: string) => {
+    setFilters({ searchTerm: term })
+  }
+
+  const setHasMainTeacher = (hasTeacher?: boolean) => {
+    setFilters({ hasMainTeacher: hasTeacher })
+  }
+
+  const loadMore = () => {
+    setPage(currentPage + 1)
+  }
 
   return {
     grades,
@@ -83,15 +111,15 @@ export function useClassesData({
     status,
     loadMore,
     currentPage,
-    setCurrentPage,
-    itemsPerPage,
-    selectedGrade,
+    setCurrentPage: setPage,
+    itemsPerPage: initialItemsPerPage,
+    selectedGrade: initialGrade,
     setSelectedGrade,
-    classesActiveState,
+    classesActiveState: initialClassesActiveState,
     setClassesActiveState,
-    searchTerm,
+    searchTerm: initialSearchTerm,
     setSearchTerm,
-    hasMainTeacher,
+    hasMainTeacher: initialHasMainTeacher,
     setHasMainTeacher,
   }
 }
