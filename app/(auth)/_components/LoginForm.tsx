@@ -1,5 +1,3 @@
-'use client'
-
 import type { ILogin } from '@/validations'
 import { SubmitButton } from '@/components/SubmitButton'
 import { Alert, AlertTitle } from '@/components/ui/alert'

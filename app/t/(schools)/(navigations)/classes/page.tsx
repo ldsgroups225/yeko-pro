@@ -2,12 +2,11 @@
 
 import type { IClass } from '@/types'
 import { Pagination } from '@/components/Pagination'
-import { SchoolYearSelector } from '@/components/SchoolYearSelector'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
 import { useClassesData, useSearchParamsState } from '@/hooks'
-import { PersonIcon, PlusIcon } from '@radix-ui/react-icons'
+import { PlusIcon } from '@radix-ui/react-icons'
 import { useState } from 'react'
 import {
   ClassCreationOrUpdateDialog,
@@ -70,17 +69,7 @@ export default function ClassesPage() {
   }
 
   return (
-    <div className="space-y-2 px-6 py-2 bg-orange-50">
-      {/* Header */}
-      <div className="flex justify-end items-center">
-        <div className="flex items-center space-x-2">
-          <Button variant="outline" size="icon" aria-label="Profile">
-            <PersonIcon width={16} height={16} className="text-secondary" />
-          </Button>
-          <SchoolYearSelector onYearChange={() => {}} />
-        </div>
-      </div>
-
+    <div className="space-y-2 px-6 py-2">
       {/* Main Card */}
       <Card className="bg-card">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">

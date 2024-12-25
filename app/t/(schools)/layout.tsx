@@ -15,12 +15,7 @@ export default function HomeLayout({
   const isHomePath = currentPath.startsWith('/t/home')
 
   return (
-    <div className={cn('min-h-screen flex flex-col', isHomePath ? '' : 'bg-orange-50')}>
-      <header className="shadow-sm sticky top-0 z-10">
-        <div className="bg-primary h-3"></div>
-        <div className="bg-blue-600 h-9 mx-12 rounded-b-lg"></div>
-      </header>
-
+    <div className={cn('flex flex-col', isHomePath ? '' : 'bg-orange-50')}>
       <Suspense>
         <UserProvider>
           {children}
