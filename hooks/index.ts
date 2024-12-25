@@ -1,4 +1,5 @@
 export * from './useClasses'
 export * from './useClassesData'
 export * from './useGrade'
+export * from './useSearchParamsState'
 export * from './useUser'

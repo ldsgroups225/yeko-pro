@@ -69,6 +69,9 @@ export function UserProvider({ children }: UserProviderProps) {
     initializeData()
   }, [initializeData])
 
+  if (state.isLoading)
+    return null
+
   return (
     <UserContext value={{ ...state, user }}>
       {children}

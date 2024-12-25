@@ -8,17 +8,18 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import React, { useEffect, useState } from 'react'
+import React from 'react'
 
 interface ClassesFiltersProps {
   grades?: IGrade[] | null
-  initialFilters: {
-    grade?: string
-    search?: string
-    active?: boolean
-    teacher?: boolean
-  }
-  onFilterChange: (filters: Partial<ClassesFiltersProps['initialFilters']>) => void
+  selectedGrade?: string
+  onGradeChange: (gradeId?: string) => void
+  searchTerm: string
+  onSearchTermChange: (term: string) => void
+  classesActiveState: boolean | undefined
+  onClassesActiveStateChange: (isActive: boolean | undefined) => void
+  hasMainTeacher: boolean | undefined
+  onHasMainTeacherChange: (hasTeacher: boolean | undefined) => void
   isTableViewMode: boolean
   onToggleViewMode: () => void
   onImportClick: () => void
@@ -34,55 +35,31 @@ interface ClassesFiltersProps {
  */
 export const ClassesFilters: React.FC<ClassesFiltersProps> = ({
   grades,
-  initialFilters,
-  onFilterChange,
+  selectedGrade,
+  onGradeChange,
+  searchTerm,
+  onSearchTermChange,
+  classesActiveState,
+  onClassesActiveStateChange,
+  hasMainTeacher,
+  onHasMainTeacherChange,
   isTableViewMode,
   onToggleViewMode,
   onImportClick,
   onExportClick,
   onArchiveClick,
 }) => {
-  const [filters, setFilters] = useState(initialFilters)
-
-  useEffect(() => {
-    setFilters(initialFilters)
-  }, [initialFilters])
-
-  const handleGradeChange = (gradeId?: string) => {
-    const newFilters = { ...filters, grade: gradeId }
-    setFilters(newFilters)
-    onFilterChange(newFilters)
-  }
-
-  const handleSearchTermChange = (term: string) => {
-    const newFilters = { ...filters, search: term }
-    setFilters(newFilters)
-    onFilterChange(newFilters)
-  }
-
-  const handleClassesActiveStateChange = (isActive: boolean | undefined) => {
-    const newFilters = { ...filters, active: isActive }
-    setFilters(newFilters)
-    onFilterChange(newFilters)
-  }
-
-  const handleHasMainTeacherChange = (hasTeacher: boolean | undefined) => {
-    const newFilters = { ...filters, teacher: hasTeacher }
-    setFilters(newFilters)
-    onFilterChange(newFilters)
-  }
-
   return (
     <>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-3">
         <div>
-          <label htmlFor="grade-select" className="text-sm font-medium block mb-2">
+          <label
+            htmlFor="grade-select"
+            className="text-sm font-medium block mb-2"
+          >
             Niveau
           </label>
-          <Select
-            value={filters.grade || 'all'}
-            onValueChange={handleGradeChange as any}
-          >
+          <Select value={selectedGrade} onValueChange={onGradeChange as any}>
             <SelectTrigger aria-label="Select Grade">
               <SelectValue placeholder="Choisir un niveau" />
             </SelectTrigger>
@@ -90,7 +67,10 @@ export const ClassesFilters: React.FC<ClassesFiltersProps> = ({
               <SelectItem value="all">Tous les niveaux</SelectItem>
               {grades
               && grades.map(grade => (
-                <SelectItem key={grade?.id} value={(grade?.id ?? '').toString()}>
+                <SelectItem
+                  key={grade?.id}
+                  value={(grade?.id ?? '').toString()}
+                >
                   {`Niveau ${grade?.name}`}
                 </SelectItem>
               ))}
@@ -98,15 +78,18 @@ export const ClassesFilters: React.FC<ClassesFiltersProps> = ({
           </Select>
         </div>
         <div>
-          <label htmlFor="search-input" className="text-sm font-medium block mb-2">
+          <label
+            htmlFor="search-input"
+            className="text-sm font-medium block mb-2"
+          >
             Recherche
           </label>
           <Input
             id="search-input"
             type="text"
             placeholder="Rechercher une classe..."
-            value={filters.search}
-            onChange={e => handleSearchTermChange(e.target.value)}
+            value={searchTerm}
+            onChange={e => onSearchTermChange(e.target.value)}
           />
         </div>
       </div>
@@ -115,19 +98,27 @@ export const ClassesFilters: React.FC<ClassesFiltersProps> = ({
         <div className="flex items-center justify-between w-full">
           <div className="flex items-center gap-4">
             <>
-              <label htmlFor="status-filter" className="text-sm font-medium">
+              <label
+                htmlFor="status-filter"
+                className="text-sm font-medium"
+              >
                 Statut:
               </label>
               <Select
                 value={
-                  filters.active === undefined ? 'all' : filters.active.toString()
+                  classesActiveState === undefined
+                    ? 'all'
+                    : classesActiveState.toString()
                 }
                 onValueChange={value =>
-                  handleClassesActiveStateChange(
+                  onClassesActiveStateChange(
                     value === 'all' ? undefined : value === 'true',
                   )}
               >
-                <SelectTrigger className="w-[180px]" aria-label="Filter by Status">
+                <SelectTrigger
+                  className="w-[180px]"
+                  aria-label="Filter by Status"
+                >
                   <SelectValue placeholder="Tous" />
                 </SelectTrigger>
                 <SelectContent>
@@ -147,10 +138,10 @@ export const ClassesFilters: React.FC<ClassesFiltersProps> = ({
               </label>
               <Select
                 value={
-                  filters.teacher === undefined ? 'all' : filters.teacher.toString()
+                  hasMainTeacher === undefined ? 'all' : hasMainTeacher.toString()
                 }
                 onValueChange={value =>
-                  handleHasMainTeacherChange(
+                  onHasMainTeacherChange(
                     value === 'all' ? undefined : value === 'true',
                   )}
               >

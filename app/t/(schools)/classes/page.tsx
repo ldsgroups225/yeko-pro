@@ -5,10 +5,10 @@ import { Pagination } from '@/components/Pagination'
 import { SchoolYearSelector } from '@/components/SchoolYearSelector'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { useClassesData } from '@/hooks'
+
+import { useClassesData, useSearchParamsState } from '@/hooks'
 import { PersonIcon, PlusIcon } from '@radix-ui/react-icons'
-import { usePathname, useRouter, useSearchParams } from 'next/navigation'
-import { useCallback, useEffect, useState } from 'react'
+import { useState } from 'react'
 import {
   ClassCreationOrUpdateDialog,
   ClassesFilters,
@@ -20,29 +20,21 @@ import {
 const ITEMS_PER_PAGE = 12
 
 export default function ClassesPage() {
-  const router = useRouter()
-  const pathname = usePathname()
-  const searchParams = useSearchParams()
-
-  // Local UI state
+  // Component state
   const [isTableViewMode, setIsTableViewMode] = useState(true)
   const [showClassModal, setShowClassModal] = useState(false)
   const [showImportModal, setShowImportModal] = useState(false)
   const [classToEdit, setClassToEdit] = useState<IClass | null>(null)
 
-  // Get initial filter values from URL
-  const initialFilters = {
-    grade: searchParams.get('grade') || undefined,
-    search: searchParams.get('search') || '',
-    active: searchParams.has('active')
-      ? searchParams.get('active') === 'true'
-      : undefined,
-    teacher: searchParams.has('teacher')
-      ? searchParams.get('teacher') === 'true'
-      : undefined,
-  }
+  // Search params state
+  const { state, updateState } = useSearchParamsState({
+    grade: undefined,
+    search: undefined,
+    active: undefined,
+    teacher: undefined,
+  })
 
-  // Initialize classes data with URL params
+  // Initialize classes data
   const {
     grades,
     results,
@@ -50,38 +42,20 @@ export default function ClassesPage() {
     loadMore,
     currentPage,
     setCurrentPage,
-    // itemsPerPage,
   } = useClassesData({
     initialItemsPerPage: ITEMS_PER_PAGE,
-    initialFilters, // Pass filters to the hook
+    filters: state,
   })
 
-  // URL handling
-  const createQueryString = useCallback(
-    (params: Record<string, string | undefined>) => {
-      const newSearchParams = new URLSearchParams(searchParams.toString())
-
-      Object.entries(params).forEach(([key, value]) => {
-        if (value === undefined || value === '' || value === 'all') {
-          newSearchParams.delete(key)
-        }
-        else {
-          newSearchParams.set(key, value)
-        }
-      })
-
-      return newSearchParams.toString()
-    },
-    [searchParams],
-  )
-
-  // Update URL when filters change
-  const updateSearchParams = (params: Record<string, string | undefined>) => {
-    const queryString = createQueryString(params)
-    router.push(`${pathname}?${queryString}`, { scroll: false })
-  }
-
   // Handlers
+  const handleGradeChange = (grade?: string) => updateState({ grade })
+
+  const handleSearchChange = (search: string) => updateState({ search })
+
+  const handleActiveChange = (active?: boolean) => updateState({ active })
+
+  const handleTeacherChange = (teacher?: boolean) => updateState({ teacher })
+
   const handleClassEdit = (classData: string) => {
     const parsedClass = JSON.parse(classData)
     setClassToEdit(parsedClass)
@@ -94,13 +68,6 @@ export default function ClassesPage() {
     }
     setCurrentPage(newPage)
   }
-
-  const handleFilterChange = useCallback(
-    (newFilters: Partial<typeof initialFilters>) => {
-      updateSearchParams({ ...initialFilters, ...newFilters })
-    },
-    [updateSearchParams, initialFilters],
-  )
 
   return (
     <div className="space-y-2 px-6 py-2 bg-orange-50">
@@ -124,7 +91,6 @@ export default function ClassesPage() {
             onClick={() => setShowClassModal(true)}
           >
             <PlusIcon className="mr-2 h-4 w-4" />
-            {' '}
             Nouvelle classe
           </Button>
         </CardHeader>
@@ -133,8 +99,14 @@ export default function ClassesPage() {
           {/* Filters */}
           <ClassesFilters
             grades={grades}
-            initialFilters={initialFilters}
-            onFilterChange={handleFilterChange}
+            selectedGrade={state.grade}
+            onGradeChange={handleGradeChange}
+            searchTerm={state.search || ''}
+            onSearchTermChange={handleSearchChange}
+            classesActiveState={state.active}
+            onClassesActiveStateChange={handleActiveChange}
+            hasMainTeacher={state.teacher}
+            onHasMainTeacherChange={handleTeacherChange}
             isTableViewMode={isTableViewMode}
             onToggleViewMode={() => setIsTableViewMode(!isTableViewMode)}
             onImportClick={() => setShowImportModal(true)}

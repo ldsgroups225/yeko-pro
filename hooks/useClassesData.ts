@@ -1,17 +1,20 @@
 import type { IClass, IGrade } from '@/types'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { useDebouncedCallback } from 'use-debounce'
 import { useClasses } from './useClasses'
 import { useGrade } from './useGrade'
 import { useUser } from './useUser'
 
+interface Filters {
+  grade?: string
+  search?: string
+  active?: boolean
+  teacher?: boolean
+}
+
 interface UseClassesDataProps {
   initialItemsPerPage: number
-  initialFilters: {
-    grade?: string
-    search?: string
-    active?: boolean
-    teacher?: boolean
-  }
+  filters: Filters
 }
 
 interface UseClassesDataReturn {
@@ -21,12 +24,11 @@ interface UseClassesDataReturn {
   loadMore: () => void
   currentPage: number
   setCurrentPage: (page: number) => void
-  itemsPerPage: number
 }
 
 export function useClassesData({
   initialItemsPerPage,
-  initialFilters,
+  filters,
 }: UseClassesDataProps): UseClassesDataReturn {
   const { user } = useUser()
   const { grades } = useGrade()
@@ -41,29 +43,53 @@ export function useClassesData({
     currentPage,
   } = useClasses()
 
-  // Track if initial load has happened
+  // Use refs to track previous values
+  const prevFiltersRef = useRef(filters)
   const [hasInitialized, setHasInitialized] = useState(false)
 
-  // Initialize filters with props
+  // Initialize once
   useEffect(() => {
-    setFilters({
-      gradeId: initialFilters.grade,
-      isActive: initialFilters.active,
-      hasMainTeacher: initialFilters.teacher,
-      searchTerm: initialFilters.search,
-    })
     setItemsPerPage(initialItemsPerPage)
     setHasInitialized(true)
-  }, []) // Only run this effect once on mount
+  }, []) // Empty dependency array for one-time initialization
 
-  // Fetch classes when dependencies change
+  function properQsParamsOrUndefined<T>(params: T): T | undefined {
+    if (params === '' || params === 'all' || params === 'undefined' || params === undefined) {
+      return undefined
+    }
+    return params
+  }
+
+  // Update filters when they change
+  useEffect(() => {
+    const hasFiltersChanged = JSON.stringify(prevFiltersRef.current) !== JSON.stringify(filters)
+
+    if (hasFiltersChanged) {
+      setFilters({
+        gradeId: properQsParamsOrUndefined(filters.grade),
+        isActive: properQsParamsOrUndefined(filters.active),
+        hasMainTeacher: properQsParamsOrUndefined(filters.teacher),
+        searchTerm: properQsParamsOrUndefined(filters.search),
+      })
+      prevFiltersRef.current = filters
+
+      // Reset to first page when filters change
+      setPage(1)
+    }
+  }, [filters])
+
+  // useDebouncedCallback class load
+  const _debouncedLoadClasses = useDebouncedCallback(async (schoolId: string) => {
+    await loadClasses(schoolId)
+  }, 0)
+
+  // Load classes when necessary
   useEffect(() => {
     if (user?.school?.id && hasInitialized) {
-      loadClasses(user.school.id)
+      _debouncedLoadClasses(user.school.id)?.then(r => r)
     }
-  }, [user?.school?.id, currentPage, hasInitialized])
+  }, [user?.school?.id, currentPage, hasInitialized, prevFiltersRef.current])
 
-  // Derive status with improved logic
   const status = (() => {
     if (!hasInitialized)
       return 'idle'
@@ -87,6 +113,5 @@ export function useClassesData({
     loadMore,
     currentPage,
     setCurrentPage: setPage,
-    itemsPerPage: initialItemsPerPage,
   }
 }
