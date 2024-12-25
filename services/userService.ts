@@ -20,12 +20,12 @@ export async function getUserId(): Promise<string | null> {
 /**
  * Fetches the complete user profile including role information for a director.
  *
- * @returns {Promise<IUserProfileDTO | null>} The user's complete profile or null if not found
+ * @returns {Promise<IUserProfileDTO>} The user's complete profile or null if not found
  * @throws {Error} With message 'Unauthorized' if user is not authenticated
  * @throws {Error} With message 'Profile not found' if profile fetch fails
  * @throws {Error} With message 'School not found' if school fetch fails
  */
-export async function fetchUserProfile(): Promise<IUserProfileDTO | null> {
+export async function fetchUserProfile(): Promise<IUserProfileDTO> {
   const supabase = createClient()
 
   const userId = await getUserId()

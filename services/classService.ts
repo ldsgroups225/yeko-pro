@@ -2,6 +2,7 @@
 
 import type { IClass } from '@/types'
 import { createClient } from '@/lib/supabase/server'
+import { formatFullName } from '@/lib/utils'
 import { getUserId } from './userService'
 
 interface FetchClassesParams {
@@ -37,24 +38,19 @@ export async function fetchClasses({
   schoolId,
   page = 1,
   limit = 10,
-  searchTerm = '',
+  searchTerm = '3',
   gradeId,
   isActive,
   hasMainTeacher,
 }: FetchClassesParams): Promise<IClass[]> {
   const supabase = createClient()
 
-  const userId = await getUserId()
-  if (!userId) {
-    throw new Error('Unauthorized')
-  }
-
   const from = (page - 1) * limit
   const to = from + limit - 1
 
   let query = supabase
     .from('classes')
-    .select('*', { count: 'exact' })
+    .select('*, students(count), teacher:users(id, first_name, last_name, email)', { count: 'exact' })
     .eq('school_id', schoolId)
 
   // Apply optional filters
@@ -92,7 +88,13 @@ export async function fetchClasses({
       name: c.name,
       gradeId: c.grade_id,
       isActive: c.is_active,
-      mainTeacherId: c.main_teacher_id,
+      studentCount: (c.students[0] as any)?.count ?? 0,
+      teacher: c.teacher
+        ? {
+            id: c.teacher.id,
+            fullName: formatFullName(c.teacher.first_name, c.teacher.last_name, c.teacher.email),
+          }
+        : null,
     } satisfies IClass
   }) ?? []
 }
@@ -147,7 +149,8 @@ export async function createClass({
     name: data.name,
     gradeId: data.grade_id,
     isActive: data.is_active,
-    mainTeacherId: data.main_teacher_id,
+    studentCount: 0,
+    teacher: null,
   }
 }
 
@@ -188,7 +191,7 @@ export async function updateClass({
       grade_id: gradeId,
     })
     .eq('id', classId)
-    .select('*')
+    .select('*, teacher:users(id, first_name, last_name, email), students(count)')
     .single()
     .throwOnError()
 
@@ -206,6 +209,12 @@ export async function updateClass({
     name: data.name,
     gradeId: data.grade_id,
     isActive: data.is_active,
-    mainTeacherId: data.main_teacher_id,
+    studentCount: (data.students[0] as any)?.count ?? 0,
+    teacher: data.teacher
+      ? {
+          id: data.teacher.id,
+          fullName: formatFullName(data.teacher.first_name, data.teacher.last_name, data.teacher.email),
+        }
+      : null,
   }
 }

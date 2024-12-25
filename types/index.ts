@@ -128,7 +128,11 @@ export interface IClass {
   name: string
   gradeId: number
   isActive: boolean
-  mainTeacherId: string | null
+  teacher: {
+    id: string
+    fullName: string
+  } | null
+  studentCount: number
 }
 
 // export type IClass = Database['public']['Tables']['classes']

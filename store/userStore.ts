@@ -11,7 +11,7 @@ interface UserStore {
   user: IUserProfileDTO | null
   setUser: (user: IUserProfileDTO | null) => void
   getFullName: () => string
-  fetchUser: () => Promise<void>
+  fetchUser: () => Promise<IUserProfileDTO>
 }
 
 /**
@@ -51,15 +51,15 @@ const useUserStore = create<UserStore>()(
       /**
        * Fetches the user's profile from the API and updates the user state.
        *
-       * @returns {Promise<void>} - A Promise that resolves once the user profile has been fetched and stored.
+       * @returns {Promise<IUserProfileDTO>} - A Promise that resolves once the user profile has been fetched and stored.
        */
-      fetchUser: async (): Promise<void> => {
+      fetchUser: async (): Promise<IUserProfileDTO> => {
         try {
           const profile = await fetchUserProfile()
-          if (profile) {
-            set({ user: profile })
-            set({ isAuthenticated: true })
-          }
+          set({ user: profile })
+          set({ isAuthenticated: true })
+
+          return profile
         }
         catch (error) {
           console.error('Error fetching user profile:', error)

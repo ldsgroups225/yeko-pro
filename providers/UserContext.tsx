@@ -1,17 +1,15 @@
 import type { IUserProfileDTO } from '@/types'
-import { useInitUsefullData } from '@/hooks/useInitUsefullData'
-import { createContext, useContext, useEffect, useState } from 'react'
+import { createContext, useContext } from 'react'
 
-interface UserContextType {
+interface UserContextState {
   user: IUserProfileDTO | null
   isLoading: boolean
   error: Error | null
+  isInitialized: boolean
 }
 
-// Create the UserContext
-const UserContext = createContext<UserContextType | undefined>(undefined)
+const UserContext = createContext<UserContextState | undefined>(undefined)
 
-// Export the useUserContext hook
 export function useUserContext() {
   const context = useContext(UserContext)
   if (!context) {
@@ -20,5 +18,4 @@ export function useUserContext() {
   return context
 }
 
-// Export the UserContext object
 export { UserContext }

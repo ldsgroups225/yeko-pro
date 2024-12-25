@@ -16,11 +16,6 @@ import { getUserId } from './userService'
 export async function fetchGrades(cycleId: string): Promise<IGrade[]> {
   const supabase = createClient()
 
-  const userId = await getUserId()
-  if (!userId) {
-    throw new Error('Unauthorized')
-  }
-
   const { data, error } = await supabase
     .from('grades')
     .select(`
@@ -30,6 +25,8 @@ export async function fetchGrades(cycleId: string): Promise<IGrade[]> {
     .eq('cycle_id', cycleId)
     .order('id', { ascending: true })
     .throwOnError()
+
+  console.log('==========> data', data?.length)
 
   if (error) {
     console.error('Error fetching grades:', error)

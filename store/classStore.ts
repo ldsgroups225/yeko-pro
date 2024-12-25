@@ -18,6 +18,7 @@ interface ClassStore {
   currentPage: number
   itemsPerPage: number
   filters: ClassFilters
+  currentSchoolId?: string
 
   setClasses: (classes: IClass[]) => void
   setFilters: (filters: Partial<ClassFilters>) => void
@@ -40,22 +41,46 @@ const useClassStore = create<ClassStore>()(
       currentPage: 1,
       itemsPerPage: 10,
       filters: {},
+      currentSchoolId: undefined,
 
       setClasses: classes => set({ classes }),
 
-      setFilters: newFilters => set((state) => {
-        return ({
+      setFilters: async (newFilters) => {
+        // First update the filters
+        set(state => ({
           filters: { ...state.filters, ...newFilters },
           currentPage: 1,
+        }))
+
+        // Then trigger a fetch if we have a schoolId
+        const state = get()
+        if (state.currentSchoolId) {
+          await get().fetchClasses(state.currentSchoolId)
+        }
+      },
+
+      setPage: async (page) => {
+        set({ currentPage: page })
+
+        // Trigger fetch on page change
+        const state = get()
+        if (state.currentSchoolId) {
+          await get().fetchClasses(state.currentSchoolId)
+        }
+      },
+
+      setItemsPerPage: async (count) => {
+        set({
+          itemsPerPage: count,
+          currentPage: 1,
         })
-      }),
 
-      setPage: page => set({ currentPage: page }),
-
-      setItemsPerPage: count => set({
-        itemsPerPage: count,
-        currentPage: 1,
-      }),
+        // Trigger fetch on items per page change
+        const state = get()
+        if (state.currentSchoolId) {
+          await get().fetchClasses(state.currentSchoolId)
+        }
+      },
 
       getClassById: (classId) => {
         return get().classes.find(c => c.id === classId)
@@ -102,7 +127,7 @@ const useClassStore = create<ClassStore>()(
 
       fetchClasses: async (schoolId) => {
         const state = get()
-        set({ isLoading: true, error: null })
+        set({ isLoading: true, error: null, currentSchoolId: schoolId })
 
         try {
           const data = await fetchClasses({
@@ -134,6 +159,7 @@ const useClassStore = create<ClassStore>()(
         totalCount: 0,
         currentPage: 1,
         filters: {},
+        currentSchoolId: undefined,
       }),
     }),
     {
@@ -144,6 +170,7 @@ const useClassStore = create<ClassStore>()(
         currentPage: state.currentPage,
         itemsPerPage: state.itemsPerPage,
         filters: state.filters,
+        currentSchoolId: state.currentSchoolId,
       }),
     },
   ),

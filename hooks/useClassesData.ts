@@ -6,10 +6,12 @@ import { useUser } from './useUser'
 
 interface UseClassesDataProps {
   initialItemsPerPage: number
-  initialGrade?: string
-  initialSearchTerm?: string
-  initialClassesActiveState?: boolean
-  initialHasMainTeacher?: boolean
+  initialFilters: {
+    grade?: string
+    search?: string
+    active?: boolean
+    teacher?: boolean
+  }
 }
 
 interface UseClassesDataReturn {
@@ -20,22 +22,11 @@ interface UseClassesDataReturn {
   currentPage: number
   setCurrentPage: (page: number) => void
   itemsPerPage: number
-  selectedGrade?: string
-  setSelectedGrade: (gradeId?: string) => void
-  classesActiveState?: boolean
-  setClassesActiveState: (isActive?: boolean) => void
-  searchTerm: string
-  setSearchTerm: (term: string) => void
-  hasMainTeacher?: boolean
-  setHasMainTeacher: (hasTeacher?: boolean) => void
 }
 
 export function useClassesData({
   initialItemsPerPage,
-  initialGrade,
-  initialSearchTerm = '',
-  initialClassesActiveState,
-  initialHasMainTeacher,
+  initialFilters,
 }: UseClassesDataProps): UseClassesDataReturn {
   const { user } = useUser()
   const { grades } = useGrade()
@@ -56,14 +47,14 @@ export function useClassesData({
   // Initialize filters with props
   useEffect(() => {
     setFilters({
-      gradeId: initialGrade,
-      isActive: initialClassesActiveState,
-      hasMainTeacher: initialHasMainTeacher,
-      searchTerm: initialSearchTerm,
+      gradeId: initialFilters.grade,
+      isActive: initialFilters.active,
+      hasMainTeacher: initialFilters.teacher,
+      searchTerm: initialFilters.search,
     })
     setItemsPerPage(initialItemsPerPage)
     setHasInitialized(true)
-  }, [])
+  }, []) // Only run this effect once on mount
 
   // Fetch classes when dependencies change
   useEffect(() => {
@@ -85,22 +76,6 @@ export function useClassesData({
     return 'idle'
   })()
 
-  const setSelectedGrade = (gradeId?: string) => {
-    setFilters({ gradeId })
-  }
-
-  const setClassesActiveState = (isActive?: boolean) => {
-    setFilters({ isActive })
-  }
-
-  const setSearchTerm = (term: string) => {
-    setFilters({ searchTerm: term })
-  }
-
-  const setHasMainTeacher = (hasTeacher?: boolean) => {
-    setFilters({ hasMainTeacher: hasTeacher })
-  }
-
   const loadMore = () => {
     setPage(currentPage + 1)
   }
@@ -113,13 +88,5 @@ export function useClassesData({
     currentPage,
     setCurrentPage: setPage,
     itemsPerPage: initialItemsPerPage,
-    selectedGrade: initialGrade,
-    setSelectedGrade,
-    classesActiveState: initialClassesActiveState,
-    setClassesActiveState,
-    searchTerm: initialSearchTerm,
-    setSearchTerm,
-    hasMainTeacher: initialHasMainTeacher,
-    setHasMainTeacher,
   }
 }

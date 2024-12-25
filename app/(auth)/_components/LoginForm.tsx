@@ -1,7 +1,6 @@
 'use client'
 
 import type { ILogin } from '@/validations'
-import { fetchUserProfile, login } from '@/app/(auth)/actions'
 import { SubmitButton } from '@/components/SubmitButton'
 import { Alert, AlertTitle } from '@/components/ui/alert'
 import { Checkbox } from '@/components/ui/checkbox'
@@ -40,11 +39,11 @@ export function LoginForm() {
   async function onSubmit(values: ILogin) {
     try {
       startTransition(async () => {
-        const response = await login(values)
-        if (response) {
-          await fetchUserProfile()
-          router.replace('/home')
-        }
+        // const response = await login(values)
+        // if (response) {
+        //   await fetchUserProfile()
+        //   router.replace('/home')
+        // }
       })
     }
     catch (error) {

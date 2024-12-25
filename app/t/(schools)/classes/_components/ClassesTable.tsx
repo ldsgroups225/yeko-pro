@@ -85,8 +85,12 @@ export const ClassesTable: React.FC<ClassesTableProps> = ({
                 <TableRow key={cls.id}>
                   <TableCell>{index + 1}</TableCell>
                   <TableCell>{cls.name}</TableCell>
-                  <TableCell>TODO</TableCell>
-                  <TableCell>Non assigné</TableCell>
+                  <TableCell>{cls.studentCount}</TableCell>
+                  <TableCell>
+                    {' '}
+                    {cls.teacher?.fullName ?? '-'}
+                    {' '}
+                  </TableCell>
                   <TableCell className="flex justify-center">
                     <Badge variant={cls.isActive ? 'default' : 'destructive'}>
                       {cls.isActive ? 'Actif' : 'Inactif'}

@@ -1,44 +1,43 @@
-import { fetchUserProfile } from '@/services'
-import useUserStore from '@/store/userStore'
+import { useCallback } from 'react'
+
 import { useGrade } from './useGrade'
+import { useUser } from './useUser'
 
 /**
- * Hook to initialize reusable data: USER, SCHOOL, GRADES, SCHOOL YEARS.
- *
- * @throws {Error} If any of the required data fails to fetch.
+ * Hook to initialize reusable data with memoization and better state management
  */
-export function useInitUsefullData() {
-  const { setUser } = useUserStore()
+export function useInitUsefulData() {
+  const { fetchUser, isAuthenticated } = useUser()
   const { loadGrades } = useGrade()
 
-  /**
-   * Initializes the user profile and related data.
-   *
-   * @returns {Promise<void>}
-   */
-  const initialize = async (): Promise<void> => {
+  // Memoize the initialize function to prevent unnecessary recreations
+  const initialize = useCallback(async (): Promise<void> => {
     try {
-      // 1. Fetch user profile
-      const profile = await fetchUserProfile()
-      if (!profile) {
-        throw new Error('User profile not found')
+      // Prevent duplicate initialization if already authenticated
+      if (isAuthenticated) {
+        return
       }
 
-      // 2. Store user profile in Zustand store
-      setUser(profile)
+      // 1. Fetch user profile
+      const user = await fetchUser()
 
-      // 3. Fetch grade list (add your logic here)
-      await loadGrades(profile.school.cycleId)
-
-      // 4. Fetch school years list (add your logic here)
-
-      // 5. Store additional data in Zustand if needed
+      // 2. Only proceed with additional data loading if we have a valid user
+      if (user?.school?.cycleId) {
+        // Load grades in parallel with other potential data fetching
+        await Promise.all([
+          loadGrades(user.school.cycleId),
+          // Add other parallel loading operations here
+        ])
+      }
+      else {
+        throw new Error('Invalid user data: missing school or cycle information')
+      }
     }
     catch (error) {
       console.error('Error initializing useful data:', error)
       throw error
     }
-  }
+  }, [])
 
   return { initialize }
 }

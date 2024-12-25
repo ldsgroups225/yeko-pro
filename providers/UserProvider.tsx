@@ -1,43 +1,76 @@
-import { useInitUsefullData } from '@/hooks/useInitUsefullData'
+import { useInitUsefulData } from '@/hooks/useInitUsefullData'
 import { useUser } from '@/hooks/useUser'
-import { type ReactNode, useEffect, useState } from 'react'
+import { type ReactNode, useCallback, useEffect, useReducer } from 'react'
 import { UserContext } from './UserContext'
 
 interface UserProviderProps {
   children: ReactNode
 }
 
+// Define the state type explicitly
+interface State {
+  isLoading: boolean
+  isInitialized: boolean
+  error: Error | null
+}
+
+// Define action types
+type Action =
+  | { type: 'START_LOADING' }
+  | { type: 'FINISH_LOADING', error?: Error }
+  | { type: 'SET_INITIALIZED' }
+
+// Initial state with correct typing
+const initialState: State = {
+  isLoading: true,
+  isInitialized: false,
+  error: null,
+}
+
+// Reducer with proper type annotations
+function reducer(state: State, action: Action): State {
+  switch (action.type) {
+    case 'START_LOADING':
+      return { ...state, isLoading: true, error: null }
+    case 'FINISH_LOADING':
+      return { ...state, isLoading: false, error: action.error || null }
+    case 'SET_INITIALIZED':
+      return { ...state, isInitialized: true }
+    default:
+      return state
+  }
+}
+
 export function UserProvider({ children }: UserProviderProps) {
-  const [isLoading, setIsLoading] = useState(true)
-  const [isInitialized, setIsInitialized] = useState(false)
-  const [error, setError] = useState<Error | null>(null)
+  const [state, dispatch] = useReducer(reducer, initialState)
   const { user } = useUser()
+  const { initialize } = useInitUsefulData()
 
-  const { initialize } = useInitUsefullData()
-
-  useEffect(() => {
-    const fetchData = async () => {
-      if (isInitialized)
-        return
-
-      try {
-        setIsLoading(true)
-        await initialize()
-      }
-      catch (err) {
-        setError(err as Error)
-      }
-      finally {
-        setIsLoading(false)
-        setIsInitialized(true)
-      }
+  const initializeData = useCallback(async () => {
+    if (state.isInitialized) {
+      return
     }
 
-    fetchData()
-  }, [initialize])
+    dispatch({ type: 'START_LOADING' })
+
+    try {
+      await initialize()
+      dispatch({ type: 'FINISH_LOADING' })
+    }
+    catch (err) {
+      dispatch({ type: 'FINISH_LOADING', error: err as Error })
+    }
+    finally {
+      dispatch({ type: 'SET_INITIALIZED' })
+    }
+  }, [initialize, state.isInitialized])
+
+  useEffect(() => {
+    initializeData()
+  }, [initializeData])
 
   return (
-    <UserContext value={{ user, isLoading, error }}>
+    <UserContext value={{ ...state, user }}>
       {children}
     </UserContext>
   )
