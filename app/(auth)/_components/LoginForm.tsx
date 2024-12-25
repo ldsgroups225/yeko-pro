@@ -14,6 +14,7 @@ import {
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { useUser } from '@/hooks' // Import the useUser hook
 import { loginSchema } from '@/validations'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { MinusCircledIcon } from '@radix-ui/react-icons'
@@ -25,9 +26,10 @@ import { useForm } from 'react-hook-form'
 export function LoginForm() {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
+  const { signIn } = useUser() // Use the signIn and fetchUser functions from the hook
 
   const [error, setError] = useState<string | null>(null)
-  const form = useForm({
+  const form = useForm<ILogin>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
       email: '',
@@ -37,18 +39,22 @@ export function LoginForm() {
   })
 
   async function onSubmit(values: ILogin) {
-    try {
-      startTransition(async () => {
-        // const response = await login(values)
-        // if (response) {
-        //   await fetchUserProfile()
-        //   router.replace('/home')
-        // }
-      })
-    }
-    catch (error) {
-      setError((error as Error).message)
-    }
+    setError(null)
+    startTransition(async () => {
+      try {
+        const result = await signIn(values.email, values.password)
+        if (result.success) {
+          router.replace('/t/home')
+        }
+        else {
+          setError(result.error || 'Une erreur est survenue lors de la connexion.')
+        }
+      }
+      catch (error) {
+        setError('Une erreur est survenue lors de la connexion.')
+        console.error('Login error:', error)
+      }
+    })
   }
 
   return (
@@ -98,7 +104,7 @@ export function LoginForm() {
                 <FormControl>
                   <Checkbox
                     checked={field.value}
-                    onCheckedChange={field.onChange}
+                    onCheckedChange={field.onChange as (checked: boolean) => void} // Cast onCheckedChange type
                   />
                 </FormControl>
                 <div className="space-y-1 leading-none">

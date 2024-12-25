@@ -1,10 +1,9 @@
 import useUserStore from '@/store/userStore'
 
 /**
- * Custom hook to interact with the user store with debounced fetch functionality.
- * Uses a 300ms debounce delay for rapid but controlled API calls.
+ * Custom hook to interact with the user store.
  *
- * @returns {object} - An object containing user-related functions and data
+ * @returns An object containing user-related functions and data with proper types.
  */
 export function useUser() {
   const {
@@ -13,13 +12,27 @@ export function useUser() {
     setUser,
     getFullName,
     fetchUser,
+    signUp,
+    signIn,
+    signOut,
+    handleAuthCallback,
+    resetPassword,
+    updatePassword,
+    clearUser,
   } = useUserStore()
 
   return {
-    user,
     isAuthenticated,
+    user,
     setUser,
     getFullName,
     fetchUser,
-  }
+    signUp,
+    signIn,
+    signOut,
+    handleAuthCallback,
+    resetPassword,
+    updatePassword,
+    clearUser,
+  } as const // Using 'as const' for precise type inference
 }

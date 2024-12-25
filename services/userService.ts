@@ -2,7 +2,11 @@
 
 import type { IUserProfileDTO } from '@/types'
 import { createClient } from '@/lib/supabase/server'
+import { getEnvOrThrow } from '@/lib/utils/Env'
+
 import { ERole, roleToString } from '@/types'
+import { cookies } from 'next/headers'
+import { redirect } from 'next/navigation'
 
 /**
  * Gets the current authenticated user's basic information.
@@ -85,4 +89,128 @@ export async function fetchUserProfile(): Promise<IUserProfileDTO> {
       updatedBy: school.updated_by ?? '',
     },
   }
+}
+
+/**
+ * Signs up a new user with email and password
+ *
+ * @param email - User's email address
+ * @param password - User's password
+ * @returns Object containing success status and any error message
+ */
+export async function signUp(email: string, password: string) {
+  const env = getEnvOrThrow()
+  const supabase = createClient()
+
+  const { error } = await supabase.auth.signUp({
+    email,
+    password,
+    options: {
+      emailRedirectTo: `${env.NEXT_PUBLIC_SITE_URL}/auth/callback`,
+    },
+  })
+
+  if (error) {
+    return { success: false, error: error.message }
+  }
+
+  return {
+    success: true,
+    message: 'Please check your email to confirm your account',
+  }
+}
+
+/**
+ * Signs in an existing user with email and password
+ *
+ * @param email - User's email address
+ * @param password - User's password
+ * @returns Object containing success status and any error message
+ */
+export async function signIn(email: string, password: string) {
+  const supabase = createClient()
+
+  const { error } = await supabase.auth.signInWithPassword({
+    email,
+    password,
+  })
+
+  if (error) {
+    return { success: false, error: error.message }
+  }
+
+  return { success: true }
+}
+
+/**
+ * Signs out the current user
+ */
+export async function signOut() {
+  const supabase = createClient()
+
+  // Clear auth session
+  await supabase.auth.signOut()
+
+  // Clear cookies
+  const ck = await cookies()
+  ck.delete('supabase-auth-token')
+
+  // Redirect to home page
+  redirect('/')
+}
+
+/**
+ * Handles the OAuth callback and sets up the session
+ * @param code - The authorization code from the OAuth provider
+ */
+export async function handleAuthCallback(code: string) {
+  const supabase = createClient()
+
+  const { error } = await supabase.auth.exchangeCodeForSession(code)
+
+  if (error) {
+    return { success: false, error: error.message }
+  }
+
+  return { success: true }
+}
+
+/**
+ * Resets password for a user
+ * @param email - Email address of the user
+ */
+export async function resetPassword(email: string) {
+  const env = getEnvOrThrow()
+  const supabase = createClient()
+
+  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: `${env.NEXT_PUBLIC_SITE_URL}/auth/reset-password`,
+  })
+
+  if (error) {
+    return { success: false, error: error.message }
+  }
+
+  return {
+    success: true,
+    message: 'Password reset instructions have been sent to your email',
+  }
+}
+
+/**
+ * Updates user's password
+ * @param newPassword - New password to set
+ */
+export async function updatePassword(newPassword: string) {
+  const supabase = createClient()
+
+  const { error } = await supabase.auth.updateUser({
+    password: newPassword,
+  })
+
+  if (error) {
+    return { success: false, error: error.message }
+  }
+
+  return { success: true }
 }
