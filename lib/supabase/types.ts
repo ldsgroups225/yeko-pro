@@ -112,6 +112,7 @@ export interface Database {
           main_teacher_id: string | null
           name: string
           school_id: string
+          slug: string | null
           updated_at: string | null
           updated_by: string | null
         }
@@ -124,6 +125,7 @@ export interface Database {
           main_teacher_id?: string | null
           name: string
           school_id: string
+          slug?: string | null
           updated_at?: string | null
           updated_by?: string | null
         }
@@ -136,6 +138,7 @@ export interface Database {
           main_teacher_id?: string | null
           name?: string
           school_id?: string
+          slug?: string | null
           updated_at?: string | null
           updated_by?: string | null
         }
@@ -315,17 +318,14 @@ export interface Database {
           },
         ]
       }
-      notes: {
+      note_details: {
         Row: {
           class_id: string
           created_at: string | null
-          date: string | null
+          graded_at: string | null
           id: string
-          is_published: boolean | null
           note: number | null
-          publish_date: string | null
-          school_years_id: number | null
-          semesters_id: number | null
+          note_id: string
           student_id: string
           subject_id: string
           updated_at: string | null
@@ -333,13 +333,10 @@ export interface Database {
         Insert: {
           class_id: string
           created_at?: string | null
-          date?: string | null
+          graded_at?: string | null
           id?: string
-          is_published?: boolean | null
           note?: number | null
-          publish_date?: string | null
-          school_years_id?: number | null
-          semesters_id?: number | null
+          note_id: string
           student_id: string
           subject_id: string
           updated_at?: string | null
@@ -347,51 +344,127 @@ export interface Database {
         Update: {
           class_id?: string
           created_at?: string | null
-          date?: string | null
+          graded_at?: string | null
           id?: string
-          is_published?: boolean | null
           note?: number | null
-          publish_date?: string | null
-          school_years_id?: number | null
-          semesters_id?: number | null
+          note_id?: string
           student_id?: string
           subject_id?: string
           updated_at?: string | null
         }
         Relationships: [
           {
-            foreignKeyName: 'notes_class_id_foreign'
+            foreignKeyName: 'note_details_class_id_foreign'
             columns: ['class_id']
             isOneToOne: false
             referencedRelation: 'classes'
             referencedColumns: ['id']
           },
           {
-            foreignKeyName: 'notes_school_years_foreign'
-            columns: ['school_years_id']
+            foreignKeyName: 'note_details_note_id_foreign'
+            columns: ['note_id']
             isOneToOne: false
-            referencedRelation: 'school_years'
+            referencedRelation: 'notes'
             referencedColumns: ['id']
           },
           {
-            foreignKeyName: 'notes_semesters_foreign'
-            columns: ['semesters_id']
-            isOneToOne: false
-            referencedRelation: 'semesters'
-            referencedColumns: ['id']
-          },
-          {
-            foreignKeyName: 'notes_student_id_foreign'
+            foreignKeyName: 'note_details_student_id_foreign'
             columns: ['student_id']
             isOneToOne: false
             referencedRelation: 'students'
             referencedColumns: ['id']
           },
           {
-            foreignKeyName: 'notes_subject_id_foreign'
+            foreignKeyName: 'note_details_subject_id_foreign'
             columns: ['subject_id']
             isOneToOne: false
             referencedRelation: 'subjects'
+            referencedColumns: ['id']
+          },
+        ]
+      }
+      notes: {
+        Row: {
+          created_at: string
+          created_by: string
+          description: string | null
+          due_date: string | null
+          id: string
+          is_active: boolean
+          is_graded: boolean
+          is_published: boolean
+          note_type: string
+          published_at: string | null
+          school_id: string
+          school_year_id: number
+          semester_id: number
+          title: string | null
+          total_points: number
+          weight: number | null
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          is_active?: boolean
+          is_graded?: boolean
+          is_published?: boolean
+          note_type: string
+          published_at?: string | null
+          school_id: string
+          school_year_id: number
+          semester_id: number
+          title?: string | null
+          total_points: number
+          weight?: number | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          is_active?: boolean
+          is_graded?: boolean
+          is_published?: boolean
+          note_type?: string
+          published_at?: string | null
+          school_id?: string
+          school_year_id?: number
+          semester_id?: number
+          title?: string | null
+          total_points?: number
+          weight?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'notes_created_by_foreign'
+            columns: ['created_by']
+            isOneToOne: false
+            referencedRelation: 'users'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'notes_school_id_foreign'
+            columns: ['school_id']
+            isOneToOne: false
+            referencedRelation: 'schools'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'notes_school_year_foreign'
+            columns: ['school_year_id']
+            isOneToOne: false
+            referencedRelation: 'school_years'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'notes_semester_foreign'
+            columns: ['semester_id']
+            isOneToOne: false
+            referencedRelation: 'semesters'
             referencedColumns: ['id']
           },
         ]
@@ -1117,6 +1190,26 @@ export interface Database {
         }
         Returns: string
       }
+      generate_slug_text: {
+        Args: {
+          input_name: string
+        }
+        Returns: string
+      }
+      get_class_metrics: {
+        Args: {
+          p_school_id: string
+          p_class_id: string
+          p_school_year_id?: number
+          p_semester_id?: number
+        }
+        Returns: {
+          total_students: number
+          late_rate: number
+          absent_rate: number
+          average_grade: number
+        }[]
+      }
       get_classes_by_school: {
         Args: {
           school_id: string
@@ -1199,6 +1292,10 @@ export interface Database {
           is_published: boolean
           publish_date: string
         }[]
+      }
+      update_existing_class_slugs: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
       }
       update_published_notes: {
         Args: {

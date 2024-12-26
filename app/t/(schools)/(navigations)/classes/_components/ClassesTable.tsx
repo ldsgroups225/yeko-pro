@@ -31,9 +31,8 @@ export const ClassesTable: React.FC<ClassesTableProps> = ({
 }) => {
   const router = useRouter()
 
-  function navigateToClass(id: string) {
-    const _ = id
-    router.push('#')
+  function navigateToClass(slug: string) {
+    router.push(`/t/classes/${slug}`)
   }
 
   const fakeClasses = Array.from({ length: 10 }).map((_, i) => ({
@@ -86,11 +85,7 @@ export const ClassesTable: React.FC<ClassesTableProps> = ({
                   <TableCell>{index + 1}</TableCell>
                   <TableCell>{cls.name}</TableCell>
                   <TableCell>{cls.studentCount}</TableCell>
-                  <TableCell>
-                    {' '}
-                    {cls.teacher?.fullName ?? '-'}
-                    {' '}
-                  </TableCell>
+                  <TableCell>{cls.teacher?.fullName ?? '-'}</TableCell>
                   <TableCell className="flex justify-center">
                     <Badge variant={cls.isActive ? 'default' : 'destructive'}>
                       {cls.isActive ? 'Actif' : 'Inactif'}
@@ -99,7 +94,7 @@ export const ClassesTable: React.FC<ClassesTableProps> = ({
                   <TableCell>
                     <ClassTableRowActions
                       editButtonClicked={() => onClassEdit(JSON.stringify(cls))}
-                      navigateToClass={() => navigateToClass(cls.id)}
+                      navigateToClass={() => navigateToClass(cls.slug)}
                     />
                   </TableCell>
                 </TableRow>

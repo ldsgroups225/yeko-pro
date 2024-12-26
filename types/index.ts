@@ -126,6 +126,7 @@ export interface IGrade {
 export interface IClass {
   id: string
   name: string
+  slug: string
   gradeId: number
   isActive: boolean
   teacher: {
@@ -133,6 +134,23 @@ export interface IClass {
     fullName: string
   } | null
   studentCount: number
+}
+
+export interface IClassDetailsStats {
+  totalStudents: number
+  lateRate: number
+  absentRate: number
+  averageGrade: number
+}
+
+export interface ClassDetailsStudent {
+  id: string
+  firstName: string
+  lastName: string
+  idNumber: string
+  gradeAverage: number
+  lateCount: number
+  absentCount: number
 }
 
 // export type IClass = Database['public']['Tables']['classes']

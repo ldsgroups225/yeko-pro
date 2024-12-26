@@ -1,5 +1,5 @@
-import type { IClass } from '@/types'
-import { createClass, fetchClasses, updateClass } from '@/services'
+import type { ClassDetailsStudent, IClass, IClassDetailsStats } from '@/types'
+import { createClass, fetchClasses, getClassBySlug, getClassDetailsStats, getClassStudents, updateClass } from '@/services'
 import { create } from 'zustand'
 import { createJSONStorage, persist } from 'zustand/middleware'
 
@@ -15,19 +15,29 @@ interface ClassStore {
   isLoading: boolean
   error: string | null
   totalCount: number
+  totalStudentsCount: number
   currentPage: number
+  currentStudentPage: number
   itemsPerPage: number
+  studentsPerPage: number
   filters: ClassFilters
   currentSchoolId?: string
+  currentClass: IClass | null
 
   setClasses: (classes: IClass[]) => void
   setFilters: (filters: Partial<ClassFilters>) => void
   setPage: (page: number) => void
+  setStudentPage: (page: number) => void
   setItemsPerPage: (count: number) => void
+  setStudentsPerPage: (count: number) => void
   getClassById: (classId: string) => IClass | undefined
+  getClassBySlug: (slug: string) => Promise< IClass | undefined>
+  fetchClassBySlug: (slug: string) => Promise< IClass | undefined>
   fetchClasses: (schoolId: string) => Promise<void>
   addClass: (params: { name: string, schoolId: string, gradeId: number }) => Promise<void>
   updateClass: (params: { classId: string, name: string, gradeId: number }) => Promise<void>
+  getClassDetailsStats: (params: { schoolId: string, classId: string, schoolYearId?: number, semesterId?: number }) => Promise<IClassDetailsStats>
+  getClassStudents: (params: { schoolId: string, classId: string }) => Promise<ClassDetailsStudent[]>
   clearClasses: () => void
 }
 
@@ -38,10 +48,14 @@ const useClassStore = create<ClassStore>()(
       isLoading: false,
       error: null,
       totalCount: 0,
+      totalStudentsCount: 0,
       currentPage: 1,
-      itemsPerPage: 10,
+      currentStudentPage: 1,
+      itemsPerPage: 12,
+      studentsPerPage: 10,
       filters: {},
       currentSchoolId: undefined,
+      currentClass: null,
 
       setClasses: classes => set({ classes }),
 
@@ -69,6 +83,16 @@ const useClassStore = create<ClassStore>()(
         }
       },
 
+      setStudentPage: async (page) => {
+        set({ currentStudentPage: page })
+
+        // Trigger fetch on page change
+        const state = get()
+        if (state.currentSchoolId) {
+          await get().fetchClasses(state.currentSchoolId)
+        }
+      },
+
       setItemsPerPage: async (count) => {
         set({
           itemsPerPage: count,
@@ -82,8 +106,45 @@ const useClassStore = create<ClassStore>()(
         }
       },
 
+      setStudentsPerPage: async (count) => {
+        set({
+          studentsPerPage: count,
+          currentStudentPage: 1,
+        })
+      },
+
       getClassById: (classId) => {
         return get().classes.find(c => c.id === classId)
+      },
+
+      getClassBySlug: async (slug) => {
+        const classroom = get().classes.find(c => c.slug === slug)
+
+        return classroom || await get().fetchClassBySlug(slug)
+      },
+
+      fetchClassBySlug: async (slug) => {
+        set({ isLoading: true, error: null })
+        try {
+          const classData = await getClassBySlug(slug)
+          set({ currentClass: classData, isLoading: false })
+
+          // Update the class in the classes array if it exists
+          set(state => ({
+            classes: state.classes.map(c =>
+              c.slug === slug ? classData : c,
+            ),
+          }))
+
+          return classData
+        }
+        catch (error) {
+          const errorMessage = error instanceof Error
+            ? error.message
+            : 'Failed to fetch class'
+          set({ error: errorMessage, isLoading: false, currentClass: null })
+          throw error
+        }
       },
 
       addClass: async ({ name, schoolId, gradeId }) => {
@@ -152,14 +213,68 @@ const useClassStore = create<ClassStore>()(
         }
       },
 
+      getClassDetailsStats: async (params) => {
+        set({ isLoading: true, error: null })
+
+        try {
+          const data = await getClassDetailsStats({
+            schoolId: params.schoolId,
+            classId: params.classId,
+            schoolYearId: params.schoolYearId,
+            semesterId: params.semesterId,
+          })
+
+          set({ isLoading: false })
+
+          return data
+        }
+        catch (error) {
+          const errorMessage = error instanceof Error
+            ? error.message
+            : 'Failed to fetch class metrics'
+          set({ error: errorMessage, isLoading: false })
+          throw error
+        }
+      },
+
+      getClassStudents: async (params) => {
+        const state = get()
+        set({ isLoading: true, error: null })
+
+        try {
+          const data = await getClassStudents({
+            schoolId: params.schoolId,
+            classId: params.classId,
+            page: state.currentStudentPage,
+            limit: state.studentsPerPage,
+          })
+
+          set({ isLoading: false, totalStudentsCount: data.length })
+
+          return data
+        }
+        catch (error) {
+          const errorMessage = error instanceof Error
+            ? error.message
+            : 'Failed to fetch class students'
+          set({ error: errorMessage, isLoading: false })
+          throw error
+        }
+      },
+
       clearClasses: () => set({
         classes: [],
         error: null,
         isLoading: false,
         totalCount: 0,
         currentPage: 1,
+        totalStudentsCount: 0,
+        currentStudentPage: 1,
+        itemsPerPage: 12,
+        studentsPerPage: 10,
         filters: {},
         currentSchoolId: undefined,
+        currentClass: undefined,
       }),
     }),
     {
@@ -171,6 +286,7 @@ const useClassStore = create<ClassStore>()(
         itemsPerPage: state.itemsPerPage,
         filters: state.filters,
         currentSchoolId: state.currentSchoolId,
+        currentClass: state.currentClass,
       }),
     },
   ),

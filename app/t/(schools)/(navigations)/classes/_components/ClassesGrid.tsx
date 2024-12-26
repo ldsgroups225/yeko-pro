@@ -24,9 +24,8 @@ export const ClassesGrid: React.FC<ClassesGridProps> = ({
 }) => {
   const router = useRouter()
 
-  function navigateToClass(id: string) {
-    const _ = id
-    router.push('#')
+  function navigateToClass(slug: string) {
+    router.push(`/t/classes/${slug}`)
   }
 
   const fakeClasses = Array.from({ length: 10 }).map((_, i) => ({
@@ -68,11 +67,11 @@ export const ClassesGrid: React.FC<ClassesGridProps> = ({
                   <Badge variant={cls.isActive ? 'outline' : 'destructive'}>
                     {cls.isActive ? 'Active' : 'Inactive'}
                   </Badge>
-                  <p className="text-sm mt-2">PP: Non assigné</p>
+                  <p className="text-sm mt-2">{cls.teacher?.fullName ?? '-'}</p>
                   <div className="mt-2 flex space-x-2">
                     <ClassTableRowActions
                       editButtonClicked={() => onClassEdit(JSON.stringify(cls))}
-                      navigateToClass={() => navigateToClass(cls.id)}
+                      navigateToClass={() => navigateToClass(cls.slug)}
                     />
                   </div>
                 </CardContent>
