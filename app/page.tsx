@@ -28,6 +28,7 @@ import {
 } from '@radix-ui/react-icons'
 import consola from 'consola'
 import { motion } from 'framer-motion'
+import Image from 'next/image'
 import Link from 'next/link'
 import React, { useState } from 'react'
 
@@ -131,14 +132,16 @@ export default function PageMarketing() {
   ]
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen overflow-y-auto">
       <header className="bg-orange-100 dark:bg-orange-950/30 sticky top-0 z-10 border-b border-border">
         <div className="container mx-auto flex justify-between items-center py-4 px-4">
           <div className="flex items-center space-x-2">
-            <img
-              src="/logo.svg?height=40&width=40"
+            <Image
+              src="/logo.png"
               alt="Logo Yeko"
-              className="h-10 w-10"
+              className="h-16 w-16"
+              width={64}
+              height={64}
             />
           </div>
           <nav className="hidden md:flex space-x-4">

@@ -1,3 +1,5 @@
+'use client'
+
 import type { ILogin } from '@/validations'
 import { SubmitButton } from '@/components/SubmitButton'
 import { Alert, AlertTitle } from '@/components/ui/alert'
@@ -12,7 +14,7 @@ import {
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { useUser } from '@/hooks' // Import the useUser hook
+import { useUser } from '@/hooks'
 import { loginSchema } from '@/validations'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { MinusCircledIcon } from '@radix-ui/react-icons'
@@ -24,7 +26,7 @@ import { useForm } from 'react-hook-form'
 export function LoginForm() {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
-  const { signIn } = useUser() // Use the signIn and fetchUser functions from the hook
+  const { signIn } = useUser()
 
   const [error, setError] = useState<string | null>(null)
   const form = useForm<ILogin>({

@@ -23,10 +23,10 @@ export function AppSidebar() {
   const { toggleSidebar, state } = useSidebar()
 
   const sidebarAnimation = {
-    width: state === 'collapsed' ? 80 : 240,
+    width: state === 'collapsed' ? 80 : 256,
     transition: {
       duration: 0.3,
-      ease: [0.4, 0, 0.2, 1], // Smooth easing function
+      ease: [0.4, 0, 0.2, 1],
     },
   }
 
