@@ -1,6 +1,6 @@
 'use client'
 
-import { useUserContext } from '@/providers/UserContext'
+import { useUserContext } from '@/hooks'
 import { motion } from 'framer-motion'
 import { CurrentTime, QuickAccess, SchoolInfo } from './_components'
 
