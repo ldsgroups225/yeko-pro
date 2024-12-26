@@ -1,5 +1,3 @@
-import type { Database } from '@/lib/supabase/types'
-
 /**
  * Enumeration representing different roles in the system.
  * @enum {number}

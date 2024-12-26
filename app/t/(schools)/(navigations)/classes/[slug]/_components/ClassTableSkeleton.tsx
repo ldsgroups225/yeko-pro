@@ -1,4 +1,5 @@
 import { Skeleton } from '@/components/ui/skeleton'
+import { nanoid } from 'nanoid'
 import React from 'react'
 
 export function ClassTableSkeleton() {
@@ -14,14 +15,14 @@ export function ClassTableSkeleton() {
       <div className="border rounded-lg">
         {/* Table Header */}
         <div className="grid grid-cols-4 gap-4 p-4 border-b">
-          {[...Array.from({ length: 4 })].map((_, i) => (
-            <Skeleton key={i} className="h-4 w-24" />
+          {Array.from({ length: 4 }).map(() => (
+            <Skeleton key={nanoid()} className="h-4 w-24" />
           ))}
         </div>
 
         {/* Table Rows */}
-        {[...Array.from({ length: 5 })].map((_, i) => (
-          <div key={i} className="grid grid-cols-4 gap-4 p-4 border-b last:border-0">
+        {Array.from({ length: 5 }).map(() => (
+          <div key={nanoid()} className="grid grid-cols-4 gap-4 p-4 border-b last:border-0">
             <Skeleton className="h-4 w-32" />
             <Skeleton className="h-4 w-24" />
             <Skeleton className="h-4 w-28" />
@@ -34,8 +35,8 @@ export function ClassTableSkeleton() {
       <div className="flex items-center justify-between mt-4">
         <Skeleton className="h-8 w-32" />
         <div className="flex gap-2">
-          {[...Array.from({ length: 3 })].map((_, i) => (
-            <Skeleton key={i} className="h-8 w-8 rounded-md" />
+          {Array.from({ length: 3 }).map(() => (
+            <Skeleton key={nanoid()} className="h-8 w-8 rounded-md" />
           ))}
         </div>
       </div>

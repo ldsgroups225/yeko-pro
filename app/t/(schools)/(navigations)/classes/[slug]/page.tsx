@@ -49,7 +49,7 @@ export default function ClassDetailsPage() {
         console.error('Failed to fetch class data:', error)
       })
     }
-  }, [slug])
+  }, [slug, getClassBySlug, getClassDetailsStats, loadClassStudents, user])
 
   return (
     <div className="space-y-2 px-6 py-2">

@@ -1,18 +1,30 @@
+import type { IGrade } from '@/types'
 import useGradeStore from '@/store/gradeStore'
+
+interface ReturnType {
+  grades: IGrade[]
+  isLoading: boolean
+  error: string | null
+  hasNoGrades: boolean
+  loadGrades: (cycleId: string) => Promise<void>
+  getGradeById: (gradeId: number) => IGrade | undefined
+  clearGrades: () => void
+}
 
 /**
  * Custom hook to interact with the grade store.
  * Provides a simplified interface for grade-related operations and data access.
  *
- * @returns {object} Object containing grade-related functions and data
- * @returns {IGrade[]} .grades - Array of all grades
- * @returns {boolean} .isLoading - Loading state for async operations
- * @returns {string | null} .error - Error message if any operation failed
- * @returns {(cycleId: string) => Promise<void>} .loadGrades - Function to fetch grades for a cycle
- * @returns {(gradeId: string) => IGrade | undefined} .getGradeById - Function to get a specific grade
- * @returns {() => void} .clearGrades - Function to clear all grades data
+ * @returns An object containing:
+ *   - grades: Array of all grades
+ *   - isLoading: Loading state for async operations
+ *   - error: Error message if any operation failed
+ *   - hasNoGrades: Boolean indicating if grades array is empty
+ *   - loadGrades: Function to fetch grades for a cycle
+ *   - getGradeById: Function to get a specific grade
+ *   - clearGrades: Function to clear all grades data
  */
-export function useGrade() {
+export function useGrade(): ReturnType {
   const {
     grades,
     isLoading,

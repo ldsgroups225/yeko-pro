@@ -28,6 +28,7 @@ import {
 } from '@radix-ui/react-icons'
 import consola from 'consola'
 import { motion } from 'framer-motion'
+import { nanoid } from 'nanoid'
 import Image from 'next/image'
 import Link from 'next/link'
 import React, { useState } from 'react'
@@ -215,8 +216,8 @@ export default function PageMarketing() {
             Fonctionnalités Clés
           </h2>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {features.map((feature, index) => (
-              <FeatureCard key={index} {...feature} />
+            {features.map(feature => (
+              <FeatureCard key={nanoid()} {...feature} />
             ))}
           </div>
         </section>
@@ -231,8 +232,8 @@ export default function PageMarketing() {
               <TabsTrigger value="enseignant">Enseignants</TabsTrigger>
               <TabsTrigger value="parent">Parents</TabsTrigger>
             </TabsList>
-            {testimonials.map((testimonial, index) => (
-              <TabsContent key={index} value={testimonial.role}>
+            {testimonials.map(testimonial => (
+              <TabsContent key={nanoid()} value={testimonial.role}>
                 <TestimonialCard
                   quote={testimonial.quote}
                   author={testimonial.author}

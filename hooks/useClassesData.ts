@@ -51,7 +51,7 @@ export function useClassesData({
   useEffect(() => {
     setItemsPerPage(initialItemsPerPage)
     setHasInitialized(true)
-  }, []) // Empty dependency array for one-time initialization
+  }, [initialItemsPerPage, setItemsPerPage, setHasInitialized])
 
   function properQsParamsOrUndefined<T>(params: T): T | undefined {
     if (params === '' || params === 'all' || params === 'undefined' || params === undefined) {
@@ -76,7 +76,7 @@ export function useClassesData({
       // Reset to first page when filters change
       setPage(1)
     }
-  }, [filters])
+  }, [filters, setFilters, setPage])
 
   // useDebouncedCallback class load
   const _debouncedLoadClasses = useDebouncedCallback(async (schoolId: string) => {
@@ -88,7 +88,7 @@ export function useClassesData({
     if (user?.school?.id && hasInitialized) {
       _debouncedLoadClasses(user.school.id)?.then(r => r)
     }
-  }, [user?.school?.id, currentPage, hasInitialized, prevFiltersRef.current])
+  }, [user?.school?.id, currentPage, hasInitialized, _debouncedLoadClasses])
 
   const status = (() => {
     if (!hasInitialized)

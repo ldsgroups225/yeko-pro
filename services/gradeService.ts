@@ -2,7 +2,6 @@
 
 import type { IGrade } from '@/types'
 import { createClient } from '@/lib/supabase/server'
-import { getUserId } from './userService'
 
 /**
  * Fetches all active grades associated with a specific cycle ID.
@@ -25,8 +24,6 @@ export async function fetchGrades(cycleId: string): Promise<IGrade[]> {
     .eq('cycle_id', cycleId)
     .order('id', { ascending: true })
     .throwOnError()
-
-  console.log('==========> data', data?.length)
 
   if (error) {
     console.error('Error fetching grades:', error)

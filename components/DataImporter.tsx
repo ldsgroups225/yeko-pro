@@ -23,7 +23,7 @@ export function DataImporter({ schemaOptions }: DataImporterProps) {
   const [error, setError] = useState<string | null>(null)
   const [isDragging, setIsDragging] = useState(false)
 
-  const handleFileChange = async (file: File | null) => {
+  const handleFileChange = useCallback(async (file: File | null) => {
     if (!file)
       return
 
@@ -77,7 +77,7 @@ export function DataImporter({ schemaOptions }: DataImporterProps) {
     finally {
       setIsLoading(false)
     }
-  }
+  }, [schemaOptions.schema])
 
   const handleDrag = useCallback((event: DragEvent<HTMLDivElement>) => {
     event.preventDefault()
