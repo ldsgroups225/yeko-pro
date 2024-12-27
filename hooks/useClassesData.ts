@@ -19,11 +19,23 @@ interface UseClassesDataProps {
 
 interface UseClassesDataReturn {
   grades?: IGrade[]
+  pagination: {
+    totalPages: number
+    hasNextPage: boolean
+    hasPreviousPage: boolean
+  }
+  studentPagination: {
+    totalPages: number
+    hasNextPage: boolean
+    hasPreviousPage: boolean
+  }
   results: IClass[]
   status: 'idle' | 'loading' | 'error' | 'success'
   loadMore: () => void
   currentPage: number
+  currentStudentPage: number
   setCurrentPage: (page: number) => void
+  setCurrentStudentPage: (page: number) => void
 }
 
 export function useClassesData({
@@ -33,14 +45,18 @@ export function useClassesData({
   const { user } = useUser()
   const { grades } = useGrade()
   const {
-    classes: results,
-    isLoading,
     error,
-    loadClasses,
     setPage,
-    setItemsPerPage,
+    isLoading,
     setFilters,
+    pagination,
     currentPage,
+    loadClasses,
+    setStudentPage,
+    setItemsPerPage,
+    classes: results,
+    studentPagination,
+    currentStudentPage,
   } = useClasses()
 
   // Use refs to track previous values
@@ -108,10 +124,14 @@ export function useClassesData({
 
   return {
     grades,
-    results,
     status,
+    results,
     loadMore,
+    pagination,
     currentPage,
+    studentPagination,
+    currentStudentPage,
     setCurrentPage: setPage,
+    setCurrentStudentPage: setStudentPage,
   }
 }

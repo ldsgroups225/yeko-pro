@@ -1,6 +1,7 @@
 'use client'
 
 import type { ClassDetailsStudent, IClass, IClassDetailsStats, ISchoolYear } from '@/types/index'
+import { Pagination } from '@/components/Pagination'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { useClasses, useSchoolYear, useUser } from '@/hooks'
@@ -12,13 +13,29 @@ export default function ClassDetailsPage() {
   const pathname = usePathname()
   const slug = pathname.split('/').pop()
   const { user } = useUser()
-  const { getClassBySlug, isLoading, getClassDetailsStats, loadClassStudents, loadMoreStudents } = useClasses()
+  const {
+    students: classStudents,
+    isLoading,
+    getClassBySlug,
+    getClassDetailsStats,
+    loadClassStudents,
+    currentStudentPage,
+    studentPagination,
+    loadMoreStudents,
+    setStudentPage,
+  } = useClasses()
 
   // Component state
   const { selectedSchoolYearId } = useSchoolYear()
   const [classData, setClassData] = useState<IClass | null>(null)
   const [stats, setStats] = useState<IClassDetailsStats | null>(null)
-  const [classStudents, setClassStudents] = useState<ClassDetailsStudent[]>([])
+
+  const handlePageChange = (newPage: number) => {
+    if (newPage > currentStudentPage) {
+      loadMoreStudents()
+    }
+    setStudentPage(newPage)
+  }
 
   useEffect(() => {
     async function getClassData(slug: string) {
@@ -26,7 +43,7 @@ export default function ClassDetailsPage() {
       if (classroom) {
         setClassData(classroom)
 
-        const [classroomStats, classroomStudents] = await Promise.all([
+        const [classroomStats] = await Promise.all([
           getClassDetailsStats({
             schoolId: user!.school.id,
             classId: classroom.id,
@@ -41,7 +58,6 @@ export default function ClassDetailsPage() {
         ])
 
         setStats(classroomStats)
-        setClassStudents(classroomStudents)
       }
     }
 
@@ -89,13 +105,12 @@ export default function ClassDetailsPage() {
                   <>
                     <ClassStudentTable classStudents={classStudents} />
 
-                    <div className="w-full mx-auto mt-1 flex justify-center items-center">
-                      <Button
-                        variant="link"
-                        onClick={() => loadMoreStudents()}
-                      >
-                        Charger plus
-                      </Button>
+                    <div className="w-full mt-1 flex justify-center items-center">
+                      <Pagination
+                        currentPage={currentStudentPage}
+                        totalPages={!isLoading ? studentPagination.totalPages : studentPagination.totalPages + 1}
+                        onPageChange={handlePageChange}
+                      />
                     </div>
                   </>
                 )

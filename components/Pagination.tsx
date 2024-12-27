@@ -21,7 +21,7 @@ export const Pagination: React.FC<PaginationProps> = ({
   totalPages,
   onPageChange,
 }) => {
-  const maxVisiblePages = 5
+  const maxVisiblePages = 1
   const startPage = Math.max(
     1,
     currentPage - Math.floor(maxVisiblePages / 2),

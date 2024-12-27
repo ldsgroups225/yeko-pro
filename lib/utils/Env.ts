@@ -1,5 +1,4 @@
 import { z } from 'zod'
-import { supabaseConstants } from '../supabase/constants'
 
 /**
  * Schema for environment variables.
@@ -30,11 +29,7 @@ type Env = z.infer<typeof envSchema>
  * @returns The validated environment variables.
  */
 export function getEnvOrThrow(): Env {
-  const _supabaseConstants = process.env.NODE_ENV !== 'development'
-    ? process.env
-    : supabaseConstants
-
-  const { NEXT_PUBLIC_SUPABASE_ANON_KEY, NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SITE_URL } = _supabaseConstants
+  const { NEXT_PUBLIC_SUPABASE_ANON_KEY, NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SITE_URL } = process.env
 
   const result = envSchema.safeParse({ NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY, NEXT_PUBLIC_SITE_URL })
 

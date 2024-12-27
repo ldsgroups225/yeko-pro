@@ -18,6 +18,7 @@ interface ClassFilters {
 
 interface ClassState {
   classes: IClass[]
+  students: ClassDetailsStudent[]
   isLoading: boolean
   error: string | null
   totalCount: number
@@ -53,6 +54,7 @@ interface ClassActions {
 
 const useClassStore = create<ClassState & ClassActions>((set, get) => ({
   classes: [],
+  students: [],
   isLoading: false,
   error: null,
   totalCount: 0,
@@ -145,8 +147,8 @@ const useClassStore = create<ClassState & ClassActions>((set, get) => ({
         ...get().filters,
       })
       set({
-        classes: data,
-        totalCount: data.length,
+        classes: data.classes,
+        totalCount: data.totalCount,
         isLoading: false,
       })
     }
@@ -218,8 +220,12 @@ const useClassStore = create<ClassState & ClassActions>((set, get) => ({
         page: get().currentStudentPage,
         limit: get().studentsPerPage,
       })
-      set({ isLoading: false, totalStudentsCount: data.length })
-      return data
+      set({
+        students: data.students,
+        isLoading: false,
+        totalStudentsCount: data.totalCount,
+      })
+      return data.students
     }
     catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to fetch class students'

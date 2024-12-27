@@ -40,6 +40,7 @@ export default function ClassesPage() {
     status,
     loadMore,
     currentPage,
+    pagination,
     setCurrentPage,
   } = useClassesData({
     initialItemsPerPage: ITEMS_PER_PAGE,
@@ -124,7 +125,7 @@ export default function ClassesPage() {
           {status !== 'idle' && status !== 'loading' && (
             <Pagination
               currentPage={currentPage}
-              totalPages={status === 'success' ? currentPage : currentPage + 1}
+              totalPages={status === 'success' ? pagination.totalPages : pagination.totalPages + 1}
               onPageChange={handlePageChange}
             />
           )}

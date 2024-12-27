@@ -84,7 +84,7 @@ export async function fetchClasses({
   gradeId,
   isActive,
   hasMainTeacher,
-}: FetchClassesParams): Promise<IClass[]> {
+}: FetchClassesParams): Promise<{ classes: IClass[], totalCount: number }> {
   const supabase = createClient()
 
   const from = (page - 1) * limit
@@ -114,7 +114,7 @@ export async function fetchClasses({
     query = query.ilike('name', `%${searchTerm}%`)
   }
 
-  const { data, error } = await query
+  const { data, count, error } = await query
     .range(from, to)
     .order('grade_id', { ascending: true })
     .order('name', { ascending: true })
@@ -125,7 +125,7 @@ export async function fetchClasses({
     throw new Error('Failed to fetch classes')
   }
 
-  return data?.map((c) => {
+  const classes = data?.map((c) => {
     return {
       id: c.id,
       name: c.name,
@@ -141,6 +141,8 @@ export async function fetchClasses({
         : null,
     } satisfies IClass
   }) ?? []
+
+  return { classes, totalCount: count ?? 0 }
 }
 
 /**
@@ -332,7 +334,7 @@ interface GetClassStudentsProps {
  * @returns {Promise<ClassDetailsStudent[]>} A promise that resolves to an array of class student data.
  * @throws {Error} If the user is unauthorized or if there is an error fetching data.
  */
-export async function getClassStudents({ schoolId, classId, page, limit }: GetClassStudentsProps): Promise<ClassDetailsStudent[]> {
+export async function getClassStudents({ schoolId, classId, page, limit }: GetClassStudentsProps): Promise<{ students: ClassDetailsStudent[], totalCount: number }> {
   const supabase = createClient()
 
   const from = (page - 1) * limit
@@ -343,10 +345,10 @@ export async function getClassStudents({ schoolId, classId, page, limit }: GetCl
     throw new Error('Unauthorized')
   }
 
-  const { data: classStudents, error } = await supabase
+  const { data, count, error } = await supabase
     .from('students')
     // TODO: improve this query with gradeAverage, ...
-    .select('id, first_name, last_name, id_number')
+    .select('id, first_name, last_name, id_number', { count: 'exact' })
     .eq('school_id', schoolId)
     .eq('class_id', classId)
     .range(from, to)
@@ -359,15 +361,18 @@ export async function getClassStudents({ schoolId, classId, page, limit }: GetCl
     throw new Error('Failed to fetch class students')
   }
 
-  return classStudents.map(student => ({
-    id: student.id,
-    firstName: student.first_name,
-    lastName: student.last_name,
-    idNumber: student.id_number,
+  return {
+    totalCount: count ?? 0,
+    students: data.map(student => ({
+      id: student.id,
+      firstName: student.first_name,
+      lastName: student.last_name,
+      idNumber: student.id_number,
 
-    // TODO: Make these properties dynamic
-    gradeAverage: 0,
-    lateCount: 0,
-    absentCount: 0,
-  }))
+      // TODO: Make these properties dynamic
+      gradeAverage: 0,
+      lateCount: 0,
+      absentCount: 0,
+    })),
+  }
 }

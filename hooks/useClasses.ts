@@ -1,8 +1,12 @@
 import type { ClassDetailsStudent, IClass, IClassDetailsStats } from '@/types'
 import useClassStore from '@/store/classStore'
+import { useEffect } from 'react'
+import { useDebouncedCallback } from 'use-debounce'
+import { useUser } from './useUser'
 
 interface UseClassesResult {
   classes: IClass[]
+  students: ClassDetailsStudent[]
   isLoading: boolean
   error: string | null
   totalCount: number
@@ -51,8 +55,11 @@ interface UseClassesResult {
  * @returns {UseClassesResult} Object containing class-related functions and data
  */
 export function useClasses(): UseClassesResult {
+  const { user } = useUser()
+
   const {
     classes,
+    students,
     isLoading,
     error,
     totalCount,
@@ -92,6 +99,18 @@ export function useClasses(): UseClassesResult {
     }
   }
 
+  // useDebouncedCallback class students load
+  const _debouncedLoadClassStudents = useDebouncedCallback(async (schoolId: string, classId: string) => {
+    await getClassStudents({ schoolId, classId })?.then(r => r)
+  }, 0)
+
+  // Load classes when necessary
+  useEffect(() => {
+    if (user?.school?.id && currentClass?.id) {
+      _debouncedLoadClassStudents(user.school.id, currentClass.id)?.then(r => r)
+    }
+  }, [user?.school?.id, currentStudentPage])
+
   const loadMoreStudents = () => {
     setStudentPage(currentStudentPage + 1)
   }
@@ -114,6 +133,7 @@ export function useClasses(): UseClassesResult {
   return {
     // Data
     classes,
+    students,
     isLoading,
     error,
     totalCount,
