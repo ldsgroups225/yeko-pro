@@ -167,3 +167,60 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* WebKit Scrollbar Styles */
+.scrollable-div {
+  /* Firefox */
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+  transition: scrollbar-color 0.3s ease;
+}
+
+/* Show scrollbar on hover for Firefox */
+.scrollable-div:hover {
+  scrollbar-color: hsl(var(--muted-foreground)) hsl(var(--muted));
+}
+
+/* WebKit (Chrome, Safari, Edge) */
+.scrollable-div::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+  background-color: transparent;
+}
+
+.scrollable-div::-webkit-scrollbar-track {
+  background-color: transparent;
+  border-radius: var(--radius);
+  margin: 4px;
+}
+
+.scrollable-div::-webkit-scrollbar-thumb {
+  background-color: transparent;
+  border-radius: var(--radius);
+  transition: background-color 0.3s ease;
+}
+
+/* Show scrollbar on hover for WebKit */
+.scrollable-div:hover::-webkit-scrollbar-thumb {
+  background-color: hsl(var(--muted-foreground) / 0.3);
+}
+
+.scrollable-div:hover::-webkit-scrollbar-thumb:hover {
+  background-color: hsl(var(--muted-foreground) / 0.5);
+}
+
+/* Active state */
+.scrollable-div:hover::-webkit-scrollbar-thumb:active {
+  background-color: hsl(var(--muted-foreground) / 0.7);
+}
+
+/* Ensure smooth scrolling */
+.scrollable-div {
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Optional: Add custom corner styles */
+.scrollable-div::-webkit-scrollbar-corner {
+  background-color: transparent;
+}

@@ -124,7 +124,6 @@ export function ClassCreationOrUpdateDialog({
       form.setValue('name', oldClass.name)
       form.setValue('gradeId', oldClass.gradeId)
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [oldClass])
 
   return (

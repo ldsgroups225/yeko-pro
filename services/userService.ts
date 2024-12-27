@@ -45,7 +45,6 @@ export async function fetchUserProfile(): Promise<IUserProfileDTO> {
       first_name,
       last_name,
       phone,
-      classes(count),
       students(count),
       user_roles(role_id),
       school_id
@@ -61,7 +60,7 @@ export async function fetchUserProfile(): Promise<IUserProfileDTO> {
   const {
     data: school,
     error: schoolError,
-  } = await supabase.from('schools').select('*').eq('id', profile.school_id!).single()
+  } = await supabase.from('schools').select('*, classes(count)').eq('id', profile.school_id!).single()
 
   if (schoolError || !school) {
     throw new Error('School not found')
@@ -81,7 +80,7 @@ export async function fetchUserProfile(): Promise<IUserProfileDTO> {
       code: school.code,
       cycleId: school.cycle_id,
       imageUrl: school.image_url ?? '',
-      classCount: (profile.classes[0] as any)?.count ?? 0,
+      classCount: (school.classes[0] as any)?.count ?? 0,
       studentCount: (profile.students[0] as any)?.count ?? 0,
       createdAt: school.created_at ?? '',
       createdBy: school.created_by ?? '',

@@ -5,6 +5,7 @@ export default antfu({
   react: true,
   rules: {
     'node/prefer-global/process': 'off',
+    'react-hooks/exhaustive-deps': 'off',
   },
   ignores: [
     '.next/',

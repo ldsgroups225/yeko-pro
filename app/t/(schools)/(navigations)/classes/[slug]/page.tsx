@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { useClasses, useUser } from '@/hooks'
 import { usePathname } from 'next/navigation'
-import { useLayoutEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { ClassDetailsActions, ClassStudentTable, ClassTableSkeleton, MetricsCards, MetricsCardsSkeleton } from './_components'
 
 export default function ClassDetailsPage() {
@@ -19,7 +19,7 @@ export default function ClassDetailsPage() {
   const [stats, setStats] = useState<IClassDetailsStats | null>(null)
   const [classStudents, setClassStudents] = useState<ClassDetailsStudent[]>([])
 
-  useLayoutEffect(() => {
+  useEffect(() => {
     async function getClassData(slug: string) {
       const classroom = await getClassBySlug(slug)
       if (classroom) {
@@ -49,7 +49,7 @@ export default function ClassDetailsPage() {
         console.error('Failed to fetch class data:', error)
       })
     }
-  }, [slug, getClassBySlug, getClassDetailsStats, loadClassStudents, user])
+  }, [slug])
 
   return (
     <div className="space-y-2 px-6 py-2">
@@ -78,7 +78,7 @@ export default function ClassDetailsPage() {
             </section>
 
             {/* Students Table */}
-            <section className="rounded-md border max-h-80 overflow-y-auto">
+            <section className="scrollable-div rounded-md border max-h-80 overflow-y-auto">
               {isLoading && <ClassTableSkeleton />}
 
               {(!isLoading && classStudents.length === 0) && <p>Empty</p>}
