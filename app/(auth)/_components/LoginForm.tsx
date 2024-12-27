@@ -53,6 +53,8 @@ export function LoginForm() {
       catch (error) {
         setError('Une erreur est survenue lors de la connexion.')
         console.error('Login error:', error)
+
+        form.setValue('password', '')
       }
     })
   }

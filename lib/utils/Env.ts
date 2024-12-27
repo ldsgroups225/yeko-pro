@@ -30,7 +30,7 @@ type Env = z.infer<typeof envSchema>
  * @returns The validated environment variables.
  */
 export function getEnvOrThrow(): Env {
-  const _supabaseConstants = process.env.NODE_ENV === 'development'
+  const _supabaseConstants = process.env.NODE_ENV !== 'development'
     ? process.env
     : supabaseConstants
 

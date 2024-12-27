@@ -80,7 +80,7 @@ export async function fetchClasses({
   schoolId,
   page = 1,
   limit = 10,
-  searchTerm = '3',
+  searchTerm = '',
   gradeId,
   isActive,
   hasMainTeacher,
@@ -117,6 +117,7 @@ export async function fetchClasses({
   const { data, error } = await query
     .range(from, to)
     .order('grade_id', { ascending: true })
+    .order('name', { ascending: true })
     .throwOnError()
 
   if (error) {

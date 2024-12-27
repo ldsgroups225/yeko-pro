@@ -16,7 +16,7 @@ const LoginPage: React.FC = (): JSX.Element => {
           <div className="flex items-center justify-center mb-4">
             <Image priority src="/logo.png" alt="Logo Yeko" className="size-48" width={192} height={192} />
           </div>
-          <CardTitle className="text-2xl font-bold text-center text-primary">Connexion à Yeko Admin</CardTitle>
+          <CardTitle className="text-2xl font-bold text-center text-primary">Connexion à Yeko Pro</CardTitle>
           <CardDescription className="text-center">
             Entrez vos identifiants pour accéder au tableau de bord de votre école
           </CardDescription>
