@@ -100,6 +100,11 @@ interface IStudentDTO {
   updatedBy: string | null
 }
 
+export interface ISchoolYear {
+  id: number
+  name: string | null
+}
+
 export interface IStudentFiltersDTO {
   name?: string
   idNumber?: string

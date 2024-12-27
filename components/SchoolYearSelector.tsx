@@ -5,10 +5,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { useState } from 'react'
+import { useSchoolYear } from '@/hooks'
+import { useEffect, useRef } from 'react'
 
 interface SchoolYearSelectorProps {
-  onYearChange: (year: string) => void
+  onYearChange: (year: number) => void
 }
 
 /**
@@ -20,22 +21,37 @@ interface SchoolYearSelectorProps {
 export const SchoolYearSelector: React.FC<SchoolYearSelectorProps> = ({
   onYearChange,
 }) => {
-  const [selectedYear, setSelectedYear] = useState<string>('2024-2025')
+  const { schoolYears, selectedSchoolYearId, setSelectedSchoolYearId }
+    = useSchoolYear()
 
-  const handleYearChange = (year: string) => {
-    setSelectedYear(year)
+  const isAlreadyMounted = useRef(false)
+
+  useEffect(() => {
+    if (schoolYears.length > 0 && !isAlreadyMounted.current) {
+      setSelectedSchoolYearId(schoolYears[0].id)
+    }
+    isAlreadyMounted.current = true
+  }, [schoolYears])
+
+  const handleYearChange = (year: number) => {
+    setSelectedSchoolYearId(year)
     onYearChange(year)
   }
 
   return (
-    <Select value={selectedYear} onValueChange={handleYearChange}>
+    <Select
+      value={selectedSchoolYearId.toString()}
+      onValueChange={(val: string) => handleYearChange(Number.parseInt(val))}
+    >
       <SelectTrigger className="w-[180px] text-secondary" aria-label="School Year">
         <SelectValue placeholder="Année scolaire" />
       </SelectTrigger>
       <SelectContent>
-        <SelectItem value="2024-2025">2024-2025</SelectItem>
-        <SelectItem value="2023-2024">2023-2024</SelectItem>
-        <SelectItem value="2022-2023">2022-2023</SelectItem>
+        {schoolYears.map(year => (
+          <SelectItem key={year.id} value={year.id.toString()}>
+            {year.name}
+          </SelectItem>
+        ))}
       </SelectContent>
     </Select>
   )

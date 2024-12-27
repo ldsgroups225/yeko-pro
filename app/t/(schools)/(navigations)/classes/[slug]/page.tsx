@@ -1,9 +1,9 @@
 'use client'
 
-import type { ClassDetailsStudent, IClass, IClassDetailsStats } from '@/types/index'
+import type { ClassDetailsStudent, IClass, IClassDetailsStats, ISchoolYear } from '@/types/index'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { useClasses, useUser } from '@/hooks'
+import { useClasses, useSchoolYear, useUser } from '@/hooks'
 import { usePathname } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { ClassDetailsActions, ClassStudentTable, ClassTableSkeleton, MetricsCards, MetricsCardsSkeleton } from './_components'
@@ -15,6 +15,7 @@ export default function ClassDetailsPage() {
   const { getClassBySlug, isLoading, getClassDetailsStats, loadClassStudents, loadMoreStudents } = useClasses()
 
   // Component state
+  const { selectedSchoolYearId } = useSchoolYear()
   const [classData, setClassData] = useState<IClass | null>(null)
   const [stats, setStats] = useState<IClassDetailsStats | null>(null)
   const [classStudents, setClassStudents] = useState<ClassDetailsStudent[]>([])
@@ -29,8 +30,8 @@ export default function ClassDetailsPage() {
           getClassDetailsStats({
             schoolId: user!.school.id,
             classId: classroom.id,
+            schoolYearId: selectedSchoolYearId,
             // TODO: Add schoolYearId and semesterId
-            // schoolYearId: classroom.schoolYearId,
             // semesterId: classroom.semesterId,
           }),
           loadClassStudents(

@@ -1,6 +1,7 @@
 export * from './useClasses'
 export * from './useClassesData'
 export * from './useGrade'
+export * from './useSchoolYear'
 export * from './useSearchParamsState'
 export * from './useUser'
 export * from './useUserContext'
