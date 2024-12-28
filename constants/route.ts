@@ -46,3 +46,14 @@ export const sidebarItems: ISidebarItem[] = [
     ariaLabel: 'Modifier les configurations',
   },
 ]
+
+const otherRoutes: ISidebarItem[] = [
+  {
+    icon: Home,
+    label: 'Détails',
+    href: '/t/classes/[slug]',
+    ariaLabel: 'Accéder au détails d\'une classe',
+  },
+]
+
+export const mergedRoutes = [...sidebarItems, ...otherRoutes]

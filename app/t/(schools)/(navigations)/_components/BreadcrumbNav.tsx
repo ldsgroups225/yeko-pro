@@ -6,26 +6,66 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb'
-import { sidebarItems } from '@/constants'
+import { mergedRoutes } from '@/constants'
+import { useClasses } from '@/hooks'
 import { Slash } from 'lucide-react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import React from 'react'
 
+interface IBreadcrumbItem {
+  href: string
+  label: string
+}
+
 export function BreadcrumbNav() {
   const pathname = usePathname()
+  const { currentClass } = useClasses()
 
   const generateBreadcrumbs = () => {
-    const pathSegments = pathname.replace(/\/$/, '').split('/').filter(Boolean)
-    const breadcrumbs = [{
+    const pathSegments = pathname
+      .replace(/\/$/, '')
+      .split('/')
+      .filter(segment => segment && segment !== 't')
+
+    const breadcrumbs: IBreadcrumbItem[] = [{
       href: '/t/home',
       label: 'Accueil',
     }]
 
-    let currentPath = ''
+    let currentPath = '/t'
+
     pathSegments.forEach((segment) => {
       currentPath += `/${segment}`
-      const matchingRoute = sidebarItems.find(item => item.href === currentPath)
+
+      // Try to match exact route first
+      let matchingRoute = mergedRoutes.find(item => item.href === currentPath)
+
+      // If no exact match, try to match dynamic routes
+      if (!matchingRoute) {
+        matchingRoute = mergedRoutes.find((item) => {
+          const dynamicRoutePattern = item.href.replace(/\[.*?\]/g, '[^/]+')
+          const regexp = new RegExp(`^${dynamicRoutePattern}$`)
+          return regexp.test(currentPath)
+        })
+
+        if (matchingRoute) {
+          // Special handling for class details route
+          if (currentClass && matchingRoute.href.includes('[slug]')) {
+            breadcrumbs.push({
+              href: currentPath,
+              label: currentClass.name, // Use the actual class name instead of "Détails"
+            })
+          }
+          else {
+            breadcrumbs.push({
+              href: currentPath,
+              label: matchingRoute.label,
+            })
+          }
+          return
+        }
+      }
 
       if (matchingRoute) {
         breadcrumbs.push({
@@ -33,14 +73,15 @@ export function BreadcrumbNav() {
           label: matchingRoute.label,
         })
       }
-    //   THIS IS `/T` path
-    //   else {
-    //     breadcrumbs.push({
-    //       href: currentPath,
-    //       label: segment.charAt(0).toUpperCase() + segment.slice(1),
-    //     })
-    //   }
+      else {
+        // Handle unknown routes by capitalizing the segment
+        breadcrumbs.push({
+          href: currentPath,
+          label: segment.charAt(0).toUpperCase() + segment.slice(1),
+        })
+      }
     })
+
     return breadcrumbs
   }
 
