@@ -156,5 +156,16 @@ export interface ClassDetailsStudent {
   absentCount: number
 }
 
-// export type IClass = Database['public']['Tables']['classes']
-// export type IGrade = Database['public']['Tables']['grades']
+export interface IStudentsQueryParams {
+  schoolId?: string
+  page?: number
+  itemsPerPage?: number
+  searchTerm?: string
+  isStudent?: boolean
+  isTeacher?: boolean
+  isAdmin?: boolean
+  selectedClasses?: string[]
+  sort?: { column: string, direction: 'asc' | 'desc' }
+  hasNotParentFilter?: boolean
+  hasNotClassFilter?: boolean
+}

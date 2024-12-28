@@ -45,6 +45,7 @@
     "@types/react": "19.0.1",
     "@types/react-dom": "19.0.2",
     "autoprefixer": "10.4.15",
+    "change-case": "^5.4.4",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "^0.2.1",

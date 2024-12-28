@@ -1,75 +1,148 @@
-// 'use server'
+import type { IStudentDTO, IStudentsQueryParams } from '@/types'
+import { StudentService } from '@/services'
+import { create } from 'zustand'
+import useUserStore from './userStore'
 
-// import type { IStudentDTO, IStudentFiltersDTO } from '@/types'
-// import { createStudent, fetchStudentById, fetchStudents, fetchStudentsByClass, updateStudent } from '@/app/(main)/(navigations)/students/actions'
-// import { create } from 'zustand'
-// import { createJSONStorage, persist } from 'zustand/middleware'
+interface StudentStore {
+  students: IStudentDTO[] | null | undefined
+  schoolId: string | null
+  selectedStudent: IStudentDTO | null
+  isCreating: boolean
+  isUpdating: boolean
+  isDeleting: boolean
+  isLoading: boolean
+  totalCount: number | null | undefined
+  error: Error | null
 
-// interface StudentStore {
-//   students: IStudentDTO[]
-//   currentStudent: IStudentDTO | null
-//   filters: IStudentFiltersDTO | null
-//   setStudents: (students: IStudentDTO[]) => void
-//   setCurrentStudent: (student: IStudentDTO | null) => void
-//   setFilters: (filters: IStudentFiltersDTO | null) => void
-//   fetchStudents: () => Promise<void>
-//   fetchStudentById: (id: string) => Promise<void>
-//   fetchStudentsByClass: (classId: string) => Promise<void>
-//   updateStudent: (id: string, data: Partial<IStudentDTO>) => Promise<void>
-//   createStudent: (data: Omit<IStudentDTO, 'id' | 'createdAt' | 'updatedAt' | 'createdBy' | 'updatedBy'>) => Promise<void>
-// }
+  setStudents: (students: IStudentDTO[] | undefined) => void
+  setSelectedStudent: (student: IStudentDTO | null) => void
+  setIsCreating: (isCreating: boolean) => void
+  setIsUpdating: (isUpdating: boolean) => void
+  setIsDeleting: (isDeleting: boolean) => void
+  setIsLoading: (isLoading: boolean) => void
+  setTotalCount: (totalCount: number | undefined) => void
+  setError: (error: Error | null) => void
+  fetchStudents: (query: IStudentsQueryParams) => Promise<void>
+  fetchStudentById: (id: string) => Promise<void>
+  fetchStudentByIdNumber: (idNumber: string) => Promise<void>
+  createStudent: (student: Omit<IStudentDTO, 'id' | 'createdAt' | 'updatedAt'>) => Promise<void>
+  updateStudent: (student: Partial<IStudentDTO> & { id: string }) => Promise<void>
+  deleteStudent: (id: string) => Promise<void>
+}
 
-// const useStudentStore = create<StudentStore>()(
-//   persist(
-//     set => ({
-//       students: [],
-//       currentStudent: null,
-//       filters: null,
+export const useStudentStore = create<StudentStore>((set, get) => {
+  const { user } = useUserStore()
+  const _schoolId = user?.school?.id
 
-//       setStudents: students => set({ students }),
-//       setCurrentStudent: student => set({ currentStudent: student }),
-//       setFilters: filters => set({ filters }),
+  return ({
+    students: undefined,
+    selectedStudent: null,
+    isCreating: false,
+    isUpdating: false,
+    isDeleting: false,
+    isLoading: false,
+    totalCount: undefined,
+    schoolId: _schoolId!,
+    error: null,
 
-//       fetchStudents: async (): Promise<void> => {
-//         try {
-//           const students = await fetchStudents()
-//           set({ students })
-//         }
-//         catch (error) {
-//           console.error('[E_STUDENT_FETCH]:', error)
-//         }
-//       },
+    setStudents: students => set({ students }),
+    setSelectedStudent: student => set({ selectedStudent: student }),
+    setIsCreating: isCreating => set({ isCreating }),
+    setIsUpdating: isUpdating => set({ isUpdating }),
+    setIsDeleting: isDeleting => set({ isDeleting }),
+    setIsLoading: isLoading => set({ isLoading }),
+    setTotalCount: totalCount => set({ totalCount }),
+    setError: error => set({ error }),
 
-//       fetchStudentById: async (id) => {
-//         const student = await fetchStudentById(id)
-//         set({ currentStudent: student })
-//       },
+    fetchStudents: async (query: IStudentsQueryParams) => {
+      set({ isLoading: true, error: null })
+      try {
+        const studentService = StudentService.getInstance()
+        const { data, totalCount } = await studentService.getStudents(query)
+        set({ students: data || undefined, totalCount: totalCount || undefined })
+      }
+      catch (error: any) {
+        set({ error })
+      }
+      finally {
+        set({ isLoading: false })
+      }
+    },
 
-//       fetchStudentsByClass: async (classId) => {
-//         const students = await fetchStudentsByClass(classId)
-//         set({ students })
-//       },
+    fetchStudentById: async (id) => {
+      set({ isLoading: true, error: null })
+      try {
+        const studentService = StudentService.getInstance()
+        const student = await studentService.getStudentById(id)
+        set({ selectedStudent: student })
+      }
+      catch (error: any) {
+        set({ error })
+      }
+      finally {
+        set({ isLoading: false })
+      }
+    },
 
-//       updateStudent: async (id, data) => {
-//         const updatedStudent = await updateStudent(id, data)
-//         set(state => ({
-//           students: state.students.map(s => (s.id === id ? updatedStudent : s)),
-//           currentStudent: state.currentStudent?.id === id ? updatedStudent : state.currentStudent,
-//         }))
-//       },
+    fetchStudentByIdNumber: async (idNumber) => {
+      set({ isLoading: true, error: null })
+      try {
+        const studentService = StudentService.getInstance()
+        const student = await studentService.getStudentByIdNumber(idNumber)
+        set({ selectedStudent: student })
+      }
+      catch (error: any) {
+        set({ error })
+      }
+      finally {
+        set({ isLoading: false })
+      }
+    },
+    createStudent: async (student) => {
+      set({ isCreating: true, error: null })
+      try {
+        const studentService = StudentService.getInstance()
+        await studentService.createStudent({ ...student, schoolId: student.schoolId || get().schoolId! })
+        await get().fetchStudents({ schoolId: student.schoolId! })
+      }
+      catch (error: any) {
+        set({ error })
+      }
+      finally {
+        set({ isCreating: false })
+      }
+    },
 
-//       createStudent: async (data) => {
-//         const newStudent = await createStudent(data)
-//         set(state => ({
-//           students: [...state.students, newStudent],
-//         }))
-//       },
-//     }),
-//     {
-//       name: 'student-storage',
-//       storage: createJSONStorage(() => localStorage),
-//     },
-//   ),
-// )
+    updateStudent: async (student) => {
+      set({ isUpdating: true, error: null })
+      try {
+        const studentService = StudentService.getInstance()
+        await studentService.updateStudent(student)
+        await get().fetchStudents({ schoolId: student.schoolId! })
+      }
+      catch (error: any) {
+        set({ error })
+      }
+      finally {
+        set({ isUpdating: false })
+      }
+    },
 
-// export default useStudentStore
+    deleteStudent: async (id) => {
+      set({ isDeleting: true, error: null })
+      try {
+        const studentService = StudentService.getInstance()
+        await studentService.deleteStudent(id)
+        await get().fetchStudents({ schoolId: get().schoolId! })
+      }
+      catch (error: any) {
+        set({ error })
+      }
+      finally {
+        set({ isDeleting: false })
+      }
+    },
+  })
+})
+
+export default useStudentStore
