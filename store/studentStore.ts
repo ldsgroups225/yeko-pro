@@ -31,9 +31,6 @@ interface StudentStore {
 }
 
 export const useStudentStore = create<StudentStore>((set, get) => {
-  const { user } = useUserStore()
-  const _schoolId = user?.school?.id
-
   return ({
     students: undefined,
     selectedStudent: null,
@@ -42,7 +39,7 @@ export const useStudentStore = create<StudentStore>((set, get) => {
     isDeleting: false,
     isLoading: false,
     totalCount: undefined,
-    schoolId: _schoolId!,
+    schoolId: null,
     error: null,
 
     setStudents: students => set({ students }),
@@ -59,7 +56,11 @@ export const useStudentStore = create<StudentStore>((set, get) => {
       try {
         const studentService = StudentService.getInstance()
         const { data, totalCount } = await studentService.getStudents(query)
-        set({ students: data || undefined, totalCount: totalCount || undefined })
+        set({
+          schoolId: query.schoolId,
+          students: data || undefined,
+          totalCount: totalCount || undefined,
+        })
       }
       catch (error: any) {
         set({ error })
@@ -74,7 +75,7 @@ export const useStudentStore = create<StudentStore>((set, get) => {
       try {
         const studentService = StudentService.getInstance()
         const student = await studentService.getStudentById(id)
-        set({ selectedStudent: student })
+        set({ schoolId: student?.schoolId, selectedStudent: student })
       }
       catch (error: any) {
         set({ error })
@@ -89,7 +90,7 @@ export const useStudentStore = create<StudentStore>((set, get) => {
       try {
         const studentService = StudentService.getInstance()
         const student = await studentService.getStudentByIdNumber(idNumber)
-        set({ selectedStudent: student })
+        set({ schoolId: student?.schoolId, selectedStudent: student })
       }
       catch (error: any) {
         set({ error })
