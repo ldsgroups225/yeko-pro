@@ -1,23 +1,16 @@
-import type { IGrade, IStudentDTO } from '../types'
+import type { IClass, IGrade, IStudentDTO, IStudentsQueryParams } from '@/types'
 import { useEffect, useRef, useState } from 'react'
 import { useDebouncedCallback } from 'use-debounce'
-import { useGrade } from './useGrade'
-import { useStudent } from './useStudent'
-import { useUser } from './useUser'
-
-interface Filters {
-  grade?: string
-  search?: string
-  active?: boolean
-}
+import { useClasses, useGrade, useStudent, useUser } from './index'
 
 interface UseStudentDataProps {
   initialItemsPerPage: number
-  filters: Filters
+  filters: IStudentsQueryParams
 }
 
 interface UseStudentDataReturn {
   grades?: IGrade[]
+  classes?: IClass[]
   pagination: {
     totalPages: number
     hasNextPage: boolean
@@ -28,16 +21,20 @@ interface UseStudentDataReturn {
   loadMore: () => void
   currentPage: number
   setCurrentPage: (page: number) => void
+  isLoading: boolean
+  error?: Error
 }
 
 export function useStudentData({
   initialItemsPerPage,
   filters,
 }: UseStudentDataProps): UseStudentDataReturn {
+  console.log('======================')
   const { user } = useUser()
   const { grades } = useGrade()
+  const { classes } = useClasses()
   const {
-    error,
+    error: studentError,
     setPage,
     isLoading,
     setFilters: setStudentFilters,
@@ -58,48 +55,64 @@ export function useStudentData({
     setHasInitialized(true)
   }, [])
 
-  function properQsParamsOrUndefined<T>(params: T): T | undefined {
-    if (params === '' || params === 'all' || params === 'undefined' || params === undefined) {
-      return undefined
-    }
-    return params
-  }
+  // const properQsParamsOrUndefined = <T>(params: T): T | undefined => {
+  //   if (
+  //     params === ''
+  //     || params === 'all'
+  //     || params === 'undefined'
+  //     || params === undefined
+  //     || (Array.isArray(params) && params.length === 0)
+  //   ) {
+  //     return undefined
+  //   }
+  //   return params
+  // }
 
   // Update filters when they change
   useEffect(() => {
     const hasFiltersChanged = JSON.stringify(prevFiltersRef.current) !== JSON.stringify(filters)
-
     if (hasFiltersChanged) {
-      setStudentFilters({
-        gradeId: properQsParamsOrUndefined(filters.grade),
-        isActive: properQsParamsOrUndefined(filters.active),
-        searchTerm: properQsParamsOrUndefined(filters.search),
-      })
+      console.log('Filters changed:', filters)
+      // setStudentFilters({
+      //   gradeId: properQsParamsOrUndefined(filters.schoolId),
+      //   isActive: true,
+      //   searchTerm: properQsParamsOrUndefined(filters.searchTerm),
+      // })
+
       prevFiltersRef.current = filters
 
       // Reset to first page when filters change
       setPage(1)
     }
-  }, [filters, setStudentFilters, setPage])
+  }, [filters])
 
-  // useDebouncedCallback student load
-  const _debouncedLoadStudents = useDebouncedCallback(async (schoolId: string) => {
-    await loadStudents({ schoolId })
-  }, 0)
+  const _debouncedLoadStudents = useDebouncedCallback(
+    async (schoolId: string) => {
+      try {
+        await loadStudents({ schoolId })
+      }
+      catch (err) {
+        console.error('Failed to load students:', err)
+      }
+    },
+    300,
+    { maxWait: 1000 },
+  )
 
   // Load students when necessary
   useEffect(() => {
+    // TODO: Check if hasInitialized must be true or false
     if (user?.school?.id && hasInitialized) {
-      _debouncedLoadStudents(user.school.id)
+      _debouncedLoadStudents(user.school.id)?.then(r => r)
     }
-  }, [user?.school?.id, currentPage, hasInitialized, _debouncedLoadStudents])
+  }, [user?.school?.id, currentPage, hasInitialized])
 
   const status = (() => {
-    if (!hasInitialized)
+    if (!user?.school?.id)
       return 'idle'
     if (isLoading)
       return 'loading'
-    if (error)
+    if (studentError)
       return 'error'
     if ((results ?? []).length > 0)
       return 'success'
@@ -110,13 +123,18 @@ export function useStudentData({
     setPage(currentPage + 1)
   }
 
+  const error = studentError ? new Error(studentError.toString()) : undefined
+
   return {
     grades,
+    classes,
     status,
     results: results ?? [],
     loadMore,
     pagination,
     currentPage,
     setCurrentPage: setPage,
+    isLoading,
+    error,
   }
 }

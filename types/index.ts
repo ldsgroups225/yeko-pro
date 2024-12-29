@@ -88,16 +88,32 @@ export interface IUserProfileDTO {
 export
 interface IStudentDTO {
   id: string
-  parentId: string
-  schoolId: string | null
-  classId: string | null
-  idNumber: string
   firstName: string
   lastName: string
-  createdAt: string
-  createdBy: string | null
-  updatedAt: string
-  updatedBy: string | null
+  schoolId?: string | null
+  idNumber: string
+  gender: string
+  dateOfBirth: string
+
+  classroom?: {
+    id: string
+    name: string
+  }
+
+  parent?: {
+    id: string
+    fullName: string
+    phoneNumber: string
+    email: string
+  }
+
+  classId?: string | null
+  parentId?: string
+
+  createdAt?: string
+  createdBy?: string | null
+  updatedAt?: string
+  updatedBy?: string | null
 }
 
 export interface ISchoolYear {
@@ -164,7 +180,7 @@ export interface IStudentsQueryParams {
   isStudent?: boolean
   isTeacher?: boolean
   isAdmin?: boolean
-  selectedClasses?: string[]
+  selectedClassesId?: string[]
   sort?: { column: string, direction: 'asc' | 'desc' }
   hasNotParentFilter?: boolean
   hasNotClassFilter?: boolean
