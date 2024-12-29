@@ -1,4 +1,5 @@
 import type { IStudentsQueryParams } from '@/types'
+import { areEqual } from '@/lib/utils'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { useCallback, useEffect, useState } from 'react'
 import { useDebouncedCallback } from 'use-debounce'
@@ -63,7 +64,10 @@ export function useSearchStudentParamsState(defaultValues: IStudentsQueryParams)
 
   const updateState = useCallback(
     (newState: Partial<IStudentsQueryParams>) => {
-      setState((prevState: IStudentsQueryParams) => ({ ...prevState, ...newState }))
+      setState((prevState: IStudentsQueryParams) => {
+        const updatedState = { ...prevState, ...newState }
+        return updatedState
+      })
     },
     [],
   )
@@ -74,22 +78,31 @@ export function useSearchStudentParamsState(defaultValues: IStudentsQueryParams)
 
       Object.entries(currentState).forEach(([key, value]) => {
         if (value !== undefined && isValidStudentQueryKey(key)) {
-          if (key === 'sort' && value) {
-            params.set(key, JSON.stringify(value))
-          }
-          else if (Array.isArray(value)) {
-            value.forEach(v => params.append(key, String(v)))
-          }
-          else if (typeof value === 'boolean') {
-            params.set(key, value.toString())
-          }
-          else {
-            params.set(key, String(value))
+          const defaultValue = defaultValues[key]
+          if (!areEqual(value, defaultValue)) {
+            if (key === 'sort' && value) {
+              params.set(key, JSON.stringify(value))
+            }
+            else if (Array.isArray(value)) {
+              (value as string[]).forEach(v => params.append(key, v))
+            }
+            else if (typeof value === 'boolean') {
+              params.set(key, value.toString())
+            }
+            else {
+              params.set(key, String(value))
+            }
           }
         }
       })
 
-      router.push(`${pathname}?${params.toString()}`)
+      const search = params.toString()
+      if (search) {
+        router.push(`${pathname}?${search}`)
+      }
+      else {
+        router.push(pathname)
+      }
     },
     500,
   )

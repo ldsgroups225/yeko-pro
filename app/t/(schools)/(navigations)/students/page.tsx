@@ -4,75 +4,89 @@ import type { IStudentDTO, IStudentsQueryParams } from '@/types'
 import { Pagination } from '@/components/Pagination'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { useStudents } from '@/hooks'
+import { useSearchStudentParamsState, useStudents } from '@/hooks'
 import { PlusIcon } from '@radix-ui/react-icons'
-import consola from 'consola'
-import { useState } from 'react'
-import {
-//   // ImportStudentsDialog,
-//   // StudentCreationOrUpdateDialog,
-//   StudentsFilters,
-//   // StudentsGrid,
-  StudentsTable,
-} from './_components'
+import { useEffect, useState } from 'react'
+import { StudentsFilters, StudentsTable } from './_components'
+
+const ITEMS_PER_PAGE = 12
+
+const defaultQueryParams: IStudentsQueryParams = {
+  searchTerm: undefined,
+  selectedClassesId: undefined,
+  schoolId: undefined,
+  hasNotParentFilter: undefined,
+  hasNotClassFilter: undefined,
+  page: 1,
+  itemsPerPage: ITEMS_PER_PAGE,
+  isStudent: true,
+  sort: undefined,
+}
 
 export default function StudentsPage() {
-  const [isTableViewMode, _setIsTableViewMode] = useState(true)
+  const [isTableViewMode, setIsTableViewMode] = useState(true)
   const [showStudentModal, setShowStudentModal] = useState(false)
-  const [showImportModal, _setShowImportModal] = useState(false)
-  const [studentToEdit, setStudentToEdit] = useState<IStudentDTO | null>(null)
+  const [_studentToEdit, setStudentToEdit] = useState<IStudentDTO | null>(null)
 
-  // const { state, updateState } = useSearchStudentParamsState(defaultQueryParams)
+  const { state, updateState } = useSearchStudentParamsState(defaultQueryParams)
 
   const {
-    // classes,
-    // grades,
     students,
-    // loadMore,
     currentPage,
     pagination,
-    // setCurrentPage,
+    setPage,
     isLoading,
     error,
+    setFilters,
   } = useStudents()
 
-  // const handleSearchTermChange = (searchTerm: string) =>
-  //   updateState({ searchTerm: searchTerm || undefined })
+  // Handlers for filter changes
+  const handleSearchTermChange = (searchTerm: string) => {
+    updateState({ searchTerm: searchTerm || undefined })
+  }
 
-  // const handleClassChange = (selectedClassesId?: string[]) =>
-  //   updateState({ selectedClassesId })
+  const handleClassChange = (selectedClassesId?: string[]) => {
+    updateState({ selectedClassesId })
+  }
 
-  // const handleHasNotParentFilterChange = (hasNotParentFilter: boolean) =>
-  //   updateState({ hasNotParentFilter })
+  const handleHasNotParentFilterChange = (hasNotParentFilter: boolean) => {
+    updateState({ hasNotParentFilter })
+  }
 
-  // const handleHasNotClassFilterChange = (hasNotClassFilter: boolean) =>
-  //   updateState({ hasNotClassFilter })
+  const handleHasNotClassFilterChange = (hasNotClassFilter: boolean) => {
+    updateState({ hasNotClassFilter })
+  }
 
-  // const handleSort = (column: string, direction: 'asc' | 'desc') =>
-  //   updateState({ sort: { column, direction } })
+  // Handler for page change
+  const handlePageChange = (newPage: number) => {
+    setPage(newPage)
+    updateState({ page: newPage })
+  }
 
-  const handleStudentEdit = (studentData: string) => {
-    const parsedStudent = JSON.parse(studentData)
-    setStudentToEdit(parsedStudent)
+  // Handler for student edit
+  const handleStudentEdit = (studentData: IStudentDTO) => {
+    setStudentToEdit(studentData)
     setShowStudentModal(true)
   }
 
-  const handlePageChange = (newPage: number) => {
-    consola.log('handlePageChange', newPage)
-    // if (newPage > currentPage) {
-    //   loadMore()
-    // }
-    // setCurrentPage(newPage)
-    // updateState({ page: newPage })
+  // Export, Archive, and Import handlers (placeholders)
+  const handleExport = () => {
+    // Implement export functionality
   }
 
-  // const handleExport = () => {
-  //   // Implement export functionality
-  // }
+  const handleArchive = () => {
+    // Implement archive functionality
+  }
 
-  // const handleArchive = () => {
-  //   // Implement archive functionality
-  // }
+  // Effect to sync filters with useStudents
+  useEffect(() => {
+    setFilters({
+      searchTerm: state.searchTerm,
+      selectedClassesId: state.selectedClassesId,
+      hasNotParentFilter: state.hasNotParentFilter,
+      hasNotClassFilter: state.hasNotClassFilter,
+    })
+  }, [state, setFilters])
 
   if (error) {
     return (
@@ -81,6 +95,7 @@ export default function StudentsPage() {
           <CardContent className="p-6">
             <p className="text-destructive">
               Error loading students:
+              {' '}
               {error}
             </p>
           </CardContent>
@@ -104,9 +119,7 @@ export default function StudentsPage() {
           </Button>
         </CardHeader>
         <CardContent className="px-6 py-3">
-          {/* <StudentsFilters
-            classes={classes ?? []}
-            // TODO: grades={grades ?? []} === USE IT INSTEAD SELECTED_CLASSES_ID
+          <StudentsFilters
             searchTerm={state.searchTerm || ''}
             onSearchTermChange={handleSearchTermChange}
             selectedClassesId={state.selectedClassesId}
@@ -117,36 +130,24 @@ export default function StudentsPage() {
             onHasNotClassFilterChange={handleHasNotClassFilterChange}
             isTableViewMode={isTableViewMode}
             onToggleViewMode={() => setIsTableViewMode(!isTableViewMode)}
-            onImportClick={() => setShowImportModal(true)}
             onExportClick={handleExport}
             onArchiveClick={handleArchive}
-            // TODO: onSort={handleSort} === USE IT IN STUDENTS TABLE
-            // currentSort={state.sort}
-          /> */}
+          />
           {isTableViewMode
             ? (
                 <StudentsTable
                   students={students}
                   isLoading={isLoading}
                   onStudentEdit={handleStudentEdit}
-                  // sort={state.sort}
-                  // onSort={handleSort}
                 />
               )
             : (
-                <pre>
-                  {JSON.stringify(students, null, 2)}
-                </pre>
-                // <StudentsGrid
-                //   students={results}
-                //   isLoading={status === 'idle' || isLoading}
-                //   onStudentEdit={handleStudentEdit}
-                // />
+                <pre>{JSON.stringify(students, null, 2)}</pre>
               )}
-          {status !== 'idle' && !isLoading && (
+          {pagination.totalPages > 1 && (
             <Pagination
               currentPage={currentPage}
-              totalPages={status === 'success' ? pagination.totalPages : pagination.totalPages + 1}
+              totalPages={pagination.totalPages}
               onPageChange={handlePageChange}
             />
           )}
@@ -155,21 +156,6 @@ export default function StudentsPage() {
 
       {showStudentModal && (
         <p>TODO: StudentCreationOrUpdateDialog</p>
-        // <StudentCreationOrUpdateDialog
-        //   open={showStudentModal}
-        //   oldStudent={studentToEdit}
-        //   onOpenChange={setShowStudentModal}
-        //   classOptions={classes ?? []}
-        //   gradeOptions={grades ?? []}
-        // />
-      )}
-
-      {showImportModal && (
-        <p>TODO: ImportStudentsDialog</p>
-        // <ImportStudentsDialog
-        //   open={showImportModal}
-        //   onOpenChange={setShowImportModal}
-        // />
       )}
     </div>
   )

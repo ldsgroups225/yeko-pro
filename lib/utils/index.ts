@@ -1,3 +1,4 @@
+export * from './areEqual'
 export * from './capitalizeWords'
 export * from './caseConverter'
 export * from './cn'
