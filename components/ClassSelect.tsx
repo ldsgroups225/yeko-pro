@@ -26,14 +26,15 @@ interface ClassSelectProps {
 export const ClassSelect: React.FC<ClassSelectProps> = ({
   classes,
   onClassChange,
-  selectedClassesId = [],
+  selectedClassesId,
 }) => {
   const [open, setOpen] = useState(false)
 
   const toggleClass = (classId: string) => {
-    const newSelection = selectedClassesId.includes(classId)
-      ? selectedClassesId.filter(id => id !== classId)
-      : [...selectedClassesId, classId]
+    const currentSelection = selectedClassesId || []
+    const newSelection = currentSelection.includes(classId)
+      ? currentSelection.filter(id => id !== classId)
+      : [...currentSelection, classId]
 
     onClassChange(newSelection.length > 0 ? newSelection : undefined)
   }
@@ -77,7 +78,7 @@ export const ClassSelect: React.FC<ClassSelectProps> = ({
                 <Check
                   className={cn(
                     'mr-2 h-4 w-4',
-                    selectedClassesId.includes(classe.id) ? 'opacity-100' : 'opacity-0',
+                    selectedClassesId?.includes(classe.id) ? 'opacity-100' : 'opacity-0',
                   )}
                 />
                 {classe.name}

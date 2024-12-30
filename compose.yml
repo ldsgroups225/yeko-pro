@@ -6,14 +6,14 @@ services:
       args:
         - NODE_ENV=production
     ports:
-      - "3000:3000"
+      - '3000:3000'
     environment:
       - NODE_ENV=production
       # Optional: Remove or set NEXT_PUBLIC_API_URL if not needed
       # - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
+      test: [CMD, curl, -f, 'http://localhost:3000/api/health']
       interval: 30s
       timeout: 10s
       retries: 3
@@ -29,5 +29,5 @@ services:
     logging:
       driver: json-file
       options:
-        max-size: "10m"
-        max-file: "3"
+        max-size: 10m
+        max-file: '3'

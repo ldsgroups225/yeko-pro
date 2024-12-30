@@ -12,6 +12,7 @@ import {
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { cn, formatDate, formatPhoneNumber, getAge } from '@/lib/utils'
 import { CaretSortIcon } from '@radix-ui/react-icons'
+import { nanoid } from 'nanoid'
 import { useRouter } from 'next/navigation'
 import React, { useCallback } from 'react'
 import { StudentTableRowActions } from './StudentTableRowActions'
@@ -56,7 +57,7 @@ const SortableHeader: React.FC<SortableHeaderProps> = React.memo(({ field, child
 interface StudentsTableProps {
   students?: IStudentDTO[]
   isLoading: boolean
-  onStudentEdit: (student: string) => void
+  onStudentEdit: (student: IStudentDTO) => void
   sort?: { field: string, direction: 'asc' | 'desc' }
   onSort: (field: string) => void
 }
@@ -118,8 +119,8 @@ export const StudentsTable: React.FC<StudentsTableProps> = ({
           ? (
               fakeStudents.map(el => (
                 <TableRow key={el.id}>
-                  {Array.from({ length: 9 }).map((_, i) => (
-                    <TableCell key={i}>
+                  {Array.from({ length: 9 }).map(() => (
+                    <TableCell key={nanoid()}>
                       <Skeleton className="h-4 w-[100px]" />
                     </TableCell>
                   ))}
@@ -166,7 +167,7 @@ export const StudentsTable: React.FC<StudentsTableProps> = ({
                   </TableCell>
                   <TableCell className="flex justify-end">
                     <StudentTableRowActions
-                      editButtonClicked={() => onStudentEdit(JSON.stringify(student))}
+                      editButtonClicked={() => onStudentEdit(student)}
                       navigateToStudent={() => navigateToStudent(student.idNumber)}
                     />
                   </TableCell>

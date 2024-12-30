@@ -1,8 +1,7 @@
 'use client'
 
-import type { ClassDetailsStudent, IClass, IClassDetailsStats, ISchoolYear } from '@/types/index'
+import type { IClass, IClassDetailsStats } from '@/types/index'
 import { Pagination } from '@/components/Pagination'
-import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { useClasses, useSchoolYear, useUser } from '@/hooks'
 import { usePathname } from 'next/navigation'

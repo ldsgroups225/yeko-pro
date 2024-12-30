@@ -4,7 +4,7 @@ import type { IStudentDTO, IStudentsQueryParams } from '@/types'
 import { Pagination } from '@/components/Pagination'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { useSearchStudentParamsState, useStudents } from '@/hooks'
+import { useClasses, useSearchStudentParamsState, useStudents } from '@/hooks'
 import { PlusIcon } from '@radix-ui/react-icons'
 import { useEffect, useState } from 'react'
 import { StudentsFilters, StudentsTable } from './_components'
@@ -24,6 +24,8 @@ const defaultQueryParams: IStudentsQueryParams = {
 }
 
 export default function StudentsPage() {
+  const { classes } = useClasses()
+
   const [isTableViewMode, setIsTableViewMode] = useState(true)
   const [showStudentModal, setShowStudentModal] = useState(false)
   const [_studentToEdit, setStudentToEdit] = useState<IStudentDTO | null>(null)
@@ -69,9 +71,18 @@ export default function StudentsPage() {
     setShowStudentModal(true)
   }
 
+  // Handler for student sort
+  const handleSort = (_field: string) => {
+    // Implement sort functionality
+  }
+
   // Export, Archive, and Import handlers (placeholders)
   const handleExport = () => {
     // Implement export functionality
+  }
+
+  const handleImport = () => {
+    // Implement import functionality
   }
 
   const handleArchive = () => {
@@ -120,6 +131,7 @@ export default function StudentsPage() {
         </CardHeader>
         <CardContent className="px-6 py-3">
           <StudentsFilters
+            classes={classes}
             searchTerm={state.searchTerm || ''}
             onSearchTermChange={handleSearchTermChange}
             selectedClassesId={state.selectedClassesId}
@@ -130,6 +142,7 @@ export default function StudentsPage() {
             onHasNotClassFilterChange={handleHasNotClassFilterChange}
             isTableViewMode={isTableViewMode}
             onToggleViewMode={() => setIsTableViewMode(!isTableViewMode)}
+            onImportClick={handleImport}
             onExportClick={handleExport}
             onArchiveClick={handleArchive}
           />
@@ -139,6 +152,7 @@ export default function StudentsPage() {
                   students={students}
                   isLoading={isLoading}
                   onStudentEdit={handleStudentEdit}
+                  onSort={handleSort}
                 />
               )
             : (

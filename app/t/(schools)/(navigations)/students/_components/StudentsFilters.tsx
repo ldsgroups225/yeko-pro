@@ -6,6 +6,7 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { ColumnsIcon, FileDown, FileUp, ListChecks, ListTree } from 'lucide-react'
+import { nanoid } from 'nanoid'
 import React from 'react'
 
 interface StudentsFiltersProps {
@@ -47,12 +48,12 @@ function FilterCheckbox({ id, label, checked, onChange }: FilterCheckboxProps) {
 
 interface ActionButtonProps {
   onClick: () => void
-  icon: React.ReactElement<{ 'className'?: string, 'aria-hidden'?: string }>
+  icon: React.ComponentType<{ className?: string }>
   className?: string
   label: string
 }
 
-function ActionButton({ onClick, icon, label, className }: ActionButtonProps) {
+function ActionButton({ onClick, icon: Icon, label, className }: ActionButtonProps) {
   return (
     <Button
       variant="outline"
@@ -60,10 +61,7 @@ function ActionButton({ onClick, icon, label, className }: ActionButtonProps) {
       onClick={onClick}
       className={`flex items-center ${className}`}
     >
-      {React.cloneElement(icon, {
-        'className': 'mr-2 h-4 w-4',
-        'aria-hidden': 'true',
-      })}
+      <Icon className="mr-2 h-4 w-4" aria-hidden="true" />
       {label}
     </Button>
   )
@@ -88,22 +86,22 @@ export const StudentsFilters: React.FC<StudentsFiltersProps> = ({
   const actionButtons = [
     {
       onClick: onToggleViewMode,
-      icon: isTableViewMode ? <ColumnsIcon /> : <ListTree />,
+      icon: isTableViewMode ? ColumnsIcon : ListTree,
       label: isTableViewMode ? 'Vue Grille' : 'Vue Tableau',
     },
     {
       onClick: onImportClick,
-      icon: <FileUp />,
+      icon: FileUp,
       label: 'Importer',
     },
     {
       onClick: onExportClick,
-      icon: <FileDown />,
+      icon: FileDown,
       label: 'Exporter',
     },
     {
       onClick: onArchiveClick,
-      icon: <ListChecks />,
+      icon: ListChecks,
       label: 'Archiver',
     },
   ]
@@ -124,9 +122,9 @@ export const StudentsFilters: React.FC<StudentsFiltersProps> = ({
         />
       </div>
       <div className="flex flex-wrap items-center gap-2">
-        {actionButtons.map((button, index) => (
+        {actionButtons.map(button => (
           <ActionButton
-            key={index}
+            key={nanoid()}
             {...button}
           />
         ))}
