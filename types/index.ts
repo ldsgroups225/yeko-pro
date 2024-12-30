@@ -185,3 +185,13 @@ export interface IStudentsQueryParams {
   hasNotParentFilter?: boolean
   hasNotClassFilter?: boolean
 }
+
+export interface IClassesGrouped {
+  id: string
+  name: string
+  count: number
+  subclasses: {
+    id: string
+    name: string
+  }[]
+}

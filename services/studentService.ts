@@ -1,11 +1,13 @@
 'use server'
 
-import type { IStudentDTO, IStudentsQueryParams } from '@/types'
+import type { IClassesGrouped, IStudentDTO, IStudentsQueryParams } from '@/types'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { createClient } from '@/lib/supabase/server'
 import { formatFullName } from '@/lib/utils'
 import { snakeCase } from 'change-case'
+import { nanoid } from 'nanoid'
 
+// TODO: remove hard typed `SupabaseClient`
 function getClient(): SupabaseClient {
   return createClient()
 }
@@ -100,6 +102,32 @@ export async function getStudentParentById(parentId: string): Promise<IStudentDT
     .single()
   return data as IStudentDTO | null
 }
+
+interface ClassRPCResponse {
+  grade_name: string
+  count: number
+  subclasses: Array<{ id: string, name: string }>
+}
+
+export async function fetchClassesBySchool(schoolId: string) {
+  const client = createClient()
+  const { data, error } = await client.rpc('get_classes_by_school', { school_id: schoolId })
+  if (error) {
+    console.error('Error fetching grouped classes:', error)
+    throw new Error('Erreur lors de la récupération des classes groupées')
+  }
+
+  const parsedClasses = (data as ClassRPCResponse[]).map(el => ({
+    id: nanoid(),
+    name: el.grade_name,
+    count: el.count,
+    subclasses: el.subclasses.map(s => ({ id: s.id, name: s.name })),
+  } satisfies IClassesGrouped))
+
+  return parsedClasses
+}
+
+export type TClassesBySchool = ClassRPCResponse[]
 
 function buildSupabaseQuery(client: SupabaseClient, query: IStudentsQueryParams) {
   let supabaseQuery = client

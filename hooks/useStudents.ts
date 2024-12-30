@@ -1,4 +1,4 @@
-import type { IStudentDTO, IStudentsQueryParams } from '@/types'
+import type { IClassesGrouped, IStudentDTO, IStudentsQueryParams } from '@/types'
 import useStudentStore from '@/store/studentStore'
 import { useEffect, useRef, useState } from 'react'
 import { useDebouncedCallback } from 'use-debounce'
@@ -12,6 +12,7 @@ interface UseStudentsResult {
   currentPage: number
   itemsPerPage: number
   hasNoStudents: boolean
+  groupedClasses: IClassesGrouped[]
   currentStudent: IStudentDTO | null
   pagination: {
     totalPages: number
@@ -46,11 +47,13 @@ export function useStudents(): UseStudentsResult {
 
   const {
     students,
+    groupedClasses,
     isLoading,
     error,
     itemsPerPage,
     totalCount,
     fetchStudents,
+    fetchClassesBySchool,
     updateStudent: storeUpdateStudent,
     deleteStudent: storeDeleteStudent,
     selectedStudent,
@@ -105,6 +108,7 @@ export function useStudents(): UseStudentsResult {
   const _debouncedLoadStudents = useDebouncedCallback(
     async (params: IStudentsQueryParams) => {
       try {
+        groupedClasses.length === 0 && (await fetchClassesBySchool(params.schoolId!))
         await loadStudents(params)
       }
       catch (err) {
@@ -118,6 +122,10 @@ export function useStudents(): UseStudentsResult {
   useEffect(() => {
     if (user?.school?.id && hasInitialized) {
       _debouncedLoadStudents({ schoolId: user.school.id, ...filters })?.then(r => r)
+
+      // if (user?.school?.id && groupedClasses.length === 0) {
+      //   fetchClassesBySchool(user.school.id).then(r => r)
+      // }
     }
   }, [user?.school?.id, currentPage, hasInitialized, filters])
 
@@ -163,6 +171,7 @@ export function useStudents(): UseStudentsResult {
 
   return {
     students: students ?? [],
+    groupedClasses,
     isLoading,
     error: error?.message || null,
     totalCount: totalCount || 0,

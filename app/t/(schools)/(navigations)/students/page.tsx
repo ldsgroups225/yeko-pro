@@ -4,10 +4,12 @@ import type { IStudentDTO, IStudentsQueryParams } from '@/types'
 import { Pagination } from '@/components/Pagination'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { useClasses, useSearchStudentParamsState, useStudents } from '@/hooks'
-import { PlusIcon } from '@radix-ui/react-icons'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { useSearchStudentParamsState, useStudentClassSelection, useStudents } from '@/hooks'
+import { MixerVerticalIcon } from '@radix-ui/react-icons'
 import { useEffect, useState } from 'react'
-import { StudentsFilters, StudentsTable } from './_components'
+import { toast } from 'sonner'
+import { StudentFilterSection, StudentsFilters, StudentsTable } from './_components'
 
 const ITEMS_PER_PAGE = 12
 
@@ -24,14 +26,11 @@ const defaultQueryParams: IStudentsQueryParams = {
 }
 
 export default function StudentsPage() {
-  const { classes } = useClasses()
-
   const [isTableViewMode, setIsTableViewMode] = useState(true)
-  const [showStudentModal, setShowStudentModal] = useState(false)
+  const [_showStudentModal, setShowStudentModal] = useState(false)
   const [_studentToEdit, setStudentToEdit] = useState<IStudentDTO | null>(null)
 
   const { state, updateState } = useSearchStudentParamsState(defaultQueryParams)
-
   const {
     students,
     currentPage,
@@ -40,15 +39,20 @@ export default function StudentsPage() {
     isLoading,
     error,
     setFilters,
+    groupedClasses,
   } = useStudents()
 
-  // Handlers for filter changes
+  const classSelection = useStudentClassSelection(state.selectedClassesId, (selectedClasses) => {
+    updateState({ selectedClassesId: selectedClasses })
+  })
+
+  // Filter handlers
   const handleSearchTermChange = (searchTerm: string) => {
     updateState({ searchTerm: searchTerm || undefined })
   }
 
-  const handleClassChange = (selectedClassesId?: string[]) => {
-    updateState({ selectedClassesId })
+  const handleClassChange = (classId: string, checked: boolean) => {
+    classSelection.handleClassChange(classId, checked)
   }
 
   const handleHasNotParentFilterChange = (hasNotParentFilter: boolean) => {
@@ -59,37 +63,45 @@ export default function StudentsPage() {
     updateState({ hasNotClassFilter })
   }
 
-  // Handler for page change
   const handlePageChange = (newPage: number) => {
     setPage(newPage)
     updateState({ page: newPage })
   }
 
-  // Handler for student edit
+  // Student management handlers
   const handleStudentEdit = (studentData: IStudentDTO) => {
     setStudentToEdit(studentData)
     setShowStudentModal(true)
   }
 
-  // Handler for student sort
-  const handleSort = (_field: string) => {
-    // Implement sort functionality
+  // const handleStudentModalClose = () => {
+  //   setShowStudentModal(false)
+  //   setStudentToEdit(null)
+  // }
+
+  const handleSort = (field: string) => {
+    updateState({
+      sort: {
+        column: field,
+        direction: state.sort?.direction === 'asc' ? 'desc' : 'asc',
+      },
+    })
   }
 
-  // Export, Archive, and Import handlers (placeholders)
+  // Action handlers
   const handleExport = () => {
-    // Implement export functionality
+    toast.info('Export functionality to be implemented')
   }
 
   const handleImport = () => {
-    // Implement import functionality
+    toast.info('Import functionality to be implemented')
   }
 
   const handleArchive = () => {
-    // Implement archive functionality
+    toast.info('Archive functionality to be implemented')
   }
 
-  // Effect to sync filters with useStudents
+  // Sync filters with useStudents
   useEffect(() => {
     setFilters({
       searchTerm: state.searchTerm,
@@ -120,32 +132,41 @@ export default function StudentsPage() {
       <Card className="bg-card">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle>Liste des étudiants</CardTitle>
-          <Button
-            variant="outline"
-            aria-label="New Student"
-            onClick={() => setShowStudentModal(true)}
-          >
-            <PlusIcon className="mr-2 h-4 w-4" />
-            Nouvel étudiant
-          </Button>
+
+          <div className="flex items-center space-x-2">
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" aria-label="Filter">
+                  <MixerVerticalIcon className="mr-2 h-4 w-4" />
+                  Filtrer
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto">
+                <StudentFilterSection
+                  groupedClasses={groupedClasses}
+                  selectedClassesId={state.selectedClassesId}
+                  hasNotParentFilter={state.hasNotParentFilter}
+                  hasNotClassFilter={state.hasNotClassFilter}
+                  onClassChange={handleClassChange}
+                  onHasNotParentFilterChange={handleHasNotParentFilterChange}
+                  onHasNotClassFilterChange={handleHasNotClassFilterChange}
+                />
+              </PopoverContent>
+            </Popover>
+          </div>
         </CardHeader>
+
         <CardContent className="px-6 py-3">
           <StudentsFilters
-            classes={classes}
             searchTerm={state.searchTerm || ''}
             onSearchTermChange={handleSearchTermChange}
-            selectedClassesId={state.selectedClassesId}
-            onClassChange={handleClassChange}
-            hasNotParentFilter={!!state.hasNotParentFilter}
-            onHasNotParentFilterChange={handleHasNotParentFilterChange}
-            hasNotClassFilter={!!state.hasNotClassFilter}
-            onHasNotClassFilterChange={handleHasNotClassFilterChange}
-            isTableViewMode={isTableViewMode}
-            onToggleViewMode={() => setIsTableViewMode(!isTableViewMode)}
             onImportClick={handleImport}
             onExportClick={handleExport}
             onArchiveClick={handleArchive}
+            isTableViewMode={isTableViewMode}
+            onToggleViewMode={() => setIsTableViewMode(!isTableViewMode)}
           />
+
           {isTableViewMode
             ? (
                 <StudentsTable
@@ -156,21 +177,30 @@ export default function StudentsPage() {
                 />
               )
             : (
-                <pre>{JSON.stringify(students, null, 2)}</pre>
+                <pre className="mt-4 bg-muted p-4 rounded-lg overflow-auto">
+                  {JSON.stringify(students, null, 2)}
+                </pre>
               )}
+
           {pagination.totalPages > 1 && (
-            <Pagination
-              currentPage={currentPage}
-              totalPages={pagination.totalPages}
-              onPageChange={handlePageChange}
-            />
+            <div className="mt-4">
+              <Pagination
+                currentPage={currentPage}
+                totalPages={pagination.totalPages}
+                onPageChange={handlePageChange}
+              />
+            </div>
           )}
         </CardContent>
       </Card>
 
-      {showStudentModal && (
-        <p>TODO: StudentCreationOrUpdateDialog</p>
-      )}
+      {/* {showStudentModal && studentToEdit && (
+        <StudentCreationOrUpdateDialog
+          student={studentToEdit}
+          open={showStudentModal}
+          onClose={handleStudentModalClose}
+        />
+      )} */}
     </div>
   )
 }

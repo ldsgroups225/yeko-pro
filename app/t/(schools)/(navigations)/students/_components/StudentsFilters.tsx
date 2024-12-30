@@ -1,49 +1,17 @@
-'use client'
-import type { IClass } from '@/types'
-import { ClassSelect } from '@/components/ClassSelect'
 import { Button } from '@/components/ui/button'
-import { Checkbox } from '@/components/ui/checkbox'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import { ColumnsIcon, FileDown, FileUp, ListChecks, ListTree } from 'lucide-react'
 import { nanoid } from 'nanoid'
 import React from 'react'
 
 interface StudentsFiltersProps {
-  classes: IClass[]
   searchTerm: string
   onSearchTermChange: (searchTerm: string) => void
-  selectedClassesId?: string[]
-  onClassChange: (classIds?: string[]) => void
-  hasNotParentFilter: boolean
-  onHasNotParentFilterChange: (value: boolean) => void
-  hasNotClassFilter: boolean
-  onHasNotClassFilterChange: (value: boolean) => void
   isTableViewMode: boolean
   onToggleViewMode: () => void
   onImportClick: () => void
   onExportClick: () => void
   onArchiveClick: () => void
-}
-
-interface FilterCheckboxProps {
-  id: string
-  label: string
-  checked: boolean
-  onChange: (checked: boolean) => void
-}
-
-function FilterCheckbox({ id, label, checked, onChange }: FilterCheckboxProps) {
-  return (
-    <div className="flex items-center space-x-2">
-      <Checkbox
-        id={id}
-        checked={checked}
-        onCheckedChange={onChange}
-      />
-      <Label htmlFor={id}>{label}</Label>
-    </div>
-  )
 }
 
 interface ActionButtonProps {
@@ -68,15 +36,8 @@ function ActionButton({ onClick, icon: Icon, label, className }: ActionButtonPro
 }
 
 export const StudentsFilters: React.FC<StudentsFiltersProps> = ({
-  classes,
   searchTerm,
   onSearchTermChange,
-  selectedClassesId,
-  onClassChange,
-  hasNotParentFilter,
-  onHasNotParentFilterChange,
-  hasNotClassFilter,
-  onHasNotClassFilterChange,
   isTableViewMode,
   onToggleViewMode,
   onImportClick,
@@ -110,15 +71,10 @@ export const StudentsFilters: React.FC<StudentsFiltersProps> = ({
     <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:flex-wrap">
       <div className="flex flex-1 flex-wrap items-center gap-2 min-w-[280px]">
         <Input
-          placeholder="Rechercher par nom ou CIN..."
+          placeholder="Rechercher par nom ou matricule.."
           value={searchTerm}
           onChange={e => onSearchTermChange(e.target.value)}
           className="flex-1"
-        />
-        <ClassSelect
-          classes={classes}
-          onClassChange={onClassChange}
-          selectedClassesId={selectedClassesId}
         />
       </div>
       <div className="flex flex-wrap items-center gap-2">
@@ -128,20 +84,6 @@ export const StudentsFilters: React.FC<StudentsFiltersProps> = ({
             {...button}
           />
         ))}
-      </div>
-      <div className="flex flex-wrap items-center gap-4">
-        <FilterCheckbox
-          id="has-not-parent"
-          label="Sans parent"
-          checked={hasNotParentFilter}
-          onChange={onHasNotParentFilterChange}
-        />
-        <FilterCheckbox
-          id="has-not-class"
-          label="Sans classe"
-          checked={hasNotClassFilter}
-          onChange={onHasNotClassFilterChange}
-        />
       </div>
     </div>
   )

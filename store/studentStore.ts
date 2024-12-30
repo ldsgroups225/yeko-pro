@@ -1,7 +1,8 @@
-import type { IStudentDTO, IStudentsQueryParams } from '@/types'
+import type { IClassesGrouped, IStudentDTO, IStudentsQueryParams } from '@/types'
 import {
   createStudent,
   deleteStudent,
+  fetchClassesBySchool,
   getStudentById,
   getStudentByIdNumber,
   getStudents,
@@ -18,6 +19,7 @@ interface StudentFilters {
 
 interface StudentStore {
   students: IStudentDTO[] | null | undefined
+  groupedClasses: IClassesGrouped[]
   currentSchoolId?: string
   selectedStudent: IStudentDTO | null
   isCreating: boolean
@@ -44,6 +46,7 @@ interface StudentStore {
   fetchStudents: (query: IStudentsQueryParams) => Promise<void>
   fetchStudentById: (id: string) => Promise<void>
   fetchStudentByIdNumber: (idNumber: string) => Promise<void>
+  fetchClassesBySchool: (schoolId: string) => Promise<void>
   createStudent: (student: Omit<IStudentDTO, 'id' | 'createdAt' | 'updatedAt'>) => Promise<void>
   updateStudent: (student: Partial<IStudentDTO> & { id: string }) => Promise<void>
   deleteStudent: (id: string) => Promise<void>
@@ -52,6 +55,7 @@ interface StudentStore {
 export const useStudentStore = create<StudentStore>((set, get) => {
   return ({
     students: undefined,
+    groupedClasses: [],
     selectedStudent: null,
     isCreating: false,
     isUpdating: false,
@@ -144,6 +148,20 @@ export const useStudentStore = create<StudentStore>((set, get) => {
       try {
         const student = await getStudentByIdNumber(idNumber)
         set({ currentSchoolId: student?.schoolId || get().currentSchoolId, selectedStudent: student })
+      }
+      catch (error: any) {
+        set({ error })
+      }
+      finally {
+        set({ isLoading: false })
+      }
+    },
+
+    fetchClassesBySchool: async (schoolId) => {
+      set({ isLoading: true, error: null })
+      try {
+        const classes = await fetchClassesBySchool(schoolId)
+        set({ groupedClasses: classes })
       }
       catch (error: any) {
         set({ error })
