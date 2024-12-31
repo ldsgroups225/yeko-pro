@@ -5,7 +5,7 @@ import { StudentClassFilters } from './StudentClassFilters'
 
 interface StudentFilterSectionProps {
   groupedClasses: IClassesGrouped[]
-  selectedClassesId?: string[]
+  selectedClasses?: string[]
   hasNotParentFilter?: boolean
   hasNotClassFilter?: boolean
   onClassChange: (classId: string, checked: boolean) => void
@@ -15,7 +15,7 @@ interface StudentFilterSectionProps {
 
 export function StudentFilterSection({
   groupedClasses,
-  selectedClassesId,
+  selectedClasses,
   hasNotParentFilter,
   hasNotClassFilter,
   onClassChange,
@@ -50,7 +50,7 @@ export function StudentFilterSection({
 
         <StudentClassFilters
           groupedClasses={groupedClasses}
-          selectedClassesId={selectedClassesId}
+          selectedClasses={selectedClasses}
           onClassChange={onClassChange}
         />
       </div>

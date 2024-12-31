@@ -12,13 +12,13 @@ import { create } from 'zustand'
 
 interface StudentFilters {
   searchTerm?: string
-  selectedClassesId?: string[]
+  selectedClasses?: string[]
   hasNotParentFilter?: boolean
   hasNotClassFilter?: boolean
 }
 
 interface StudentStore {
-  students: IStudentDTO[] | null | undefined
+  students: IStudentDTO[]
   groupedClasses: IClassesGrouped[]
   currentSchoolId?: string
   selectedStudent: IStudentDTO | null
@@ -54,7 +54,7 @@ interface StudentStore {
 
 export const useStudentStore = create<StudentStore>((set, get) => {
   return ({
-    students: undefined,
+    students: [],
     groupedClasses: [],
     selectedStudent: null,
     isCreating: false,
@@ -110,11 +110,8 @@ export const useStudentStore = create<StudentStore>((set, get) => {
         const { data, totalCount } = await getStudents({
           ...query,
           page: get().currentPage,
-          itemsPerPage: get().itemsPerPage,
-          searchTerm: get().filters.searchTerm,
-          selectedClassesId: get().filters.selectedClassesId,
-          hasNotParentFilter: get().filters.hasNotParentFilter,
-          hasNotClassFilter: get().filters.hasNotClassFilter,
+          limit: get().itemsPerPage,
+          ...get().filters,
         })
         set({
           students: data || undefined,

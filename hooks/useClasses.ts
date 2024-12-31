@@ -104,7 +104,7 @@ export function useClasses(): UseClassesResult {
     await getClassStudents({ schoolId, classId })?.then(r => r)
   }, 0)
 
-  // Load classes when necessary
+  // Load classes students when necessary
   useEffect(() => {
     if (user?.school?.id && currentClass?.id) {
       _debouncedLoadClassStudents(user.school.id, currentClass.id)?.then(r => r)

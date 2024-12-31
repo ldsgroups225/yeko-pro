@@ -175,12 +175,12 @@ export interface ClassDetailsStudent {
 export interface IStudentsQueryParams {
   schoolId?: string
   page?: number
-  itemsPerPage?: number
+  limit?: number
   searchTerm?: string
   isStudent?: boolean
   isTeacher?: boolean
   isAdmin?: boolean
-  selectedClassesId?: string[]
+  selectedClasses?: string[]
   sort?: { column: string, direction: 'asc' | 'desc' }
   hasNotParentFilter?: boolean
   hasNotClassFilter?: boolean
@@ -191,7 +191,7 @@ export interface IClassesGrouped {
   name: string
   count: number
   subclasses: {
-    id: string
+    slug: string
     name: string
   }[]
 }

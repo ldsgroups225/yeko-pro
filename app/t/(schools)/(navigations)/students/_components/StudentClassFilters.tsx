@@ -12,11 +12,11 @@ import { ChevronDownIcon } from '@radix-ui/react-icons'
 
 interface StudentClassFiltersProps {
   groupedClasses: IClassesGrouped[]
-  selectedClassesId?: string[]
+  selectedClasses?: string[]
   onClassChange: (classId: string, checked: boolean) => void
 }
 
-export function StudentClassFilters({ groupedClasses, selectedClassesId = [], onClassChange }: StudentClassFiltersProps) {
+export function StudentClassFilters({ groupedClasses, selectedClasses, onClassChange }: StudentClassFiltersProps) {
   return (
     <div className="flex flex-wrap gap-2">
       {groupedClasses.map(cls => (
@@ -36,9 +36,9 @@ export function StudentClassFilters({ groupedClasses, selectedClassesId = [], on
             <DropdownMenuSeparator />
             {cls.subclasses.map(subclass => (
               <DropdownMenuCheckboxItem
-                key={subclass.id}
-                checked={selectedClassesId.includes(subclass.id)}
-                onCheckedChange={checked => onClassChange(subclass.id, checked)}
+                key={subclass.slug}
+                checked={selectedClasses?.includes(subclass.slug) ?? false}
+                onCheckedChange={checked => onClassChange(subclass.slug, checked)}
               >
                 {subclass.name}
               </DropdownMenuCheckboxItem>

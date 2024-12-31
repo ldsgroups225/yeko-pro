@@ -15,6 +15,7 @@ function getClient(): SupabaseClient {
 export async function getStudents(query: IStudentsQueryParams): Promise<{ data: IStudentDTO[], totalCount: number | null }> {
   const client = getClient()
   const { data, count } = await buildSupabaseQuery(client, query)
+
   return {
     data: data?.map((student) => {
       const _class = student.class as any
@@ -106,7 +107,7 @@ export async function getStudentParentById(parentId: string): Promise<IStudentDT
 interface ClassRPCResponse {
   grade_name: string
   count: number
-  subclasses: Array<{ id: string, name: string }>
+  subclasses: Array<{ slug: string, name: string }>
 }
 
 export async function fetchClassesBySchool(schoolId: string) {
@@ -121,7 +122,7 @@ export async function fetchClassesBySchool(schoolId: string) {
     id: nanoid(),
     name: el.grade_name,
     count: el.count,
-    subclasses: el.subclasses.map(s => ({ id: s.id, name: s.name })),
+    subclasses: el.subclasses.map(s => ({ slug: s.slug, name: s.name })),
   } satisfies IClassesGrouped))
 
   return parsedClasses
@@ -130,30 +131,44 @@ export async function fetchClassesBySchool(schoolId: string) {
 export type TClassesBySchool = ClassRPCResponse[]
 
 function buildSupabaseQuery(client: SupabaseClient, query: IStudentsQueryParams) {
+  const _page = query.page ?? 1
+  const _limit = query.limit ?? 10
+
+  const from = (_page - 1) * _limit
+  const to = from + _limit - 1
+
   let supabaseQuery = client
     .from('students')
     .select(`
       id, id_number, first_name, last_name, date_of_birth, gender,
       parent:users(first_name, last_name, phone, email),
-      class:classes(name)
+      class:classes(id, name, slug)
     `, { count: 'exact' })
     .eq('school_id', query.schoolId!)
 
   if (query.searchTerm) {
     supabaseQuery = supabaseQuery.or(`first_name.ilike.%${query.searchTerm}%,last_name.ilike.%${query.searchTerm}%,id_number.ilike.%${query.searchTerm}%`)
   }
-  if (query.selectedClassesId?.length) {
-    supabaseQuery = supabaseQuery.in('class_id', query.selectedClassesId)
+
+  // Fixed: Filter by class slug using a proper join condition
+  if (query.selectedClasses?.length) {
+    supabaseQuery = supabaseQuery.in('class.slug', query.selectedClasses)
   }
+
   if (query.hasNotClassFilter) {
     supabaseQuery = supabaseQuery.is('class_id', null)
   }
+
   if (query.hasNotParentFilter) {
     supabaseQuery = supabaseQuery.is('parent_id', null)
   }
+
   if (query.sort?.column) {
     supabaseQuery = supabaseQuery.order(snakeCase(query.sort.column), { ascending: query.sort.direction === 'asc' })
   }
 
-  return supabaseQuery.range((query.page! - 1) * query.itemsPerPage!, query.page! * query.itemsPerPage! - 1)
+  return supabaseQuery
+    .range(from, to)
+    .order('last_name', { ascending: true })
+    .order('first_name', { ascending: true })
 }

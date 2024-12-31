@@ -14,9 +14,9 @@ export function useSearchStudentParamsState(defaultValues: IStudentsQueryParams)
 
     searchParams.forEach((value, key) => {
       if (isValidStudentQueryKey(key)) {
-        // Handle array values (selectedClassesId)
-        if (key === 'selectedClassesId') {
-          initialState.selectedClassesId = searchParams.getAll(key)
+        // Handle array values (selectedClasses)
+        if (key === 'selectedClasses') {
+          initialState.selectedClasses = searchParams.getAll(key)
           return
         }
 
@@ -34,8 +34,19 @@ export function useSearchStudentParamsState(defaultValues: IStudentsQueryParams)
           return
         }
 
+        if (['hasNotParentFilter', 'hasNotClassFilter'].includes(key)) {
+          // Only set the value if it's a true boolean string
+          if (value === 'true') {
+            (initialState[key] as boolean | undefined) = true
+          }
+          else {
+            delete initialState[key]
+          }
+          return
+        }
+
         // Handle boolean values with type checking
-        if (['isStudent', 'isTeacher', 'isAdmin', 'hasNotParentFilter', 'hasNotClassFilter'].includes(key)) {
+        if (['isStudent', 'isTeacher', 'isAdmin'].includes(key)) {
           // Only set the value if it's a valid boolean string
           if (value === 'true' || value === 'false') {
             (initialState[key] as boolean | undefined) = value === 'true'
@@ -86,6 +97,15 @@ export function useSearchStudentParamsState(defaultValues: IStudentsQueryParams)
             else if (Array.isArray(value)) {
               (value as string[]).forEach(v => params.append(key, v))
             }
+            else if (typeof value === 'boolean' && ['hasNotParentFilter', 'hasNotClassFilter'].includes(key)) {
+              // params.set(key, value.toString())
+              if (value === true) {
+                params.set(key, 'true')
+              }
+              else {
+                params.delete(key)
+              }
+            }
             else if (typeof value === 'boolean') {
               params.set(key, value.toString())
             }
@@ -127,7 +147,7 @@ function isValidStudentQueryKey(key: PropertyKey): key is keyof IStudentsQueryPa
     'isStudent',
     'isTeacher',
     'isAdmin',
-    'selectedClassesId',
+    'selectedClasses',
     'sort',
     'hasNotParentFilter',
     'hasNotClassFilter',

@@ -1,11 +1,9 @@
 import type { IClassesGrouped, IStudentDTO, IStudentsQueryParams } from '@/types'
 import useStudentStore from '@/store/studentStore'
-import { useEffect, useRef, useState } from 'react'
 import { useDebouncedCallback } from 'use-debounce'
-import { useUser } from './useUser'
 
 interface UseStudentsResult {
-  students: IStudentDTO[] | undefined
+  students: IStudentDTO[]
   isLoading: boolean
   error: string | null
   totalCount: number | undefined
@@ -20,13 +18,14 @@ interface UseStudentsResult {
     hasPreviousPage: boolean
   }
 
+  fetchClassesBySchool: (schoolId: string) => Promise<void>
   loadStudents: (params: IStudentsQueryParams) => Promise<void>
   getStudentById: (studentId: string) => IStudentDTO | undefined
   setPage: (page: number) => void
   setItemsPerPage: (count: number) => void
   setFilters: (filters: {
     searchTerm?: string
-    selectedClassesId?: string[]
+    selectedClasses?: string[]
     hasNotParentFilter?: boolean
     hasNotClassFilter?: boolean
   }) => void
@@ -43,8 +42,6 @@ interface UseStudentsResult {
  * @returns {UseStudentsResult} Object containing student-related functions and data
  */
 export function useStudents(): UseStudentsResult {
-  const { user } = useUser()
-
   const {
     students,
     groupedClasses,
@@ -53,22 +50,21 @@ export function useStudents(): UseStudentsResult {
     itemsPerPage,
     totalCount,
     fetchStudents,
-    fetchClassesBySchool,
     updateStudent: storeUpdateStudent,
     deleteStudent: storeDeleteStudent,
     selectedStudent,
-    setIsLoading,
+    // setIsLoading,
     setPage,
     setItemsPerPage,
     setFilters,
     createStudent,
     currentPage,
-    filters,
+    fetchClassesBySchool,
   } = useStudentStore()
 
   // Use refs to track previous values
-  const prevFiltersRef = useRef(filters)
-  const [hasInitialized, setHasInitialized] = useState(false)
+  // const prevFiltersRef = useRef(filters)
+  // const [hasInitialized, setHasInitialized] = useState(false)
 
   const hasNoStudents = students === undefined || students?.length === 0
 
@@ -76,34 +72,15 @@ export function useStudents(): UseStudentsResult {
   const hasNextPage = currentPage < totalPages
   const hasPreviousPage = currentPage > 1
 
-  // Initialize once
-  useEffect(() => {
-    setHasInitialized(true)
-  }, [])
-
   const loadStudents = async (params: IStudentsQueryParams): Promise<void> => {
-    setIsLoading(true)
     try {
       await fetchStudents(params)
     }
-    catch (e: any) {
-      console.error('Failed to load students:', e.message)
-    }
-    finally {
-      setIsLoading(false)
+    catch (error) {
+      console.error('Failed to load students:', error)
+      throw error
     }
   }
-
-  // Update filters when they change
-  useEffect(() => {
-    const hasFiltersChanged = JSON.stringify(prevFiltersRef.current) !== JSON.stringify(filters)
-
-    if (hasFiltersChanged) {
-      prevFiltersRef.current = filters
-      // Reset to first page when filters change
-      setPage(1)
-    }
-  }, [filters])
 
   const _debouncedLoadStudents = useDebouncedCallback(
     async (params: IStudentsQueryParams) => {
@@ -118,16 +95,6 @@ export function useStudents(): UseStudentsResult {
     300,
     { maxWait: 1000 },
   )
-
-  useEffect(() => {
-    if (user?.school?.id && hasInitialized) {
-      _debouncedLoadStudents({ schoolId: user.school.id, ...filters })?.then(r => r)
-
-      // if (user?.school?.id && groupedClasses.length === 0) {
-      //   fetchClassesBySchool(user.school.id).then(r => r)
-      // }
-    }
-  }, [user?.school?.id, currentPage, hasInitialized, filters])
 
   const addStudent = async (
     params: Omit<IStudentDTO, 'id' | 'createdAt' | 'updatedAt'>,
@@ -178,6 +145,7 @@ export function useStudents(): UseStudentsResult {
     currentPage,
     itemsPerPage,
     hasNoStudents,
+    fetchClassesBySchool,
     currentStudent: selectedStudent || null,
     pagination: {
       totalPages,

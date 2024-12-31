@@ -5,22 +5,22 @@ import { Pagination } from '@/components/Pagination'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
-import { useSearchStudentParamsState, useStudentClassSelection, useStudents } from '@/hooks'
+import { useSearchStudentParamsState, useStudentClassSelection, useStudentsData } from '@/hooks'
 import { MixerVerticalIcon } from '@radix-ui/react-icons'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { toast } from 'sonner'
+import { useDebouncedCallback } from 'use-debounce'
 import { StudentFilterSection, StudentsFilters, StudentsTable } from './_components'
 
 const ITEMS_PER_PAGE = 12
 
 const defaultQueryParams: IStudentsQueryParams = {
   searchTerm: undefined,
-  selectedClassesId: undefined,
+  selectedClasses: undefined,
   schoolId: undefined,
   hasNotParentFilter: undefined,
   hasNotClassFilter: undefined,
   page: 1,
-  itemsPerPage: ITEMS_PER_PAGE,
   isStudent: true,
   sort: undefined,
 }
@@ -31,25 +31,30 @@ export default function StudentsPage() {
   const [_studentToEdit, setStudentToEdit] = useState<IStudentDTO | null>(null)
 
   const { state, updateState } = useSearchStudentParamsState(defaultQueryParams)
-  const {
-    students,
-    currentPage,
-    pagination,
-    setPage,
-    isLoading,
-    error,
-    setFilters,
-    groupedClasses,
-  } = useStudents()
+  const [searchTerm, setSearchTerm] = useState<string>(state.searchTerm || '')
 
-  const classSelection = useStudentClassSelection(state.selectedClassesId, (selectedClasses) => {
-    updateState({ selectedClassesId: selectedClasses })
+  const {
+    error,
+    status,
+    loadMore,
+    students,
+    pagination,
+    currentPage,
+    setCurrentPage,
+    groupedClasses,
+  } = useStudentsData({
+    initialItemsPerPage: ITEMS_PER_PAGE,
+    filters: state,
+  })
+
+  const classSelection = useStudentClassSelection(state.selectedClasses, (selectedClasses) => {
+    updateState({ selectedClasses })
   })
 
   // Filter handlers
-  const handleSearchTermChange = (searchTerm: string) => {
+  const handleSearchTermChange = useDebouncedCallback((searchTerm: string) => {
     updateState({ searchTerm: searchTerm || undefined })
-  }
+  }, 500, { maxWait: 1200 })
 
   const handleClassChange = (classId: string, checked: boolean) => {
     classSelection.handleClassChange(classId, checked)
@@ -64,8 +69,11 @@ export default function StudentsPage() {
   }
 
   const handlePageChange = (newPage: number) => {
-    setPage(newPage)
-    updateState({ page: newPage })
+    if (newPage > currentPage) {
+      loadMore()
+    }
+    setCurrentPage(newPage)
+    // TODO: updateState({ page: newPage })
   }
 
   // Student management handlers
@@ -102,16 +110,16 @@ export default function StudentsPage() {
   }
 
   // Sync filters with useStudents
-  useEffect(() => {
-    setFilters({
-      searchTerm: state.searchTerm,
-      selectedClassesId: state.selectedClassesId,
-      hasNotParentFilter: state.hasNotParentFilter,
-      hasNotClassFilter: state.hasNotClassFilter,
-    })
-  }, [state, setFilters])
+  // useEffect(() => {
+  //   setFilters({
+  //     searchTerm: state.searchTerm,
+  //     selectedClasses: state.selectedClasses,
+  //     hasNotParentFilter: state.hasNotParentFilter,
+  //     hasNotClassFilter: state.hasNotClassFilter,
+  //   })
+  // }, [state, setFilters])
 
-  if (error) {
+  if (status === 'error') {
     return (
       <div className="p-6">
         <Card className="bg-destructive/10">
@@ -144,7 +152,7 @@ export default function StudentsPage() {
               <PopoverContent className="w-auto">
                 <StudentFilterSection
                   groupedClasses={groupedClasses}
-                  selectedClassesId={state.selectedClassesId}
+                  selectedClasses={state.selectedClasses}
                   hasNotParentFilter={state.hasNotParentFilter}
                   hasNotClassFilter={state.hasNotClassFilter}
                   onClassChange={handleClassChange}
@@ -158,8 +166,11 @@ export default function StudentsPage() {
 
         <CardContent className="px-6 py-3">
           <StudentsFilters
-            searchTerm={state.searchTerm || ''}
-            onSearchTermChange={handleSearchTermChange}
+            searchTerm={searchTerm}
+            onSearchTermChange={(val) => {
+              setSearchTerm(val)
+              handleSearchTermChange(val)
+            }}
             onImportClick={handleImport}
             onExportClick={handleExport}
             onArchiveClick={handleArchive}
@@ -171,7 +182,7 @@ export default function StudentsPage() {
             ? (
                 <StudentsTable
                   students={students}
-                  isLoading={isLoading}
+                  isLoading={status === 'idle' || status === 'loading'}
                   onStudentEdit={handleStudentEdit}
                   onSort={handleSort}
                 />
