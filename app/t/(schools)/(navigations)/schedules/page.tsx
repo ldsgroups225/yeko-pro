@@ -67,7 +67,7 @@ export const Calendar: React.FC = () => {
     if (!selectedClassId) {
       return (
         <div className="flex flex-col items-center justify-center h-[400px] text-muted-foreground">
-          <p className="text-lg">Select a class to view its schedule</p>
+          <p className="text-lg">Sélectionner une classe pour voir son emploi du temps</p>
         </div>
       )
     }
@@ -76,7 +76,7 @@ export const Calendar: React.FC = () => {
       return (
         <div className="flex flex-col items-center justify-center h-[400px] text-muted-foreground">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mb-4" />
-          <p>Loading schedule...</p>
+          <p>Chargement de l'emploi du temps...</p>
         </div>
       )
     }
@@ -84,7 +84,7 @@ export const Calendar: React.FC = () => {
     if (schedules.length === 0) {
       return (
         <div className="flex flex-col items-center justify-center h-[400px] space-y-4">
-          <p className="text-lg text-muted-foreground">This class doesn't have a schedule yet</p>
+          <p className="text-lg text-muted-foreground">Cette classe n'a aucun emploi du temps</p>
           <AddCourseDialog onAddEvent={() => {}} />
           {/* <AddCourseDialog onAddEvent={handleAddEvent} /> */}
         </div>
