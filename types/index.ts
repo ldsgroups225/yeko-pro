@@ -245,3 +245,35 @@ export interface CourseType {
   label: string
   color: string
 }
+
+export interface ITeacherDTO {
+  id: string
+  email: string
+  firstName: string
+  lastName: string
+  phone?: string
+  avatarUrl?: string
+  status: 'pending' | 'accepted' | 'rejected'
+  assignments?: {
+    id: string
+    classId: string
+    className: string
+    subjectId: string
+    subjectName: string
+    isMainTeacher: boolean
+  }[]
+}
+
+export interface ITeacherQueryParams {
+  searchTerm?: string
+  selectedClasses?: string[]
+  selectedSubjects?: string[]
+  status?: 'pending' | 'accepted' | 'rejected'
+  schoolId?: string
+  page?: number
+  limit?: number
+  sort?: {
+    column: string
+    direction: 'asc' | 'desc'
+  }
+}

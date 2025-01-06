@@ -1196,6 +1196,12 @@ export interface Database {
         }
         Returns: string
       }
+      generate_invite_teacher_otp: {
+        Args: {
+          p_school_id: string
+        }
+        Returns: string
+      }
       get_class_metrics: {
         Args: {
           p_school_id: string

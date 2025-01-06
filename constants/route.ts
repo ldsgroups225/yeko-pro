@@ -1,5 +1,5 @@
 import type { ElementType } from 'react'
-import { Bell, BookOpen, Calendar, Home, Settings, Users } from 'lucide-react'
+import { Bell, BookOpen, Calendar, Home, Settings, Users, UsersRound } from 'lucide-react'
 
 interface ISidebarItem {
   icon: ElementType
@@ -26,6 +26,12 @@ export const sidebarItems: ISidebarItem[] = [
     label: 'Classes',
     href: '/t/classes',
     ariaLabel: 'Voir les classes',
+  },
+  {
+    icon: UsersRound,
+    label: 'Professeurs',
+    href: '/t/teachers',
+    ariaLabel: 'Gérer les professeurs',
   },
   {
     icon: Calendar,
