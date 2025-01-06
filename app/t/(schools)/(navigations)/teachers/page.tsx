@@ -1,7 +1,6 @@
-// pages/teachers/page.tsx
 'use client'
 
-import type { ITeacherDTO, ITeacherQueryParams } from '@/types'
+import type { ITeacherQueryParams } from '@/types'
 import { Pagination } from '@/components/Pagination'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -9,6 +8,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { useUser } from '@/hooks'
 import { useTeachersData } from '@/hooks/useTeachersData'
 import { Link1Icon, MixerVerticalIcon } from '@radix-ui/react-icons'
+import consola from 'consola'
 import { useState } from 'react'
 import { toast } from 'sonner'
 import { InviteTeacherModal, TeacherFilterSection, TeachersFilters, TeachersTable } from './_components'
@@ -56,7 +56,7 @@ export default function TeachersPage() {
   }
 
   const handleSort = (field: string) => {
-    console.log(field)
+    consola.log(field)
     // Implement sorting logic
   }
 
@@ -117,6 +117,7 @@ export default function TeachersPage() {
                 <TeacherFilterSection
                   onStatusChange={(status) => {
                     // Implement status filter
+                    consola.log(status)
                   }}
                 />
               </PopoverContent>

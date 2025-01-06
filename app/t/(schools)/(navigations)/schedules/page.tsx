@@ -1,6 +1,6 @@
 'use client'
 
-import type { IClassesGrouped, IScheduleCalendarDTO } from '@/types'
+import type { IClassesGrouped } from '@/types'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
