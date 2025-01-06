@@ -1,5 +1,6 @@
 export * from './classStore'
 export * from './gradeStore'
+export * from './scheduleStore'
 export * from './schoolYearStore'
 export * from './studentStore'
 export * from './userStore'

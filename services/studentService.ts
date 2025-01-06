@@ -122,7 +122,7 @@ export async function fetchClassesBySchool(schoolId: string) {
     id: nanoid(),
     name: el.grade_name,
     count: el.count,
-    subclasses: el.subclasses.map(s => ({ slug: s.slug, name: s.name })),
+    subclasses: el.subclasses.map(s => ({ id: nanoid(), slug: s.slug, name: s.name })),
   } satisfies IClassesGrouped))
 
   return parsedClasses

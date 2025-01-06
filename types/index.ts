@@ -191,7 +191,57 @@ export interface IClassesGrouped {
   name: string
   count: number
   subclasses: {
+    id: string
     slug: string
     name: string
   }[]
+}
+
+/**
+ * Represents a schedule entry in the calendar
+ * @interface IScheduleCalendarDTO
+ */
+export interface IScheduleCalendarDTO {
+  id: string
+  classId: string
+  classroomName?: string
+  subjectId: string
+  subjectName?: string
+  teacherId: string
+  teacherName?: string
+  dayOfWeek: number
+  startTime: string
+  endTime: string
+  room?: string
+}
+
+export const courseTypes: Record<string, CourseType> = {
+  CM: {
+    label: 'Cours Magistral',
+    color: 'bg-primary/20 hover:bg-primary/30',
+  },
+  TD: {
+    label: 'Travaux Dirigés',
+    color: 'bg-secondary/20 hover:bg-secondary/30',
+  },
+  TP: {
+    label: 'Travaux Pratiques',
+    color: 'bg-accent/20 hover:bg-accent/30',
+  },
+}
+
+export interface Event {
+  id: number
+  title: string
+  professor: string
+  room: string
+  type: keyof typeof courseTypes
+  day: string
+  hour: number
+  duration: number
+}
+
+export interface CourseType {
+  label: string
+  color: string
 }

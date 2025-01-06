@@ -176,3 +176,25 @@ export function getWeekNumber(date: Date): number {
   const pastDaysOfYear = (date.getTime() - firstDayOfYear.getTime()) / 86400000
   return Math.ceil((pastDaysOfYear + firstDayOfYear.getDay() + 1) / 7)
 }
+
+export function getDayName(dayOfWeek: number): string {
+  const days = ['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi']
+  return days[dayOfWeek]
+}
+
+export function timeToMinutes(time: string): number {
+  const [hours, minutes] = time.split(':').map(Number)
+  return hours * 60 + minutes
+}
+
+export function calculateEventPosition(startTime: string): number {
+  const minutes = timeToMinutes(startTime)
+  const startOfDay = 7 * 60 // 7:00 AM
+  return ((minutes - startOfDay) / 60) * 64
+}
+
+export function calculateEventDuration(startTime: string, endTime: string): number {
+  const start = timeToMinutes(startTime)
+  const end = timeToMinutes(endTime)
+  return ((end - start) / 60) * 64
+}
