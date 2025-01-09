@@ -183,8 +183,16 @@ export default function PageMarketing() {
               <Button variant="ghost">Témoignages</Button>
               <Button variant="ghost">FAQ</Button>
               <Button variant="ghost">Contact</Button>
-              <Button variant="ghost">Connexion</Button>
-              <Button>Commencer</Button>
+              <Button variant="ghost" asChild>
+                <Link href="/sign-in">
+                  Connexion
+                </Link>
+              </Button>
+              <Button asChild>
+                <Link href="/sign-in">
+                  Commencer
+                </Link>
+              </Button>
             </nav>
           </motion.div>
         )}
