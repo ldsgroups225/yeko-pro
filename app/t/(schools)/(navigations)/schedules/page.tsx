@@ -12,7 +12,7 @@ import { AddCourseDialog, EventCell, TimelineIndicator } from './_components'
 
 const DAYS = [1, 2, 3, 4, 5] // Monday to Friday
 
-export const Calendar: React.FC = () => {
+export default function CalendarPage() {
   const { user } = useUser()
   const { groupedClasses, fetchClassesBySchool } = useStudents()
   const { loadSchedules, schedules } = useSchedules()
@@ -179,5 +179,3 @@ export const Calendar: React.FC = () => {
     </Card>
   )
 }
-
-export default Calendar
