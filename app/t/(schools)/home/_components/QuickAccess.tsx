@@ -29,47 +29,47 @@ const quickAccessButtonsData: QuickAccessButtonProps[] = [
   {
     icon: <PersonIcon width={42} height={42} />,
     label: 'Gestion des effectifs',
-    href: '/students',
+    href: '/t/students',
   },
   {
     icon: <FileTextIcon width={42} height={42} />,
     label: 'Notes et moyennes',
-    href: '/notes',
+    href: '/t/notes',
   },
   {
     icon: <CalendarIcon width={42} height={42} />,
     label: 'Emploi du temps',
-    href: '/schedules',
+    href: '/t/schedules',
   },
   {
     icon: <ClockIcon width={42} height={42} />,
     label: 'Ponctualité',
-    href: '/schedules',
+    href: '/t/schedules',
   },
   {
     icon: <BackpackIcon width={42} height={42} />,
     label: 'Scolarité',
-    href: '/schools',
+    href: '/t/schools',
   },
   {
     icon: <MixIcon width={42} height={42} />,
     label: 'Professeur',
-    href: '/teachers',
+    href: '/t/teachers',
   },
   {
     icon: <BellIcon width={42} height={42} />,
     label: 'Information',
-    href: '/notifications',
+    href: '/t/notifications',
   },
   {
     icon: <BarChartIcon width={42} height={42} />,
     label: 'Suivi de performance',
-    href: '/performance',
+    href: '/t/performance',
   },
   {
     icon: <ChatBubbleIcon width={42} height={42} />,
     label: 'Discussion',
-    href: '/discussion',
+    href: '/t/discussion',
   },
 ]
 
