@@ -22,18 +22,15 @@ import {
   Camera,
   CheckCircle,
   Database,
-  Download,
   FileText,
   Globe,
   GraduationCap,
   Key,
   LineChart,
   Mail,
-  Moon,
   School,
   Shield,
   Smartphone,
-  Sun,
   User,
   Users,
 } from 'lucide-react'
@@ -42,7 +39,6 @@ import React from 'react'
 export default function SettingsPage() {
   const { user } = useUser()
   const [isLoading, setIsLoading] = React.useState(false)
-  const [isDarkMode, setIsDarkMode] = React.useState(false)
   const [storageUsed, _setStorageUsed] = React.useState(65)
 
   const handleSchoolUpdate = async (event: { preventDefault: () => void }) => {
@@ -53,34 +49,9 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="space-y-6 px-6 py-4">
-      {/* Quick Actions Bar */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-4">
-          <h1 className="text-2xl font-bold">Paramètres</h1>
-          <Badge variant="outline" className="text-sm">
-            Année scolaire 2024-2025
-          </Badge>
-        </div>
-        <div className="flex items-center space-x-4">
-          <Button variant="outline" size="sm" className="space-x-2">
-            <Download className="h-4 w-4" />
-            <span>Exporter les données</span>
-          </Button>
-          <Switch
-            checked={isDarkMode}
-            onCheckedChange={setIsDarkMode}
-            className="ml-4"
-          />
-          <div className="flex items-center space-x-2">
-            {isDarkMode ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
-          </div>
-        </div>
-      </div>
-
-      {/* Storage Status */}
-      <Card className="bg-muted/50">
-        <CardContent className="py-3">
+    <div className="space-y-3 px-6 py-4">
+      <Card className="bg-muted">
+        <CardContent className="py-1.5">
           <div className="flex items-center justify-between">
             <div className="space-y-1">
               <p className="text-sm font-medium">Espace de stockage</p>
@@ -94,7 +65,7 @@ export default function SettingsPage() {
         </CardContent>
       </Card>
 
-      <Tabs defaultValue="school" className="space-y-6">
+      <Tabs defaultValue="school" className="space-y-3">
         <TabsList className="grid w-full grid-cols-2 lg:grid-cols-6">
           <TabsTrigger value="school" className="space-x-2">
             <School className="h-4 w-4" />
