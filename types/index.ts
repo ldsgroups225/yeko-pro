@@ -105,6 +105,7 @@ interface IStudentDTO {
     fullName: string
     phoneNumber: string
     email: string
+    avatarUrl?: string | null
   }
 
   classId?: string | null

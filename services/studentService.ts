@@ -33,6 +33,7 @@ export async function getStudents(query: IStudentsQueryParams): Promise<{ data: 
           fullName: formatFullName(_parent.first_name, _parent.last_name, _parent.email),
           email: _parent.email!,
           phoneNumber: _parent.phone!,
+          avatarUrl: _parent.avatar_url,
         },
         classroom: _class && {
           id: _class.id,
@@ -141,7 +142,7 @@ function buildSupabaseQuery(client: SupabaseClient, query: IStudentsQueryParams)
     .from('students')
     .select(`
       id, id_number, first_name, last_name, date_of_birth, gender,
-      parent:users(first_name, last_name, phone, email),
+      parent:users(first_name, last_name, phone, email, avatar_url),
       class:classes(id, name, slug)
     `, { count: 'exact' })
     .eq('school_id', query.schoolId!)

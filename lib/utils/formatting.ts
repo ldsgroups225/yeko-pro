@@ -98,3 +98,13 @@ export function formatPhoneNumber(phoneNumber: string): string {
 export function capitalizeFirstLetter(text: string): string {
   return text.charAt(0).toUpperCase() + text.slice(1)
 }
+
+/**
+ * Get avatar from full name
+ * @param {string} fullName
+ * @returns {string}
+ */
+export function getAvatarFromFullName(fullName: string): string {
+  const name = fullName.split(' ')
+  return name.length > 1 ? name[0][0].toUpperCase() : 'U'
+}

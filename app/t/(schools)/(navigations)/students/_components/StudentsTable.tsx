@@ -1,5 +1,15 @@
 import type { IStudentDTO } from '@/types'
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
+import {
+  HoverCard,
+  HoverCardContent,
+  HoverCardTrigger,
+} from '@/components/ui/hover-card'
 import { Skeleton } from '@/components/ui/skeleton'
 import {
   Table,
@@ -10,8 +20,9 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
-import { cn, formatDate, formatPhoneNumber, getAge } from '@/lib/utils'
-import { CaretSortIcon } from '@radix-ui/react-icons'
+import { cn, formatDate, formatPhoneNumber, getAge, getAvatarFromFullName } from '@/lib/utils'
+import { CalendarIcon, CaretSortIcon } from '@radix-ui/react-icons'
+import { MailIcon } from 'lucide-react'
 import { nanoid } from 'nanoid'
 import { useRouter } from 'next/navigation'
 import React, { useCallback } from 'react'
@@ -150,20 +161,38 @@ export const StudentsTable: React.FC<StudentsTableProps> = ({
                   </TableCell>
                   <TableCell className="text-center">{student.classroom?.name ?? '-'}</TableCell>
                   <TableCell className="text-center">
-                    <Tooltip delayDuration={750}>
-                      <TooltipTrigger>
-                        <span>
-                          {student.parent?.fullName ?? '-'}
-                        </span>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        {
-                          student.parent?.phoneNumber
-                            ? formatPhoneNumber(student.parent?.phoneNumber)
-                            : '-'
-                        }
-                      </TooltipContent>
-                    </Tooltip>
+                    <HoverCard>
+                      <HoverCardTrigger asChild>
+                        <Button variant="ghost">{student.parent?.fullName ?? '-'}</Button>
+                      </HoverCardTrigger>
+                      <HoverCardContent className="w-80">
+                        <div className="flex justify-between space-x-4">
+                          <Avatar>
+                            <AvatarImage src={student.parent?.avatarUrl ?? ''} />
+                            <AvatarFallback>
+                              {student.parent?.fullName ? getAvatarFromFullName(student.parent?.fullName) : 'U'}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div className="space-y-1">
+                            <h4 className="text-sm font-semibold">{student.parent?.fullName ?? '-'}</h4>
+                            <p className="text-sm">
+                              {
+                                student.parent?.phoneNumber
+                                  ? formatPhoneNumber(student.parent?.phoneNumber)
+                                  : '-'
+                              }
+                            </p>
+                            <div className="flex items-center pt-2">
+                              <MailIcon className="mr-2 h-4 w-4 opacity-70" />
+                              {' '}
+                              <span className="text-xs text-muted-foreground">
+                                {student.parent?.email ?? '-'}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      </HoverCardContent>
+                    </HoverCard>
                   </TableCell>
                   <TableCell className="flex justify-end">
                     <StudentTableRowActions
