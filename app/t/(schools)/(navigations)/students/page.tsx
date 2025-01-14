@@ -204,8 +204,9 @@ export default function StudentsPage() {
             : (
                 <StudentsGrid
                   students={students}
-                  isLoading={status === 'idle' || status === 'loading'}
+                  onParentLink={handleParentLink}
                   onStudentEdit={handleStudentEdit}
+                  isLoading={status === 'idle' || status === 'loading'}
                 />
               )}
 

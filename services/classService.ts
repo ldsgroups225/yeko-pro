@@ -97,7 +97,7 @@ export async function fetchClasses({
 
   // Apply optional filters
   if (gradeId) {
-    query = query.eq('grade_id', gradeId)
+    query = query.eq('grade_id', Number.parseInt(gradeId))
   }
 
   if (typeof isActive === 'boolean') {

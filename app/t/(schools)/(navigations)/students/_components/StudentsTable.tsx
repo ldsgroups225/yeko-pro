@@ -149,17 +149,23 @@ export const StudentsTable: React.FC<StudentsTableProps> = ({
                   <TableCell className="font-medium text-center">{student.idNumber}</TableCell>
                   <TableCell className="text-center">{student.gender}</TableCell>
                   <TableCell className="text-center">
-                    <Tooltip delayDuration={750}>
-                      <TooltipTrigger>
-                        <span>
-                          {getAge(student.dateOfBirth)}
-                          {' ans'}
-                        </span>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        {formatDate(student.dateOfBirth)}
-                      </TooltipContent>
-                    </Tooltip>
+                    {
+                      student.dateOfBirth
+                        ? (
+                            <Tooltip delayDuration={750}>
+                              <TooltipTrigger>
+                                <span>
+                                  {getAge(student.dateOfBirth)}
+                                  {' ans'}
+                                </span>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                {formatDate(student.dateOfBirth)}
+                              </TooltipContent>
+                            </Tooltip>
+                          )
+                        : '-'
+                    }
                   </TableCell>
                   <TableCell className="text-center">{student.classroom?.name ?? '-'}</TableCell>
                   <TableCell className="text-center">

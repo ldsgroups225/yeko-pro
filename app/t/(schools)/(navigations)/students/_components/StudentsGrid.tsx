@@ -13,12 +13,14 @@ import { StudentTableRowActions } from './StudentTableRowActions'
 interface StudentsGridProps {
   students?: IStudentDTO[]
   isLoading: boolean
+  onParentLink: (student: IStudentDTO) => void
   onStudentEdit: (student: IStudentDTO) => void
 }
 
 export const StudentsGrid: React.FC<StudentsGridProps> = ({
   students,
   isLoading,
+  onParentLink,
   onStudentEdit,
 }) => {
   const router = useRouter()
@@ -72,6 +74,7 @@ export const StudentsGrid: React.FC<StudentsGridProps> = ({
                   <StudentTableRowActions
                     editButtonClicked={() => onStudentEdit(student)}
                     navigateToStudent={() => navigateToStudent(student.idNumber)}
+                    linkToParent={() => onParentLink(student)}
                   />
                 </CardHeader>
                 <CardContent className="space-y-2">
@@ -83,9 +86,11 @@ export const StudentsGrid: React.FC<StudentsGridProps> = ({
                   <p className="text-sm flex w-full justify-between items-center">
                     <span>Age :</span>
                     <span className="font-medium">
-                      {getAge(student.dateOfBirth)}
-                      {' '}
-                      ans
+                      {
+                        student.dateOfBirth
+                          ? `${getAge(student.dateOfBirth)} ans`
+                          : '-'
+                      }
                     </span>
                   </p>
                   <p className="text-sm flex w-full justify-between items-center">
