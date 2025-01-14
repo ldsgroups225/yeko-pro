@@ -1,4 +1,5 @@
 import type { IClassesGrouped, IStudentDTO, IStudentsQueryParams } from '@/types'
+import type { LinkStudentParentData } from '@/validations'
 import {
   createStudent,
   deleteStudent,
@@ -6,6 +7,7 @@ import {
   getStudentById,
   getStudentByIdNumber,
   getStudents,
+  linkStudentAndParent,
   updateStudent,
 } from '@/services'
 import { create } from 'zustand'
@@ -32,24 +34,25 @@ interface StudentStore {
   itemsPerPage: number
   filters: StudentFilters
 
-  setStudents: (students: IStudentDTO[] | undefined) => void
-  setFilters: (newFilters: Partial<StudentFilters>) => void
-  setSelectedStudent: (student: IStudentDTO | null) => void
+  setPage: (page: number) => void
+  setError: (error: Error | null) => void
+  setItemsPerPage: (count: number) => void
+  setIsLoading: (isLoading: boolean) => void
   setIsCreating: (isCreating: boolean) => void
   setIsUpdating: (isUpdating: boolean) => void
   setIsDeleting: (isDeleting: boolean) => void
-  setIsLoading: (isLoading: boolean) => void
-  setTotalCount: (totalCount: number | undefined) => void
-  setError: (error: Error | null) => void
-  setPage: (page: number) => void
-  setItemsPerPage: (count: number) => void
-  fetchStudents: (query: IStudentsQueryParams) => Promise<void>
-  fetchStudentById: (id: string) => Promise<void>
-  fetchStudentByIdNumber: (idNumber: string) => Promise<void>
-  fetchClassesBySchool: (schoolId: string) => Promise<void>
-  createStudent: (student: Omit<IStudentDTO, 'id' | 'createdAt' | 'updatedAt'>) => Promise<void>
-  updateStudent: (student: Partial<IStudentDTO> & { id: string }) => Promise<void>
   deleteStudent: (id: string) => Promise<void>
+  fetchStudentById: (id: string) => Promise<void>
+  setTotalCount: (totalCount: number | undefined) => void
+  setSelectedStudent: (student: IStudentDTO | null) => void
+  setFilters: (newFilters: Partial<StudentFilters>) => void
+  fetchClassesBySchool: (schoolId: string) => Promise<void>
+  setStudents: (students: IStudentDTO[] | undefined) => void
+  fetchStudentByIdNumber: (idNumber: string) => Promise<void>
+  fetchStudents: (query: IStudentsQueryParams) => Promise<void>
+  linkStudentAndParent: (data: LinkStudentParentData) => Promise<boolean>
+  updateStudent: (student: Partial<IStudentDTO> & { id: string }) => Promise<void>
+  createStudent: (student: Omit<IStudentDTO, 'id' | 'createdAt' | 'updatedAt'>) => Promise<void>
 }
 
 export const useStudentStore = create<StudentStore>((set, get) => {
@@ -207,6 +210,23 @@ export const useStudentStore = create<StudentStore>((set, get) => {
       }
       finally {
         set({ isDeleting: false })
+      }
+    },
+
+    linkStudentAndParent: async (data) => {
+      set({ isLoading: true, error: null })
+      try {
+        const success = await linkStudentAndParent(data)
+        if (success) {
+          await get().fetchStudents({ schoolId: get().currentSchoolId! })
+        }
+        return success
+      }
+      catch (error: any) {
+        throw new Error((error as Error).message)
+      }
+      finally {
+        set({ isLoading: false })
       }
     },
   })

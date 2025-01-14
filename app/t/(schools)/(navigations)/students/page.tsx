@@ -4,13 +4,14 @@ import type { IStudentDTO, IStudentsQueryParams } from '@/types'
 import { Pagination } from '@/components/Pagination'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Dialog } from '@/components/ui/dialog'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { useSearchStudentParamsState, useStudentClassSelection, useStudentsData } from '@/hooks'
 import { MixerVerticalIcon } from '@radix-ui/react-icons'
 import { useState } from 'react'
 import { toast } from 'sonner'
 import { useDebouncedCallback } from 'use-debounce'
-import { StudentFilterSection, StudentsFilters, StudentsGrid, StudentsTable } from './_components'
+import { ParentLinkModal, StudentFilterSection, StudentsFilters, StudentsGrid, StudentsTable } from './_components'
 
 const ITEMS_PER_PAGE = 12
 
@@ -28,7 +29,8 @@ const defaultQueryParams: IStudentsQueryParams = {
 export default function StudentsPage() {
   const [isTableViewMode, setIsTableViewMode] = useState(true)
   const [_showStudentModal, setShowStudentModal] = useState(false)
-  const [_studentToEdit, setStudentToEdit] = useState<IStudentDTO | null>(null)
+  const [showParentLinkModal, setShowParentLinkModal] = useState(false)
+  const [studentToEdit, setStudentToEdit] = useState<IStudentDTO | null>(null)
 
   const { state, updateState } = useSearchStudentParamsState(defaultQueryParams)
   const [searchTerm, setSearchTerm] = useState<string>(state.searchTerm || '')
@@ -82,10 +84,21 @@ export default function StudentsPage() {
     setShowStudentModal(true)
   }
 
+  // Student management handlers
+  const handleParentLink = (studentData: IStudentDTO) => {
+    setStudentToEdit(studentData)
+    setShowParentLinkModal(true)
+  }
+
   // const handleStudentModalClose = () => {
   //   setShowStudentModal(false)
   //   setStudentToEdit(null)
   // }
+
+  const handleParentLinkModalClose = () => {
+    setShowParentLinkModal(false)
+    setStudentToEdit(null)
+  }
 
   const handleSort = (field: string) => {
     updateState({
@@ -183,8 +196,9 @@ export default function StudentsPage() {
                 <StudentsTable
                   students={students}
                   isLoading={status === 'idle' || status === 'loading'}
-                  onStudentEdit={handleStudentEdit}
                   onSort={handleSort}
+                  onParentLink={handleParentLink}
+                  onStudentEdit={handleStudentEdit}
                 />
               )
             : (
@@ -214,6 +228,17 @@ export default function StudentsPage() {
           onClose={handleStudentModalClose}
         />
       )} */}
+
+      {showParentLinkModal && studentToEdit && (
+        <Dialog open={showParentLinkModal} onOpenChange={handleParentLinkModalClose}>
+          <ParentLinkModal
+            studentIdNumber={studentToEdit.idNumber}
+            hasAlreadyParent={studentToEdit.parent !== null}
+            studentName={`${studentToEdit.firstName} ${studentToEdit.lastName}`}
+            onClose={handleParentLinkModalClose}
+          />
+        </Dialog>
+      )}
     </div>
   )
 }

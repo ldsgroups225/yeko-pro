@@ -21,7 +21,7 @@ import {
 } from '@/components/ui/table'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { cn, formatDate, formatPhoneNumber, getAge, getAvatarFromFullName } from '@/lib/utils'
-import { CalendarIcon, CaretSortIcon } from '@radix-ui/react-icons'
+import { CaretSortIcon } from '@radix-ui/react-icons'
 import { MailIcon } from 'lucide-react'
 import { nanoid } from 'nanoid'
 import { useRouter } from 'next/navigation'
@@ -31,9 +31,9 @@ import { StudentTableRowActions } from './StudentTableRowActions'
 interface SortableHeaderProps {
   field: string
   children: React.ReactNode
+  onSort: (field: string) => void
   align?: 'left' | 'center' | 'right'
   sort?: { field: string, direction: 'asc' | 'desc' }
-  onSort: (field: string) => void
 }
 
 const SortableHeader: React.FC<SortableHeaderProps> = React.memo(({ field, children, align = 'left', sort, onSort }) => {
@@ -68,17 +68,19 @@ const SortableHeader: React.FC<SortableHeaderProps> = React.memo(({ field, child
 interface StudentsTableProps {
   students?: IStudentDTO[]
   isLoading: boolean
+  onParentLink: (student: IStudentDTO) => void
   onStudentEdit: (student: IStudentDTO) => void
   sort?: { field: string, direction: 'asc' | 'desc' }
   onSort: (field: string) => void
 }
 
 export const StudentsTable: React.FC<StudentsTableProps> = ({
-  students,
-  isLoading,
-  onStudentEdit,
   sort,
   onSort,
+  students,
+  isLoading,
+  onParentLink,
+  onStudentEdit,
 }) => {
   const router = useRouter()
 
@@ -198,6 +200,7 @@ export const StudentsTable: React.FC<StudentsTableProps> = ({
                     <StudentTableRowActions
                       editButtonClicked={() => onStudentEdit(student)}
                       navigateToStudent={() => navigateToStudent(student.idNumber)}
+                      linkToParent={() => onParentLink(student)}
                     />
                   </TableCell>
                 </TableRow>

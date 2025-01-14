@@ -21,6 +21,7 @@ interface UseStudentsResult {
   fetchClassesBySchool: (schoolId: string) => Promise<void>
   loadStudents: (params: IStudentsQueryParams) => Promise<void>
   getStudentById: (studentId: string) => IStudentDTO | undefined
+  linkStudentAndParent: (data: { studentIdNumber: string, otp: string }) => Promise<boolean>
   setPage: (page: number) => void
   setItemsPerPage: (count: number) => void
   setFilters: (filters: {
@@ -60,6 +61,7 @@ export function useStudents(): UseStudentsResult {
     createStudent,
     currentPage,
     fetchClassesBySchool,
+    linkStudentAndParent,
   } = useStudentStore()
 
   // Use refs to track previous values
@@ -147,6 +149,7 @@ export function useStudents(): UseStudentsResult {
     hasNoStudents,
     fetchClassesBySchool,
     currentStudent: selectedStudent || null,
+    linkStudentAndParent,
     pagination: {
       totalPages,
       hasNextPage,

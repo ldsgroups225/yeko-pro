@@ -1,13 +1,14 @@
 'use server'
 
 import type { IClassesGrouped, IStudentDTO, IStudentsQueryParams } from '@/types'
+import type { LinkStudentParentData } from '@/validations'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { createClient } from '@/lib/supabase/server'
 import { formatFullName } from '@/lib/utils'
+import { linkStudentParentSchema } from '@/validations'
 import { snakeCase } from 'change-case'
 import { nanoid } from 'nanoid'
 
-// TODO: remove hard typed `SupabaseClient`
 function getClient(): SupabaseClient {
   return createClient()
 }
@@ -172,4 +173,79 @@ function buildSupabaseQuery(client: SupabaseClient, query: IStudentsQueryParams)
     .range(from, to)
     .order('last_name', { ascending: true })
     .order('first_name', { ascending: true })
+}
+
+export async function linkStudentAndParent({ studentIdNumber, otp }: { studentIdNumber: string, otp: string }): Promise<boolean> {
+  const client = getClient()
+
+  function validateAndParseData(data: unknown): LinkStudentParentData {
+    const result = linkStudentParentSchema.safeParse(data)
+
+    if (!result.success) {
+      const errorMessages = result.error.errors.map(err => err.message).join(', ')
+      throw new Error(errorMessages)
+    }
+
+    return result.data
+  }
+
+  async function checkOTP(sOTP: string): Promise<string> {
+    const { data, error } = await client
+      .from('link_student_parent')
+      .select('parent_id, is_used, expired_at')
+      .eq('otp', sOTP)
+      .single()
+
+    if (error || !data) {
+      throw new Error('OTP invalide')
+    }
+
+    if (data.is_used) {
+      throw new Error('Ce code a déjà été utilisé')
+    }
+
+    if (new Date(data.expired_at) < new Date()) {
+      throw new Error('Ce code a expiré')
+    }
+
+    return data.parent_id
+  }
+
+  async function updateStudentParent(sId: string, parentId: string): Promise<void> {
+    const { error } = await client
+      .from('students')
+      .update({ parent_id: parentId })
+      .eq('id_number', sId)
+
+    if (error) {
+      throw new Error('Erreur lors de la mise à jour de l\'élève')
+    }
+  }
+
+  async function markOTPAsUsed(sOTP: string): Promise<void> {
+    const { error } = await client
+      .from('link_student_parent')
+      .update({ is_used: true })
+      .eq('otp', sOTP)
+
+    if (error) {
+      throw new Error('Erreur lors de la mise à jour du statut de l\'OTP')
+    }
+  }
+
+  try {
+    const { studentIdNumber: sId, otp: sOTP } = validateAndParseData({
+      studentIdNumber,
+      otp,
+    })
+
+    const parentId = await checkOTP(sOTP)
+    await updateStudentParent(sId, parentId)
+    await markOTPAsUsed(sOTP)
+
+    return true
+  }
+  catch (error) {
+    throw new Error((error as Error).message)
+  }
 }
