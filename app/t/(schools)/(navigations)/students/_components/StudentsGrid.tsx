@@ -1,11 +1,8 @@
 import type { IStudentDTO } from '@/types'
-import {
-  Avatar,
-  AvatarFallback,
-} from '@/components/ui/avatar'
+
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
-import { formatPhoneNumber, getAge, getAvatarFromFullName } from '@/lib/utils'
+import { formatPhoneNumber, getAge } from '@/lib/utils'
 import FemaleSign from '@/public/FemaleSign.svg'
 import MaleSign from '@/public/MaleSign.svg'
 import Image from 'next/image'

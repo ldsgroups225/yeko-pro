@@ -100,11 +100,26 @@ export function capitalizeFirstLetter(text: string): string {
 }
 
 /**
- * Get avatar from full name
- * @param {string} fullName
- * @returns {string}
+ * Generates an avatar initial based on the full name.
+ *
+ * @param {string} fullName - The full name of the person.
+ * @returns {string} The avatar initial, which is the uppercase first letter of the first name or 'U' if no letter is found.
+ *
+ * @example
+ * getAvatarFromFullName('Jane Doe');    // Returns 'J'
+ * getAvatarFromFullName('John');        // Returns 'U'
+ * getAvatarFromFullName('  Jane  Doe  '); // Returns 'J'
+ * getAvatarFromFullName('Dr. John Smith'); // Returns 'J'
  */
 export function getAvatarFromFullName(fullName: string): string {
-  const name = fullName.split(' ')
-  return name.length > 1 ? name[0][0].toUpperCase() : 'U'
+  // Trim the input and split into parts
+  const nameParts = fullName.trim().split(/\s+/)
+  if (nameParts.length === 0) {
+    return 'U'
+  }
+  // Take the first part (considered as the first name)
+  const firstName = nameParts[0]
+  // Find the first alphabetic character
+  const firstLetter = firstName.match(/[A-Z]/i)?.[0].toUpperCase()
+  return firstLetter || 'U'
 }
