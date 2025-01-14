@@ -318,48 +318,76 @@ export interface Database {
           },
         ]
       }
+      link_student_parent: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          expired_at: string
+          id: string
+          is_used: boolean
+          otp: string
+          parent_id: string
+          student_id: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          expired_at?: string
+          id?: string
+          is_used?: boolean
+          otp: string
+          parent_id: string
+          student_id: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          expired_at?: string
+          id?: string
+          is_used?: boolean
+          otp?: string
+          parent_id?: string
+          student_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'link_student_parent_student_id_fkey'
+            columns: ['student_id']
+            isOneToOne: false
+            referencedRelation: 'students'
+            referencedColumns: ['id']
+          },
+        ]
+      }
       note_details: {
         Row: {
-          class_id: string
           created_at: string | null
           graded_at: string | null
           id: string
           note: number | null
           note_id: string
           student_id: string
-          subject_id: string
           updated_at: string | null
         }
         Insert: {
-          class_id: string
           created_at?: string | null
           graded_at?: string | null
           id?: string
           note?: number | null
           note_id: string
           student_id: string
-          subject_id: string
           updated_at?: string | null
         }
         Update: {
-          class_id?: string
           created_at?: string | null
           graded_at?: string | null
           id?: string
           note?: number | null
           note_id?: string
           student_id?: string
-          subject_id?: string
           updated_at?: string | null
         }
         Relationships: [
-          {
-            foreignKeyName: 'note_details_class_id_foreign'
-            columns: ['class_id']
-            isOneToOne: false
-            referencedRelation: 'classes'
-            referencedColumns: ['id']
-          },
           {
             foreignKeyName: 'note_details_note_id_foreign'
             columns: ['note_id']
@@ -374,19 +402,12 @@ export interface Database {
             referencedRelation: 'students'
             referencedColumns: ['id']
           },
-          {
-            foreignKeyName: 'note_details_subject_id_foreign'
-            columns: ['subject_id']
-            isOneToOne: false
-            referencedRelation: 'subjects'
-            referencedColumns: ['id']
-          },
         ]
       }
       notes: {
         Row: {
+          class_id: string
           created_at: string
-          created_by: string
           description: string | null
           due_date: string | null
           id: string
@@ -398,13 +419,15 @@ export interface Database {
           school_id: string
           school_year_id: number
           semester_id: number
+          subject_id: string
+          teacher_id: string
           title: string | null
           total_points: number
           weight: number | null
         }
         Insert: {
+          class_id: string
           created_at?: string
-          created_by: string
           description?: string | null
           due_date?: string | null
           id?: string
@@ -416,13 +439,15 @@ export interface Database {
           school_id: string
           school_year_id: number
           semester_id: number
+          subject_id: string
+          teacher_id: string
           title?: string | null
           total_points: number
           weight?: number | null
         }
         Update: {
+          class_id?: string
           created_at?: string
-          created_by?: string
           description?: string | null
           due_date?: string | null
           id?: string
@@ -434,16 +459,18 @@ export interface Database {
           school_id?: string
           school_year_id?: number
           semester_id?: number
+          subject_id?: string
+          teacher_id?: string
           title?: string | null
           total_points?: number
           weight?: number | null
         }
         Relationships: [
           {
-            foreignKeyName: 'notes_created_by_foreign'
-            columns: ['created_by']
+            foreignKeyName: 'notes_class_id_foreign'
+            columns: ['class_id']
             isOneToOne: false
-            referencedRelation: 'users'
+            referencedRelation: 'classes'
             referencedColumns: ['id']
           },
           {
@@ -465,6 +492,20 @@ export interface Database {
             columns: ['semester_id']
             isOneToOne: false
             referencedRelation: 'semesters'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'notes_subject_id_foreign'
+            columns: ['subject_id']
+            isOneToOne: false
+            referencedRelation: 'subjects'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'notes_teacher_id_foreign'
+            columns: ['teacher_id']
+            isOneToOne: false
+            referencedRelation: 'users'
             referencedColumns: ['id']
           },
         ]
@@ -1190,15 +1231,15 @@ export interface Database {
         }
         Returns: string
       }
-      generate_slug_text: {
-        Args: {
-          input_name: string
-        }
-        Returns: string
-      }
       generate_invite_teacher_otp: {
         Args: {
           p_school_id: string
+        }
+        Returns: string
+      }
+      generate_slug_text: {
+        Args: {
+          input_name: string
         }
         Returns: string
       }

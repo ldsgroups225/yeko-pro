@@ -12,6 +12,7 @@ interface UseStudentsResult {
   hasNoStudents: boolean
   groupedClasses: IClassesGrouped[]
   currentStudent: IStudentDTO | null
+  selectedStudent: IStudentDTO | null
   pagination: {
     totalPages: number
     hasNextPage: boolean
@@ -20,7 +21,7 @@ interface UseStudentsResult {
 
   fetchClassesBySchool: (schoolId: string) => Promise<void>
   loadStudents: (params: IStudentsQueryParams) => Promise<void>
-  getStudentById: (studentId: string) => IStudentDTO | undefined
+  fetchStudentByIdNumber: (idNumber: string) => Promise<void>
   linkStudentAndParent: (data: { studentIdNumber: string, otp: string }) => Promise<boolean>
   setPage: (page: number) => void
   setItemsPerPage: (count: number) => void
@@ -62,6 +63,7 @@ export function useStudents(): UseStudentsResult {
     currentPage,
     fetchClassesBySchool,
     linkStudentAndParent,
+    fetchStudentByIdNumber,
   } = useStudentStore()
 
   // Use refs to track previous values
@@ -129,10 +131,6 @@ export function useStudents(): UseStudentsResult {
     }
   }
 
-  const getStudentById = (studentId: string) => {
-    return students?.find(student => student.id === studentId)
-  }
-
   const clearStudents = () => {
     useStudentStore.getState().setStudents(undefined)
     useStudentStore.getState().setFilters({})
@@ -147,6 +145,7 @@ export function useStudents(): UseStudentsResult {
     currentPage,
     itemsPerPage,
     hasNoStudents,
+    selectedStudent,
     fetchClassesBySchool,
     currentStudent: selectedStudent || null,
     linkStudentAndParent,
@@ -156,7 +155,7 @@ export function useStudents(): UseStudentsResult {
       hasPreviousPage,
     },
     loadStudents,
-    getStudentById,
+    fetchStudentByIdNumber,
     setPage,
     setItemsPerPage,
     setFilters,

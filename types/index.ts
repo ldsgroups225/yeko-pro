@@ -91,8 +91,10 @@ export interface IStudentDTO {
   lastName: string
   schoolId?: string | null
   idNumber: string
-  gender: string
-  dateOfBirth: string
+  gender: 'M' | 'F' | null
+  dateOfBirth: string | null
+  avatarUrl?: string | null
+  address?: string | null
 
   classroom?: {
     id: string
@@ -110,9 +112,9 @@ export interface IStudentDTO {
   classId?: string | null
   parentId?: string
 
-  createdAt?: string
+  createdAt?: string | null
   createdBy?: string | null
-  updatedAt?: string
+  updatedAt?: string | null
   updatedBy?: string | null
 }
 

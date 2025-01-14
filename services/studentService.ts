@@ -2,20 +2,14 @@
 
 import type { IClassesGrouped, IStudentDTO, IStudentsQueryParams } from '@/types'
 import type { LinkStudentParentData } from '@/validations'
-import type { SupabaseClient } from '@supabase/supabase-js'
 import { createClient } from '@/lib/supabase/server'
 import { formatFullName } from '@/lib/utils'
 import { linkStudentParentSchema } from '@/validations'
 import { snakeCase } from 'change-case'
 import { nanoid } from 'nanoid'
 
-function getClient(): SupabaseClient {
-  return createClient()
-}
-
 export async function getStudents(query: IStudentsQueryParams): Promise<{ data: IStudentDTO[], totalCount: number | null }> {
-  const client = getClient()
-  const { data, count } = await buildSupabaseQuery(client, query)
+  const { data, count } = await buildSupabaseQuery(query)
 
   return {
     data: data?.map((student) => {
@@ -28,7 +22,7 @@ export async function getStudents(query: IStudentsQueryParams): Promise<{ data: 
         firstName: student.first_name,
         lastName: student.last_name,
         dateOfBirth: student.date_of_birth,
-        gender: student.gender,
+        gender: (student as { gender: 'M' | 'F' | null }).gender,
         parent: _parent && {
           id: _parent.id!,
           fullName: formatFullName(_parent.first_name, _parent.last_name, _parent.email),
@@ -47,37 +41,112 @@ export async function getStudents(query: IStudentsQueryParams): Promise<{ data: 
 }
 
 export async function getStudentById(id: string): Promise<IStudentDTO | null> {
-  const client = getClient()
+  const client = createClient()
   const { data } = await client
     .from('students')
-    .select('*')
+    .select(`
+        id, id_number, first_name, last_name, date_of_birth, gender, avatar_url, address,
+        created_at, created_by, updated_at, updated_by,
+        parent:users(first_name, last_name, phone, email, avatar_url),
+        class:classes(id, name, slug)
+      `)
     .eq('id', id)
     .single()
-  return data as IStudentDTO | null
+
+  if (!data)
+    return null
+
+  const _class = data.class as any
+  const _parent = data.parent as any
+
+  return {
+    id: data.id,
+    idNumber: data.id_number,
+    firstName: data.first_name,
+    lastName: data.last_name,
+    dateOfBirth: data.date_of_birth,
+    avatarUrl: data.avatar_url,
+    address: data.address,
+    gender: (data as { gender: 'M' | 'F' | null }).gender,
+    parent: _parent && {
+      id: _parent.id!,
+      fullName: formatFullName(_parent.first_name, _parent.last_name, _parent.email),
+      email: _parent.email!,
+      phoneNumber: _parent.phone!,
+      avatarUrl: _parent.avatar_url,
+    },
+    classroom: _class && {
+      id: _class.id,
+      name: _class.name,
+    },
+    createdAt: data.created_at,
+    createdBy: data.created_by,
+    updatedAt: data.updated_at,
+    updatedBy: data.updated_by,
+  } satisfies IStudentDTO
 }
 
 export async function getStudentByIdNumber(idNumber: string): Promise<IStudentDTO | null> {
-  const client = getClient()
+  const client = createClient()
   const { data } = await client
     .from('students')
-    .select('*')
+    .select(`
+        id, id_number, first_name, last_name, date_of_birth, gender, avatar_url, address,
+        created_at, created_by, updated_at, updated_by,
+        parent:users(first_name, last_name, phone, email, avatar_url),
+        class:classes(id, name, slug)
+      `)
     .eq('id_number', idNumber)
     .single()
-  return data as IStudentDTO | null
+
+  if (!data)
+    return null
+
+  const _class = data.class as any
+  const _parent = data.parent as any
+
+  return {
+    id: data.id,
+    idNumber: data.id_number,
+    firstName: data.first_name,
+    lastName: data.last_name,
+    dateOfBirth: data.date_of_birth,
+    avatarUrl: data.avatar_url,
+    address: data.address,
+    gender: (data as { gender: 'M' | 'F' | null }).gender,
+    parent: _parent && {
+      id: _parent.id!,
+      fullName: formatFullName(_parent.first_name, _parent.last_name, _parent.email),
+      email: _parent.email!,
+      phoneNumber: _parent.phone!,
+      avatarUrl: _parent.avatar_url,
+    },
+    classroom: _class && {
+      id: _class.id,
+      name: _class.name,
+    },
+    createdAt: data.created_at,
+    createdBy: data.created_by,
+    updatedAt: data.updated_at,
+    updatedBy: data.updated_by,
+  } satisfies IStudentDTO
 }
 
 export async function createStudent(params: Pick<IStudentDTO, 'firstName' | 'lastName' | 'schoolId' | 'classId' | 'idNumber'>): Promise<IStudentDTO | null> {
-  const client = getClient()
+  const client = createClient()
+
+  const snakeCaseParams = Object.fromEntries(Object.entries(params).map(([key, value]) => [snakeCase(key), value]))
+
   const { data } = await client
     .from('students')
-    .insert(params)
+    .insert(snakeCaseParams as any)
     .select()
     .single()
   return data as IStudentDTO | null
 }
 
 export async function updateStudent(params: Partial<IStudentDTO> & { id: string }): Promise<IStudentDTO | null> {
-  const client = getClient()
+  const client = createClient()
   const { data } = await client
     .from('students')
     .update(params)
@@ -88,7 +157,7 @@ export async function updateStudent(params: Partial<IStudentDTO> & { id: string 
 }
 
 export async function deleteStudent(id: string): Promise<boolean> {
-  const client = getClient()
+  const client = createClient()
   const { error } = await client
     .from('students')
     .delete()
@@ -97,7 +166,7 @@ export async function deleteStudent(id: string): Promise<boolean> {
 }
 
 export async function getStudentParentById(parentId: string): Promise<IStudentDTO | null> {
-  const client = getClient()
+  const client = createClient()
   const { data } = await client
     .from('students')
     .select('*')
@@ -132,7 +201,9 @@ export async function fetchClassesBySchool(schoolId: string) {
 
 export type TClassesBySchool = ClassRPCResponse[]
 
-function buildSupabaseQuery(client: SupabaseClient, query: IStudentsQueryParams) {
+function buildSupabaseQuery(query: IStudentsQueryParams) {
+  const client = createClient()
+
   const _page = query.page ?? 1
   const _limit = query.limit ?? 10
 
@@ -176,7 +247,7 @@ function buildSupabaseQuery(client: SupabaseClient, query: IStudentsQueryParams)
 }
 
 export async function linkStudentAndParent({ studentIdNumber, otp }: { studentIdNumber: string, otp: string }): Promise<boolean> {
-  const client = getClient()
+  const client = createClient()
 
   function validateAndParseData(data: unknown): LinkStudentParentData {
     const result = linkStudentParentSchema.safeParse(data)
