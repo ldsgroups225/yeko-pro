@@ -10,7 +10,7 @@ import { MixerVerticalIcon } from '@radix-ui/react-icons'
 import { useState } from 'react'
 import { toast } from 'sonner'
 import { useDebouncedCallback } from 'use-debounce'
-import { StudentFilterSection, StudentsFilters, StudentsTable } from './_components'
+import { StudentFilterSection, StudentsFilters, StudentsGrid, StudentsTable } from './_components'
 
 const ITEMS_PER_PAGE = 12
 
@@ -188,9 +188,11 @@ export default function StudentsPage() {
                 />
               )
             : (
-                <pre className="mt-4 bg-muted p-4 rounded-lg overflow-auto">
-                  {JSON.stringify(students, null, 2)}
-                </pre>
+                <StudentsGrid
+                  students={students}
+                  isLoading={status === 'idle' || status === 'loading'}
+                  onStudentEdit={handleStudentEdit}
+                />
               )}
 
           {pagination.totalPages > 1 && (

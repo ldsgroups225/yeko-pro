@@ -85,8 +85,7 @@ export interface IUserProfileDTO {
   school: ISchoolDTO
 }
 
-export
-interface IStudentDTO {
+export interface IStudentDTO {
   id: string
   firstName: string
   lastName: string
