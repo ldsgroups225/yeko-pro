@@ -7,6 +7,7 @@
     "dev": "next dev --turbopack",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
+    "typecheck": "tsc --noEmit",
     "start": "next start"
   },
   "dependencies": {
