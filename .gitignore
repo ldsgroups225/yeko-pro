@@ -36,3 +36,6 @@ yarn-error.log*
 next-env.d.ts
 
 /.vscode/.server-controller-port.log
+
+# Local Netlify folder
+.netlify
