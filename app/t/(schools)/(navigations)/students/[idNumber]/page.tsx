@@ -2,10 +2,8 @@
 
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
-import { ScrollArea } from '@/components/ui/scroll-area'
 import { Switch } from '@/components/ui/switch'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useStudents } from '@/hooks'
@@ -25,7 +23,6 @@ import {
   MapPin,
   PhoneCall,
   School,
-  TrendingUp,
   UserCircle,
   Users,
   Utensils,
