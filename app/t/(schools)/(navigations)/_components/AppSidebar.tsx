@@ -1,3 +1,5 @@
+'use client'
+
 import { Button } from '@/components/ui/button'
 import {
   Sidebar,
@@ -18,7 +20,11 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { UserProfile } from './UserProfile'
 
-export function AppSidebar() {
+interface AppSidebarProps {
+  className?: string
+}
+
+export function AppSidebar({ className }: AppSidebarProps) {
   const currentPath = usePathname()
   const { toggleSidebar, state } = useSidebar()
 
@@ -40,7 +46,7 @@ export function AppSidebar() {
   }
 
   return (
-    <Sidebar collapsible="icon">
+    <Sidebar collapsible="icon" className={className}>
       <motion.aside
         initial={false}
         animate={sidebarAnimation}

@@ -1,4 +1,5 @@
 export * from './AppSidebar'
 export * from './BreadcrumbNav'
+export * from './MobileNavbar'
 export * from './SidebarItem'
 export * from './UserProfile'

@@ -1,3 +1,5 @@
+'use client'
+
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -23,25 +25,14 @@ export function BreadcrumbNav() {
   const { currentClass } = useClasses()
 
   const generateBreadcrumbs = () => {
-    const pathSegments = pathname
-      .replace(/\/$/, '')
-      .split('/')
-      .filter(segment => segment && segment !== 't')
-
-    const breadcrumbs: IBreadcrumbItem[] = [{
-      href: '/t/home',
-      label: 'Accueil',
-    }]
-
+    const pathSegments = pathname.replace(/\/$/, '').split('/').filter(segment => segment && segment !== 't')
+    const breadcrumbs: IBreadcrumbItem[] = [{ href: '/t/home', label: 'Accueil' }]
     let currentPath = '/t'
 
     pathSegments.forEach((segment) => {
       currentPath += `/${segment}`
-
-      // Try to match exact route first
       let matchingRoute = mergedRoutes.find(item => item.href === currentPath)
 
-      // If no exact match, try to match dynamic routes
       if (!matchingRoute) {
         matchingRoute = mergedRoutes.find((item) => {
           const dynamicRoutePattern = item.href.replace(/\[.*?\]/g, '[^/]+')
@@ -50,38 +41,23 @@ export function BreadcrumbNav() {
         })
 
         if (matchingRoute) {
-          // Special handling for class details route
           if (currentClass && matchingRoute.href.includes('[slug]')) {
-            breadcrumbs.push({
-              href: currentPath,
-              label: currentClass.name, // Use the actual class name instead of "Détails"
-            })
+            breadcrumbs.push({ href: currentPath, label: currentClass.name })
           }
           else {
-            breadcrumbs.push({
-              href: currentPath,
-              label: matchingRoute.label,
-            })
+            breadcrumbs.push({ href: currentPath, label: matchingRoute.label })
           }
           return
         }
       }
 
       if (matchingRoute) {
-        breadcrumbs.push({
-          href: matchingRoute.href,
-          label: matchingRoute.label,
-        })
+        breadcrumbs.push({ href: matchingRoute.href, label: matchingRoute.label })
       }
       else {
-        // Handle unknown routes by capitalizing the segment
-        breadcrumbs.push({
-          href: currentPath,
-          label: segment.charAt(0).toUpperCase() + segment.slice(1),
-        })
+        breadcrumbs.push({ href: currentPath, label: segment.charAt(0).toUpperCase() + segment.slice(1) })
       }
     })
-
     return breadcrumbs
   }
 
@@ -89,7 +65,7 @@ export function BreadcrumbNav() {
 
   return (
     <Breadcrumb>
-      <BreadcrumbList>
+      <BreadcrumbList className="flex-nowrap overflow-x-auto whitespace-nowrap">
         {breadcrumbs.map((crumb, index) => (
           <React.Fragment key={crumb.href}>
             <BreadcrumbItem>
@@ -98,15 +74,11 @@ export function BreadcrumbNav() {
                     <BreadcrumbPage>{crumb.label}</BreadcrumbPage>
                   )
                 : (
-                    <BreadcrumbLink asChild>
-                      <Link href={crumb.href}>{crumb.label}</Link>
-                    </BreadcrumbLink>
+                    <BreadcrumbLink asChild><Link href={crumb.href}>{crumb.label}</Link></BreadcrumbLink>
                   )}
             </BreadcrumbItem>
             {index < breadcrumbs.length - 1 && (
-              <BreadcrumbSeparator>
-                <Slash className="h-4 w-4" />
-              </BreadcrumbSeparator>
+              <BreadcrumbSeparator><Slash className="h-4 w-4" /></BreadcrumbSeparator>
             )}
           </React.Fragment>
         ))}

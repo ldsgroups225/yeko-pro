@@ -55,7 +55,7 @@ export function UserProfile({ expanded }: UserProfileProps) {
               <AvatarImage src="/profile-pic.webp" alt={user?.fullName ?? 'Photo de profil'} />
               <AvatarFallback>{userInitials}</AvatarFallback>
             </Avatar>
-            {expanded && <span className="ml-2">Profil</span>}
+            {expanded && <span className="ml-2">{user?.fullName}</span>}
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-48">
