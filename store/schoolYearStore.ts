@@ -1,32 +1,33 @@
-import type { ISchoolYear } from '@/types'
-import { fetchSchoolYears } from '@/services'
+import type { ISchoolYear, ISemester } from '@/types'
+import { fetchSchoolYears, fetchSemesters } from '@/services'
 import { create } from 'zustand'
 
-// Define the state interface
 interface SchoolYearState {
-  schoolYears: ISchoolYear[]
   isLoading: boolean
   error: string | null
+  semesters: ISemester[]
+  schoolYears: ISchoolYear[]
   selectedSchoolYearId: number
+  activeSemester: ISemester | null
 }
 
-// Define the actions interface
 interface SchoolYearActions {
-  setSchoolYears: (schoolYears: ISchoolYear[]) => void
-  getSchoolYearById: (schoolYearId: number) => ISchoolYear | undefined
-  fetchSchoolYears: () => Promise<void>
   clearSchoolYears: () => void
+  fetchSchoolYears: () => Promise<void>
+  setSchoolYears: (schoolYears: ISchoolYear[]) => void
+  fetchSemesters: (schoolYearId: number) => Promise<void>
   setSelectedSchoolYearId: (schoolYearId: number) => void
+  getSchoolYearById: (schoolYearId: number) => ISchoolYear | undefined
 }
 
-// Create the store with state and actions
 const useSchoolYearStore = create<SchoolYearState & SchoolYearActions>((set, get) => ({
+  error: null,
+  semesters: [],
   schoolYears: [],
   isLoading: false,
-  error: null,
+  activeSemester: null,
   selectedSchoolYearId: 0,
 
-  // Actions
   setSchoolYears: schoolYears => set({ schoolYears, error: null }),
 
   setSelectedSchoolYearId: (schoolYearId) => {
@@ -44,9 +45,33 @@ const useSchoolYearStore = create<SchoolYearState & SchoolYearActions>((set, get
     try {
       const data = await fetchSchoolYears()
       set({ schoolYears: data, isLoading: false })
+
+      if (data.length > 0)
+        await get().fetchSemesters(data[0].id)
     }
     catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to fetch schoolYears'
+      set({ error: errorMessage, isLoading: false })
+      throw error
+    }
+  },
+
+  fetchSemesters: async (schoolYearId: number) => {
+    set({ isLoading: true, error: null })
+
+    try {
+      const data = await fetchSemesters(schoolYearId)
+      set({ semesters: data, isLoading: false })
+
+      if (data.length > 0) {
+        const activeSemester = data.find(semester => semester.isCurrent)
+
+        if (activeSemester)
+          set({ activeSemester })
+      }
+    }
+    catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to fetch semesters'
       set({ error: errorMessage, isLoading: false })
       throw error
     }

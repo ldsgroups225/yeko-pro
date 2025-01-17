@@ -1,4 +1,4 @@
-import type { ISchoolYear } from '@/types'
+import type { ISchoolYear, ISemester } from '@/types'
 import useSchoolYearStore from '@/store/schoolYearStore'
 
 interface ReturnType {
@@ -7,10 +7,12 @@ interface ReturnType {
   hasNoSchoolYears: boolean
   schoolYears: ISchoolYear[]
   selectedSchoolYearId: number
+  clearSchoolYears: () => void
+  activeSemester: ISemester | null
   loadSchoolYears: () => Promise<void>
+  fetchSemesters: (schoolYearId: number) => Promise<void>
   setSelectedSchoolYearId: (schoolYearId: number) => void
   getSchoolYearById: (schoolYearId: number) => ISchoolYear | undefined
-  clearSchoolYears: () => void
 }
 
 /**
@@ -31,10 +33,12 @@ export function useSchoolYear(): ReturnType {
     error,
     isLoading,
     schoolYears,
-    selectedSchoolYearId,
+    fetchSemesters,
+    activeSemester,
     clearSchoolYears,
     fetchSchoolYears,
     getSchoolYearById,
+    selectedSchoolYearId,
     setSelectedSchoolYearId,
   } = useSchoolYearStore()
 
@@ -66,10 +70,12 @@ export function useSchoolYear(): ReturnType {
     error,
     isLoading,
     schoolYears,
+    activeSemester,
     hasNoSchoolYears,
     selectedSchoolYearId,
 
     // Actions
+    fetchSemesters,
     loadSchoolYears,
     clearSchoolYears,
     getSchoolYearById,

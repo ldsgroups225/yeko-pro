@@ -8,9 +8,9 @@ import { useUser } from './useUser'
  * Hook to initialize reusable data with memoization and better state management
  */
 export function useInitUsefulData() {
-  const { fetchUser, isAuthenticated } = useUser()
-  const { loadSchoolYears } = useSchoolYear()
   const { loadGrades } = useGrade()
+  const { loadSchoolYears } = useSchoolYear()
+  const { fetchUser, isAuthenticated } = useUser()
 
   // Memoize the initialize function to prevent unnecessary recreations
   const initialize = useCallback(async (): Promise<void> => {

@@ -123,6 +123,12 @@ export interface ISchoolYear {
   name: string | null
 }
 
+export interface ISemester {
+  id: number
+  name: string
+  isCurrent: boolean
+}
+
 export interface IStudentFiltersDTO {
   name?: string
   idNumber?: string
@@ -159,19 +165,38 @@ export interface IClass {
 
 export interface IClassDetailsStats {
   totalStudents: number
-  lateRate: number
-  absentRate: number
   averageGrade: number
+  absentRate: number
+  lateRate: number
+  boyCount: number
+  girlCount: number
+  activeStudents: number
+  inactiveStudents: number
+  performanceData: {
+    month: string
+    average: number
+    attendance: number
+  }[]
+  subjectPerformance: {
+    subject: string
+    average: number
+    highest: number
+    lowest: number
+  }[]
 }
 
 export interface ClassDetailsStudent {
   id: string
-  firstName: string
-  lastName: string
+  rank: number
+  status: string
   idNumber: string
-  gradeAverage: number
+  lastName: string
+  firstName: string
   lateCount: number
   absentCount: number
+  teacherNotes: string
+  gradeAverage: number
+  lastEvaluation: string
 }
 
 export interface IStudentsQueryParams {

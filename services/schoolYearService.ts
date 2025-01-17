@@ -1,6 +1,6 @@
 'use server'
 
-import type { ISchoolYear } from '@/types'
+import type { ISchoolYear, ISemester } from '@/types'
 import { createClient } from '@/lib/supabase/server'
 
 /**
@@ -26,4 +26,27 @@ export async function fetchSchoolYears(): Promise<ISchoolYear[]> {
   }
 
   return data ?? []
+}
+
+export async function fetchSemesters(schoolYearId: number): Promise<ISemester[]> {
+  const supabase = createClient()
+
+  const { data, error } = await supabase
+    .from('semesters')
+    .select('id, semester_name, start_date, is_current')
+    .eq('school_year_id', schoolYearId)
+    .order('start_date', { ascending: true })
+    .throwOnError()
+
+  if (error) {
+    console.error('Error fetching semesters:', error)
+    throw new Error('Failed to fetch semesters')
+  }
+
+  return data.map(semester => ({
+    id: semester.id,
+    name: semester.semester_name,
+    startDate: semester.start_date,
+    isCurrent: semester.is_current,
+  })) ?? []
 }
