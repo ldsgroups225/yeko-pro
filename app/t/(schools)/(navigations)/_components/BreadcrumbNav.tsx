@@ -13,7 +13,7 @@ import { useClasses } from '@/hooks'
 import { Slash } from 'lucide-react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import React from 'react'
+import React, { useCallback, useMemo } from 'react'
 
 interface IBreadcrumbItem {
   href: string
@@ -24,7 +24,7 @@ export function BreadcrumbNav() {
   const pathname = usePathname()
   const { currentClass } = useClasses()
 
-  const generateBreadcrumbs = () => {
+  const generateBreadcrumbs = useCallback(() => {
     const pathSegments = pathname.replace(/\/$/, '').split('/').filter(segment => segment && segment !== 't')
     const breadcrumbs: IBreadcrumbItem[] = [{ href: '/t/home', label: 'Accueil' }]
     let currentPath = '/t'
@@ -58,10 +58,11 @@ export function BreadcrumbNav() {
         breadcrumbs.push({ href: currentPath, label: segment.charAt(0).toUpperCase() + segment.slice(1) })
       }
     })
-    return breadcrumbs
-  }
 
-  const breadcrumbs = generateBreadcrumbs()
+    return breadcrumbs
+  }, [pathname, currentClass]) // Dependencies for useCallback
+
+  const breadcrumbs = useMemo(() => generateBreadcrumbs(), [generateBreadcrumbs])
 
   return (
     <Breadcrumb>
@@ -74,11 +75,15 @@ export function BreadcrumbNav() {
                     <BreadcrumbPage>{crumb.label}</BreadcrumbPage>
                   )
                 : (
-                    <BreadcrumbLink asChild><Link href={crumb.href}>{crumb.label}</Link></BreadcrumbLink>
+                    <BreadcrumbLink asChild>
+                      <Link href={crumb.href}>{crumb.label}</Link>
+                    </BreadcrumbLink>
                   )}
             </BreadcrumbItem>
             {index < breadcrumbs.length - 1 && (
-              <BreadcrumbSeparator><Slash className="h-4 w-4" /></BreadcrumbSeparator>
+              <BreadcrumbSeparator>
+                <Slash className="h-4 w-4" />
+              </BreadcrumbSeparator>
             )}
           </React.Fragment>
         ))}
