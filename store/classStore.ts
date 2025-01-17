@@ -1,4 +1,5 @@
 import type { ClassDetailsStudent, IClass, IClassDetailsStats } from '@/types'
+import { useSchoolYear } from '@/hooks'
 import {
   createClass,
   fetchClasses,
@@ -8,6 +9,7 @@ import {
   updateClass,
 } from '@/services'
 import { create } from 'zustand'
+import useSchoolYearStore from './schoolYearStore'
 
 interface ClassFilters {
   gradeId?: string
@@ -46,9 +48,9 @@ interface ClassActions {
   addClass: (params: { name: string, schoolId: string, gradeId: number }) => Promise<void>
   updateClass: (params: { classId: string, name: string, gradeId: number }) => Promise<void>
   getClassDetailsStats: (
-    params: { schoolId: string, classId: string, schoolYearId?: number, semesterId?: number }
+    params: { schoolId: string, classId: string, schoolYearId: number, semesterId: number }
   ) => Promise<IClassDetailsStats>
-  getClassStudents: (params: { schoolId: string, classId: string }) => Promise<ClassDetailsStudent[]>
+  getClassStudents: (params: { schoolId: string, classId: string, schoolYearId: number, semesterId: number }) => Promise<void>
   clearClasses: () => void
 }
 
@@ -215,8 +217,11 @@ const useClassStore = create<ClassState & ClassActions>((set, get) => ({
     set({ isLoading: true, error: null })
     try {
       const data = await getClassStudents({
-        schoolId: params.schoolId,
         classId: params.classId,
+        schoolId: params.schoolId,
+        semesterId: params.semesterId,
+        schoolYearId: params.schoolYearId,
+
         page: get().currentStudentPage,
         limit: get().studentsPerPage,
       })
@@ -225,7 +230,6 @@ const useClassStore = create<ClassState & ClassActions>((set, get) => ({
         isLoading: false,
         totalStudentsCount: data.totalCount,
       })
-      return data.students
     }
     catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to fetch class students'

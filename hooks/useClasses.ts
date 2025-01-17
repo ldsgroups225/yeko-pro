@@ -1,7 +1,8 @@
 import type { ClassDetailsStudent, IClass, IClassDetailsStats } from '@/types'
 import useClassStore from '@/store/classStore'
-import { useEffect } from 'react'
+import { useCallback, useEffect, useMemo, useRef } from 'react'
 import { useDebouncedCallback } from 'use-debounce'
+import { useSchoolYear } from './useSchoolYear'
 import { useUser } from './useUser'
 
 interface UseClassesResult {
@@ -27,9 +28,8 @@ interface UseClassesResult {
     hasNextPage: boolean
     hasPreviousPage: boolean
   }
-
   loadClasses: (schoolId: string) => Promise<void>
-  loadClassStudents: (schoolId: string, classId: string) => Promise<ClassDetailsStudent[]>
+  loadClassStudents: (schoolId: string, classId: string) => Promise<void>
   getClassById: (classId: string) => IClass | undefined
   setPage: (page: number) => void
   setStudentPage: (page: number) => void
@@ -44,52 +44,85 @@ interface UseClassesResult {
   updateClass: (params: { classId: string, name: string, gradeId: number }) => Promise<void>
   loadMoreStudents: () => void
   getClassBySlug: (slug: string) => Promise<IClass | undefined>
-  getClassDetailsStats: (params: { schoolId: string, classId: string, schoolYearId?: number, semesterId?: number }) => Promise<IClassDetailsStats>
+  getClassDetailsStats: (params: {
+    schoolId: string
+    classId: string
+  }) => Promise<IClassDetailsStats>
   clearClasses: () => void
 }
 
 /**
  * Custom hook to interact with the class store.
- * Provides pagination, filtering, and data access functionality.
- *
- * @returns {UseClassesResult} Object containing class-related functions and data
+ * Provides pagination, filtering, and data access functionality with optimized memoization.
  */
 export function useClasses(): UseClassesResult {
   const { user } = useUser()
+  const { selectedSchoolYearId, activeSemester } = useSchoolYear()
 
   const {
-    classes,
-    students,
-    isLoading,
     error,
-    totalCount,
-    currentPage,
-    itemsPerPage,
-    currentClass,
-    getClassBySlug,
-    getClassDetailsStats,
-    getClassStudents,
-    fetchClasses,
-    getClassById,
+    classes,
     setPage,
+    students,
+    addClass,
+    isLoading,
+    totalCount,
+    setFilters,
+    currentPage,
+    updateClass,
+    itemsPerPage,
+    clearClasses,
+    currentClass,
+    getClassById,
+    fetchClasses,
+    getClassBySlug,
     setStudentPage,
     setItemsPerPage,
-    setFilters,
-    addClass,
-    updateClass,
-    clearClasses,
+    studentsPerPage,
+    getClassStudents,
     totalStudentsCount,
     currentStudentPage,
-    studentsPerPage,
+    getClassDetailsStats,
   } = useClassStore()
 
-  const hasNoClasses = classes.length === 0
+  const alreadyClass = useRef('')
+  const alreadySchoolId = useRef('')
 
-  const totalPages = Math.ceil(totalCount / itemsPerPage)
-  const hasNextPage = currentPage < totalPages
-  const hasPreviousPage = currentPage > 1
+  const hasNoClasses = useMemo(() => classes.length === 0, [classes])
 
-  const loadClasses = async (schoolId: string): Promise<void> => {
+  const pagination = useMemo(() => {
+    const totalPages = Math.ceil(totalCount / itemsPerPage)
+    return {
+      totalPages,
+      hasNextPage: currentPage < totalPages,
+      hasPreviousPage: currentPage > 1,
+    }
+  }, [totalCount, itemsPerPage, currentPage])
+
+  const studentPagination = useMemo(() => {
+    const totalStudentPages = Math.ceil(totalStudentsCount / studentsPerPage)
+    return {
+      totalPages: totalStudentPages,
+      hasNextPage: currentStudentPage < totalStudentPages,
+      hasPreviousPage: currentStudentPage > 1,
+    }
+  }, [totalStudentsCount, studentsPerPage, currentStudentPage])
+
+  const shouldReloadStudents = useCallback((schoolId: string, classId: string): boolean => {
+    if (alreadySchoolId.current === '' && alreadyClass.current === '')
+      return true
+
+    const shouldReload = alreadySchoolId.current !== schoolId || alreadyClass.current !== classId
+
+    if (shouldReload) {
+      alreadySchoolId.current = schoolId
+      alreadyClass.current = classId
+    }
+
+    return shouldReload
+  }, [])
+
+  const loadClasses = useCallback(async (schoolId: string): Promise<void> => {
     try {
       await fetchClasses(schoolId)
     }
@@ -97,41 +130,67 @@ export function useClasses(): UseClassesResult {
       console.error('Failed to load classes:', error)
       throw error
     }
-  }
+  }, [])
 
-  // useDebouncedCallback class students load
-  const _debouncedLoadClassStudents = useDebouncedCallback(async (schoolId: string, classId: string) => {
-    await getClassStudents({ schoolId, classId })?.then(r => r)
-  }, 0)
-
-  // Load classes students when necessary
-  useEffect(() => {
-    if (user?.school?.id && currentClass?.id) {
-      _debouncedLoadClassStudents(user.school.id, currentClass.id)?.then(r => r)
-    }
-  }, [user?.school?.id, currentStudentPage])
-
-  const loadMoreStudents = () => {
-    setStudentPage(currentStudentPage + 1)
-  }
-
-  const totalStudentPages = Math.ceil(totalStudentsCount / studentsPerPage)
-  const hasNextStudentPage = currentStudentPage < totalStudentPages
-  const hasPreviousStudentPage = currentStudentPage > 1
-
-  // students
-  const loadClassStudents = async (schoolId: string, classId: string): Promise<ClassDetailsStudent[]> => {
+  const fetchClassDetailsStats = useCallback(async (params: { schoolId: string, classId: string }): Promise<IClassDetailsStats> => {
     try {
-      return await getClassStudents({ schoolId, classId })
+      return await getClassDetailsStats({
+        schoolId: params.schoolId,
+        classId: params.classId,
+        schoolYearId: selectedSchoolYearId,
+        semesterId: activeSemester!.id,
+      })
+    }
+    catch (error) {
+      console.error('Failed to load class\'s stats:', error)
+      throw error
+    }
+  }, [selectedSchoolYearId, activeSemester])
+
+  const _debouncedLoadClassStudents = useDebouncedCallback(
+    async (schoolId: string, classId: string) => {
+      if (shouldReloadStudents(schoolId, classId)) {
+        await getClassStudents({ schoolId, classId, schoolYearId: selectedSchoolYearId, semesterId: activeSemester!.id })
+      }
+    },
+    300,
+    { maxWait: 1000 },
+  )
+
+  const loadClassStudents = useCallback(async (schoolId: string, classId: string): Promise<void> => {
+    try {
+      await _debouncedLoadClassStudents(schoolId, classId)
     }
     catch (error) {
       console.error('Failed to load class students:', error)
       throw error
     }
-  }
+  }, [])
+
+  const loadMoreStudents = useCallback(() => {
+    setStudentPage(currentStudentPage + 1)
+  }, [currentStudentPage, setStudentPage])
+
+  useEffect(() => {
+    if (currentClass?.id && user?.school.id) {
+      const schoolId = user.school.id
+      const classId = currentClass.id
+
+      if (shouldReloadStudents(schoolId, classId)) {
+        _debouncedLoadClassStudents(schoolId, classId)
+      }
+    }
+
+    return () => {
+      _debouncedLoadClassStudents.cancel()
+    }
+  }, [
+    currentStudentPage,
+    currentClass?.id,
+    user?.school.id,
+  ])
 
   return {
-    // Data
     classes,
     students,
     isLoading,
@@ -145,20 +204,9 @@ export function useClasses(): UseClassesResult {
     hasNoClasses,
     currentClass,
 
-    // Pagination helpers
-    pagination: {
-      totalPages,
-      hasNextPage,
-      hasPreviousPage,
-    },
+    pagination,
+    studentPagination,
 
-    studentPagination: {
-      totalPages: totalStudentPages,
-      hasNextPage: hasNextStudentPage,
-      hasPreviousPage: hasPreviousStudentPage,
-    },
-
-    // Actions
     loadClasses,
     loadClassStudents,
     getClassById,
@@ -167,10 +215,10 @@ export function useClasses(): UseClassesResult {
     setItemsPerPage,
     setFilters,
     addClass,
-    loadMoreStudents,
     updateClass,
+    loadMoreStudents,
     clearClasses,
     getClassBySlug,
-    getClassDetailsStats,
+    getClassDetailsStats: fetchClassDetailsStats,
   }
 }

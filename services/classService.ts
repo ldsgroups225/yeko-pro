@@ -270,8 +270,8 @@ export async function updateClass({
 interface GetClassStatsProps {
   schoolId: string
   classId: string
-  schoolYearId?: number
-  semesterId?: number
+  schoolYearId: number
+  semesterId: number
 }
 
 /**
@@ -293,26 +293,130 @@ export async function getClassDetailsStats({ schoolId, classId, schoolYearId, se
     throw new Error('Unauthorized')
   }
 
-  const { data: classMetrics, error } = await supabase
-    .rpc('get_class_metrics', {
-      p_school_id: schoolId,
-      p_class_id: classId,
-      p_school_year_id: schoolYearId,
-      p_semester_id: semesterId,
-    })
-    .single()
-    .throwOnError()
+  // Get basic student counts
+  const { data: studentCounts } = await supabase
+    .from('students')
+    .select('id, gender')
+    .eq('class_id', classId)
+    .eq('school_id', schoolId)
 
-  if (error) {
-    console.error('Error fetching class metrics:', error)
-    throw new Error('Failed to fetch class metrics')
+  if (!studentCounts) {
+    throw new Error('Failed to fetch student data')
   }
 
+  const totalStudents = studentCounts.length
+  const boyCount = studentCounts.filter(s => s.gender === 'M').length
+  const girlCount = studentCounts.filter(s => s.gender === 'F').length
+  const activeStudents = totalStudents // You might need to add an is_active column to students table
+  const inactiveStudents = 0 // Same as above
+
+  // Get attendance statistics
+  const { data: attendanceData } = await supabase
+    .from('attendances')
+    .select('status, created_date')
+    .eq('class_id', classId)
+    .eq('school_years_id', schoolYearId)
+    .eq('semesters_id', semesterId)
+
+  if (!attendanceData) {
+    throw new Error('Failed to fetch attendance data')
+  }
+
+  const totalAttendances = attendanceData.length
+  const absentCount = attendanceData.filter(a => a.status === 'absent').length
+  const lateCount = attendanceData.filter(a => a.status === 'late').length
+
+  const absentRate = totalAttendances ? (absentCount / totalAttendances) * 100 : 0
+  const lateRate = totalAttendances ? (lateCount / totalAttendances) * 100 : 0
+
+  // Get grades and calculate average
+  const { data: gradeData } = await supabase
+    .from('note_details')
+    .select(`
+      note,
+      notes!inner (
+        subject_id,
+        created_at,
+        total_points
+      )
+    `)
+    .eq('notes.class_id', classId)
+    .eq('notes.school_year_id', schoolYearId)
+    .eq('notes.semester_id', semesterId)
+    .eq('notes.is_graded', true)
+
+  if (!gradeData) {
+    throw new Error('Failed to fetch grade data')
+  }
+
+  // Calculate overall average grade
+  const averageGrade = gradeData.length > 0
+    ? gradeData.reduce((acc, curr) => {
+      const percentage = ((curr.note ?? 0) / curr.notes.total_points) * 100
+      return acc + percentage
+    }, 0) / gradeData.length
+    : 0
+
+  // Calculate performance data by month
+  const performanceData = Object.values(
+    gradeData.reduce((acc: { [key: string]: { month: string, average: number, count: number, attendance: number } }, curr) => {
+      const month = new Date(curr.notes.created_at).toLocaleString('default', { month: 'long' })
+
+      if (!acc[month]) {
+        acc[month] = { month, average: 0, count: 0, attendance: 0 }
+      }
+
+      const percentage = ((curr.note ?? 0) / curr.notes.total_points) * 100
+      acc[month].average = ((acc[month].average * acc[month].count) + percentage) / (acc[month].count + 1)
+      acc[month].count++
+
+      return acc
+    }, {}),
+  ).map(({ month, average, attendance }) => ({
+    month,
+    average: Number(average.toFixed(2)),
+    attendance: Number(attendance.toFixed(2)),
+  }))
+
+  // Calculate subject performance
+  const subjectPerformance = Object.values(
+    gradeData.reduce((acc: { [key: string]: { subject: string, grades: number[], highest: number, lowest: number } }, curr) => {
+      const subjectId = curr.notes.subject_id
+      const percentage = ((curr.note ?? 0) / curr.notes.total_points) * 100
+
+      if (!acc[subjectId]) {
+        acc[subjectId] = {
+          subject: subjectId,
+          grades: [],
+          highest: percentage,
+          lowest: percentage,
+        }
+      }
+
+      acc[subjectId].grades.push(percentage)
+      acc[subjectId].highest = Math.max(acc[subjectId].highest, percentage)
+      acc[subjectId].lowest = Math.min(acc[subjectId].lowest, percentage)
+
+      return acc
+    }, {}),
+  ).map(({ subject, grades, highest, lowest }) => ({
+    subject,
+    average: Number((grades.reduce((a, b) => a + b, 0) / grades.length).toFixed(2)),
+    highest: Number(highest.toFixed(2)),
+    lowest: Number(lowest.toFixed(2)),
+  }))
+
   return {
-    totalStudents: classMetrics.total_students,
-    lateRate: classMetrics.late_rate,
-    absentRate: classMetrics.absent_rate,
-    averageGrade: classMetrics.average_grade,
+    totalStudents,
+    averageGrade: Number(averageGrade.toFixed(2)),
+    absentRate: Number(absentRate.toFixed(2)),
+    lateRate: Number(lateRate.toFixed(2)),
+    boyCount,
+    girlCount,
+    activeStudents,
+    inactiveStudents,
+    performanceData,
+    subjectPerformance,
   }
 }
 
@@ -321,6 +425,8 @@ interface GetClassStudentsProps {
   classId: string
   page: number
   limit: number
+  schoolYearId: number
+  semesterId: number
 }
 
 /**
@@ -334,7 +440,7 @@ interface GetClassStudentsProps {
  * @returns {Promise<ClassDetailsStudent[]>} A promise that resolves to an array of class student data.
  * @throws {Error} If the user is unauthorized or if there is an error fetching data.
  */
-export async function getClassStudents({ schoolId, classId, page, limit }: GetClassStudentsProps): Promise<{ students: ClassDetailsStudent[], totalCount: number }> {
+export async function getClassStudents({ schoolId, classId, page, limit, schoolYearId, semesterId }: GetClassStudentsProps): Promise<{ students: ClassDetailsStudent[], totalCount: number }> {
   const supabase = createClient()
 
   const from = (page - 1) * limit
@@ -345,34 +451,100 @@ export async function getClassStudents({ schoolId, classId, page, limit }: GetCl
     throw new Error('Unauthorized')
   }
 
-  const { data, count, error } = await supabase
+  // First, get all students in the class
+  const { data: students, error: studentError, count: studentCount } = await supabase
     .from('students')
-    // TODO: improve this query with gradeAverage, ...
-    .select('id, first_name, last_name, id_number', { count: 'exact' })
-    .eq('school_id', schoolId)
+    .select(`
+      id,
+      id_number,
+      first_name,
+      last_name,
+      note_details(
+        note,
+        notes!inner (
+          total_points,
+          school_year_id,
+          semester_id,
+          created_at
+        )
+      ),
+      attendances(
+        status,
+        created_at,
+        school_years_id,
+        semesters_id
+      )
+    `, { count: 'exact' })
     .eq('class_id', classId)
+    .eq('school_id', schoolId)
     .range(from, to)
     .order('last_name', { ascending: true })
     .order('first_name', { ascending: true })
     .throwOnError()
 
-  if (error) {
-    console.error('Error fetching class students:', error)
-    throw new Error('Failed to fetch class students')
+  if (studentError) {
+    throw new Error('Failed to fetch students')
   }
 
-  return {
-    totalCount: count ?? 0,
-    students: data.map(student => ({
+  if (!students) {
+    throw new Error('Failed to fetch students data')
+  }
+
+  // Process each student's data to match the interface
+  const studentsWithStats = students.map((student) => {
+    // Filter grades for current school year and semester
+    const currentGrades = student.note_details.filter(detail =>
+      detail.notes.school_year_id === schoolYearId
+      && detail.notes.semester_id === semesterId,
+    )
+
+    // Calculate grade average
+    const gradeAverage = currentGrades.length > 0
+      ? currentGrades.reduce((acc, curr) => {
+        const percentage = ((curr.note ?? 0) / curr.notes.total_points) * 100
+        return acc + percentage
+      }, 0) / currentGrades.length
+      : 0
+
+    // Get last evaluation date
+    const lastEvaluation = currentGrades.length > 0
+      ? new Date(Math.max(...currentGrades.map(g =>
+          new Date(g.notes.created_at).getTime(),
+        ))).toLocaleDateString()
+      : ''
+
+    // Filter attendance for current school year and semester
+    const currentAttendance = student.attendances.filter(attendance =>
+      attendance.school_years_id === schoolYearId
+      && attendance.semesters_id === semesterId,
+    )
+
+    // Count absences and lates
+    const absentCount = currentAttendance.filter(a => a.status === 'absent').length
+    const lateCount = currentAttendance.filter(a => a.status === 'late').length
+
+    return {
       id: student.id,
+      idNumber: student.id_number,
       firstName: student.first_name,
       lastName: student.last_name,
-      idNumber: student.id_number,
+      gradeAverage: Number(gradeAverage.toFixed(2)),
+      absentCount,
+      lateCount,
+      lastEvaluation,
+      teacherNotes: '', // You might want to add a notes table/column
+      status: 'active', // You might want to add a status column
+      rank: 0, // Will be calculated after sorting
+    }
+  })
 
-      // TODO: Make these properties dynamic
-      gradeAverage: 0,
-      lateCount: 0,
-      absentCount: 0,
-    })),
-  }
+  // Sort by grade average and assign ranks
+  const sortedStudents = studentsWithStats
+    .sort((a, b) => b.gradeAverage - a.gradeAverage)
+    .map((student, index) => ({
+      ...student,
+      rank: index + 1,
+    }))
+
+  return { students: sortedStudents, totalCount: studentCount ?? 0 }
 }
