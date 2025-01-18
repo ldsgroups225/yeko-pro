@@ -2,7 +2,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { nanoid } from 'nanoid'
 import React from 'react'
 
-export function ClassTableSkeleton() {
+export function TableSkeleton() {
   return (
     <div className="w-full space-y-4">
       {/* Header */}
