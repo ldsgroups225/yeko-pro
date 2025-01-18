@@ -21,6 +21,7 @@ export function StudentTableHeader({ classData }: StudentTableHeaderProps) {
           <span className="text-primary">{classData?.teacher?.fullName}</span>
         </CardDescription>
       </div>
+
       <ClassActions />
     </div>
   )

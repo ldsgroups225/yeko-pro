@@ -1,5 +1,5 @@
 import { Button } from '@/components/ui/button'
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@radix-ui/react-dropdown-menu'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { Download, Edit, MoreHorizontal, Trash, Upload } from 'lucide-react'
 
 export function ClassActions() {
@@ -11,7 +11,7 @@ export function ClassActions() {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-56">
-        <DropdownMenuLabel>Actions</DropdownMenuLabel>
+        <DropdownMenuLabel>Que voulez-vous faire ?</DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuItem>
           <Edit className="h-4 w-4 mr-2" />
