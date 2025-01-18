@@ -66,6 +66,10 @@ export function ClassCreationOrUpdateDialog({
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
+    defaultValues: {
+      name: '',
+      gradeId: undefined,
+    },
   })
 
   const {
@@ -115,16 +119,22 @@ export function ClassCreationOrUpdateDialog({
   }
 
   useEffect(() => {
-    if (!open)
-      reset()
+    if (!open) {
+      reset({
+        name: '',
+        gradeId: undefined,
+      })
+    }
   }, [open, reset])
 
   useEffect(() => {
     if (oldClass) {
-      form.setValue('name', oldClass.name)
-      form.setValue('gradeId', oldClass.gradeId)
+      reset({
+        name: oldClass.name,
+        gradeId: oldClass.gradeId,
+      })
     }
-  }, [oldClass])
+  }, [oldClass, reset])
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -148,8 +158,8 @@ export function ClassCreationOrUpdateDialog({
                   <FormLabel>Niveau Scolaire</FormLabel>
                   <Select
                     onValueChange={val => field.onChange(Number(val))}
-                    value={field.value?.toString()}
-                    defaultValue={field.value?.toString()}
+                    value={field.value?.toString() ?? ''}
+                    defaultValue={field.value?.toString() ?? ''}
                   >
                     <FormControl>
                       <SelectTrigger>

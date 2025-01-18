@@ -162,12 +162,9 @@ const useClassStore = create<ClassState & ClassActions>((set, get) => ({
   addClass: async ({ name, schoolId, gradeId }) => {
     set({ isLoading: true, error: null })
     try {
-      const newClass = await createClass({ name, schoolId, gradeId })
-      set({
-        classes: [...get().classes, newClass],
-        totalCount: get().totalCount + 1,
-        isLoading: false,
-      })
+      await createClass({ name, schoolId, gradeId })
+
+      await get().fetchClasses(get().currentSchoolId!)
     }
     catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to create class'
