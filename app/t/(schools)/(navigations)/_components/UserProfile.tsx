@@ -48,7 +48,7 @@ export function UserProfile({ expanded }: UserProfileProps) {
         <DropdownMenuTrigger asChild>
           <Button
             variant="ghost"
-            className="group space-x-2 w-full"
+            className="group space-x-2 w-full hover:bg-transparent"
             aria-label="Menu du profil"
           >
             <Avatar className="h-8 w-8 group-hover:scale-110 transition-all duration-300">
