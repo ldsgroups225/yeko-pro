@@ -1,7 +1,8 @@
-import type { ClassDetailsStudent, IClass, IClassDetailsStats } from '@/types'
+import type { ClassDetailsStudent, FilterStudentWhereNotInTheClass, IClass, IClassDetailsStats } from '@/types'
 import {
   createClass,
   fetchClasses,
+  filterStudentWhereNotInTheClass,
   getClassBySlug,
   getClassDetailsStats,
   getClassStudents,
@@ -45,6 +46,7 @@ interface ClassActions {
   fetchClasses: (schoolId: string) => Promise<void>
   addClass: (params: { name: string, schoolId: string, gradeId: number }) => Promise<void>
   updateClass: (params: { classId: string, name: string, gradeId: number }) => Promise<void>
+  filterStudentWhereNotInTheClass: (schoolId: string, classId: string, search?: string) => Promise<FilterStudentWhereNotInTheClass[]>
   getClassDetailsStats: (
     params: { schoolId: string, classId: string, schoolYearId: number, semesterId: number }
   ) => Promise<IClassDetailsStats>
@@ -228,6 +230,22 @@ const useClassStore = create<ClassState & ClassActions>((set, get) => ({
     }
     catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to fetch class students'
+      set({ error: errorMessage, isLoading: false })
+      throw error
+    }
+  },
+
+  filterStudentWhereNotInTheClass: async (schoolId, classId, search) => {
+    set({ isLoading: true, error: null })
+    try {
+      const data = await filterStudentWhereNotInTheClass(schoolId, classId, search)
+      set({ isLoading: false,
+      })
+
+      return data
+    }
+    catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to fetch students'
       set({ error: errorMessage, isLoading: false })
       throw error
     }

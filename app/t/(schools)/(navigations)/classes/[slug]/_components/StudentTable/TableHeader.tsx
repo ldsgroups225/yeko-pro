@@ -22,7 +22,7 @@ export function StudentTableHeader({ classData }: StudentTableHeaderProps) {
         </CardDescription>
       </div>
 
-      <ClassActions />
+      <ClassActions classId={classData!.id} />
     </div>
   )
 }

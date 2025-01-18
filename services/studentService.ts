@@ -320,3 +320,14 @@ export async function linkStudentAndParent({ studentIdNumber, otp }: { studentId
     throw new Error((error as Error).message)
   }
 }
+
+export async function bulkAddStudentsToClass(classId: string, studentIdNumber: string[]): Promise<void> {
+  const client = createClient()
+  const { error } = await client
+    .from('students')
+    .update({ class_id: classId })
+    .in('id_number', studentIdNumber)
+
+  if (error)
+    throw error
+}

@@ -1,6 +1,6 @@
 'use server'
 
-import type { ClassDetailsStudent, IClass, IClassDetailsStats } from '@/types'
+import type { ClassDetailsStudent, FilterStudentWhereNotInTheClass, IClass, IClassDetailsStats } from '@/types'
 import { createClient } from '@/lib/supabase/server'
 import { formatFullName } from '@/lib/utils'
 import { getUserId } from './userService'
@@ -547,4 +547,54 @@ export async function getClassStudents({ schoolId, classId, page, limit, schoolY
     }))
 
   return { students: sortedStudents, totalCount: studentCount ?? 0 }
+}
+
+export async function filterStudentWhereNotInTheClass(
+  schoolId: string,
+  classId: string,
+  search?: string,
+): Promise<FilterStudentWhereNotInTheClass[]> {
+  const supabase = createClient()
+
+  let query = supabase
+    .from('students')
+    .select('id, id_number, first_name, last_name, avatar_url, classroom:classes!inner(id, name, school_id)')
+    .eq('classroom.school_id', schoolId)
+    .neq('class_id', classId)
+
+  if (search) {
+    const searchConditions = [
+      `id_number.ilike.%${search}%`,
+      `first_name.ilike.%${search}%`,
+      `last_name.ilike.%${search}%`,
+    ]
+
+    query = query.or(searchConditions.join(','))
+  }
+
+  query = query
+    .order('last_name', { ascending: true })
+    .order('first_name', { ascending: true })
+    .limit(5)
+
+  const { data, error } = await query
+
+  if (error) {
+    console.error('Error fetching students:', error)
+    throw new Error(`Error fetching students: ${error.message}`)
+  }
+
+  const parsedData = data.map(d => ({
+    idNumber: d.id_number,
+    fullName: formatFullName(d.first_name, d.last_name),
+    currentClass: d.classroom
+      ? {
+          id: d.classroom.id,
+          name: d.classroom.name,
+        }
+      : null,
+    imageUrl: d.avatar_url,
+  }))
+
+  return parsedData
 }

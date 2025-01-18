@@ -1,4 +1,4 @@
-import type { ClassDetailsStudent, IClass, IClassDetailsStats } from '@/types'
+import type { ClassDetailsStudent, FilterStudentWhereNotInTheClass, IClass, IClassDetailsStats } from '@/types'
 import useClassStore from '@/store/classStore'
 import { useCallback, useEffect, useMemo, useRef } from 'react'
 import { useDebouncedCallback } from 'use-debounce'
@@ -42,6 +42,7 @@ interface UseClassesResult {
   }) => void
   addClass: (params: { name: string, schoolId: string, gradeId: number }) => Promise<void>
   updateClass: (params: { classId: string, name: string, gradeId: number }) => Promise<void>
+  filterStudentWhereNotInTheClass: (schoolId: string, classId: string, search?: string) => Promise<FilterStudentWhereNotInTheClass[]>
   loadMoreStudents: () => void
   getClassBySlug: (slug: string) => Promise<IClass | undefined>
   getClassDetailsStats: (params: {
@@ -83,6 +84,7 @@ export function useClasses(): UseClassesResult {
     totalStudentsCount,
     currentStudentPage,
     getClassDetailsStats,
+    filterStudentWhereNotInTheClass,
   } = useClassStore()
 
   const alreadyClass = useRef('')
@@ -219,6 +221,7 @@ export function useClasses(): UseClassesResult {
     loadMoreStudents,
     clearClasses,
     getClassBySlug,
+    filterStudentWhereNotInTheClass,
     getClassDetailsStats: fetchClassDetailsStats,
   }
 }

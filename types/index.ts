@@ -304,3 +304,13 @@ export interface ITeacherQueryParams {
     direction: 'asc' | 'desc'
   }
 }
+
+export interface FilterStudentWhereNotInTheClass {
+  idNumber: string
+  fullName: string
+  currentClass: {
+    id: string
+    name: string
+  } | null
+  imageUrl: string | null
+}

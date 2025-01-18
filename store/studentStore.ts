@@ -1,6 +1,7 @@
 import type { IClassesGrouped, IStudentDTO, IStudentsQueryParams } from '@/types'
 import type { LinkStudentParentData } from '@/validations'
 import {
+  bulkAddStudentsToClass,
   createStudent,
   deleteStudent,
   fetchClassesBySchool,
@@ -52,6 +53,7 @@ interface StudentStore {
   fetchStudents: (query: IStudentsQueryParams) => Promise<void>
   linkStudentAndParent: (data: LinkStudentParentData) => Promise<boolean>
   updateStudent: (student: Partial<IStudentDTO> & { id: string }) => Promise<void>
+  bulkAddStudentsToClass: (classId: string, studentIdNumber: string[]) => Promise<void>
   createStudent: (student: Omit<IStudentDTO, 'id' | 'createdAt' | 'updatedAt'>) => Promise<void>
 }
 
@@ -221,6 +223,20 @@ export const useStudentStore = create<StudentStore>((set, get) => {
           await get().fetchStudents({ schoolId: get().currentSchoolId! })
         }
         return success
+      }
+      catch (error: any) {
+        throw new Error((error as Error).message)
+      }
+      finally {
+        set({ isLoading: false })
+      }
+    },
+
+    bulkAddStudentsToClass: async (classId, studentIds) => {
+      set({ isLoading: true, error: null })
+      try {
+        await bulkAddStudentsToClass(classId, studentIds)
+        await get().fetchStudents({ schoolId: get().currentSchoolId! })
       }
       catch (error: any) {
         throw new Error((error as Error).message)
