@@ -1,5 +1,4 @@
 import type { ClassDetailsStudent, IClass, IClassDetailsStats } from '@/types'
-import { useSchoolYear } from '@/hooks'
 import {
   createClass,
   fetchClasses,
@@ -9,7 +8,6 @@ import {
   updateClass,
 } from '@/services'
 import { create } from 'zustand'
-import useSchoolYearStore from './schoolYearStore'
 
 interface ClassFilters {
   gradeId?: string

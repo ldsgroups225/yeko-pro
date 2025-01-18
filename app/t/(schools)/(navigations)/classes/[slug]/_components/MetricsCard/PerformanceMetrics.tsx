@@ -1,7 +1,6 @@
 import type { IClassDetailsStats } from '@/types'
-import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
-import { Award, Clock, TrendingUp } from 'lucide-react'
+import { Award, TrendingUp } from 'lucide-react'
 import { Line, LineChart } from 'recharts'
 
 interface PerformanceMetricsProps {

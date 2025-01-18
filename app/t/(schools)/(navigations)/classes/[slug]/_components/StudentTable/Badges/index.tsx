@@ -1,3 +1,3 @@
-export * from './AbsenceBadge'
-export * from './GradeBadge'
-export * from './LateBadge'
+export { AbsenceBadge } from './AbsenceBadge'
+export { GradeBadge } from './GradeBadge'
+export { LateBadge } from './LateBadge'

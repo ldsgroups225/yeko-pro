@@ -9,7 +9,7 @@ import {
 import { useClasses, useUser } from '@/hooks'
 import { usePathname } from 'next/navigation'
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
-import { TableSkeleton, MetricsCards, MetricsCardsSkeleton, StudentTable, StudentTableHeader } from './_components'
+import { MetricsCards, MetricsCardsSkeleton, StudentTable, StudentTableHeader, TableSkeleton } from './_components'
 
 export default function ClassDetailsPage() {
   const pathname = usePathname()
