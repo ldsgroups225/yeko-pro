@@ -267,6 +267,43 @@ export async function updateClass({
   }
 }
 
+export async function deleteClass(schoolId: string, classId: string): Promise<void> {
+  const supabase = createClient()
+
+  // check first if class contains students
+  const { data: students, error: studentError } = await supabase
+    .from('students')
+    .select('id')
+    .eq('class_id', classId)
+    .limit(1)
+
+  if (studentError) {
+    throw new Error('Nous n\'avons pas pu supprimer la classe, réessayez plus tard.')
+  }
+
+  if (students.length) {
+    throw new Error('Vous ne pouvez pas supprimer une classe avec des élèves.')
+  }
+
+  const { data, error } = await supabase
+    .from('classes')
+    .delete()
+    .eq('school_id', schoolId)
+    .eq('id', classId)
+    .select('*, teacher:users(id, first_name, last_name, email)')
+    .single()
+    .throwOnError()
+
+  if (error) {
+    console.error('Error deleting class:', error)
+    throw new Error('Échec de la suppression de la classe')
+  }
+
+  if (!data) {
+    throw new Error('Classe non trouvée')
+  }
+}
+
 interface GetClassStatsProps {
   schoolId: string
   classId: string

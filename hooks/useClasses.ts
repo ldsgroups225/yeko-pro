@@ -41,7 +41,8 @@ interface UseClassesResult {
     searchTerm?: string
   }) => void
   addClass: (params: { name: string, schoolId: string, gradeId: number }) => Promise<void>
-  updateClass: (params: { classId: string, name: string, gradeId: number }) => Promise<void>
+  updateClass: (params: { classId: string, name: string, gradeId: number }) => Promise<IClass>
+  deleteClass: (schoolId: string, classId: string) => Promise<void>
   filterStudentWhereNotInTheClass: (schoolId: string, classId: string, search?: string) => Promise<FilterStudentWhereNotInTheClass[]>
   loadMoreStudents: () => void
   getClassBySlug: (slug: string) => Promise<IClass | undefined>
@@ -71,6 +72,7 @@ export function useClasses(): UseClassesResult {
     setFilters,
     currentPage,
     updateClass,
+    deleteClass,
     itemsPerPage,
     clearClasses,
     currentClass,
@@ -218,6 +220,7 @@ export function useClasses(): UseClassesResult {
     setFilters,
     addClass,
     updateClass,
+    deleteClass,
     loadMoreStudents,
     clearClasses,
     getClassBySlug,

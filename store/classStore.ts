@@ -1,6 +1,7 @@
 import type { ClassDetailsStudent, FilterStudentWhereNotInTheClass, IClass, IClassDetailsStats } from '@/types'
 import {
   createClass,
+  deleteClass,
   fetchClasses,
   filterStudentWhereNotInTheClass,
   getClassBySlug,
@@ -45,7 +46,8 @@ interface ClassActions {
   fetchClassBySlug: (slug: string) => Promise<IClass | undefined>
   fetchClasses: (schoolId: string) => Promise<void>
   addClass: (params: { name: string, schoolId: string, gradeId: number }) => Promise<void>
-  updateClass: (params: { classId: string, name: string, gradeId: number }) => Promise<void>
+  updateClass: (params: { classId: string, name: string, gradeId: number }) => Promise<IClass>
+  deleteClass: (schoolId: string, classId: string) => Promise<void>
   filterStudentWhereNotInTheClass: (schoolId: string, classId: string, search?: string) => Promise<FilterStudentWhereNotInTheClass[]>
   getClassDetailsStats: (
     params: { schoolId: string, classId: string, schoolYearId: number, semesterId: number }
@@ -183,9 +185,22 @@ const useClassStore = create<ClassState & ClassActions>((set, get) => ({
         classes: get().classes.map(c => (c.id === classId ? updatedClass : c)),
         isLoading: false,
       })
+      return updatedClass
     }
     catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to update class'
+      set({ error: errorMessage, isLoading: false })
+      throw error
+    }
+  },
+
+  deleteClass: async (schoolId, classId) => {
+    set({ isLoading: true, error: null })
+    try {
+      await deleteClass(schoolId, classId)
+    }
+    catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to delete class'
       set({ error: errorMessage, isLoading: false })
       throw error
     }

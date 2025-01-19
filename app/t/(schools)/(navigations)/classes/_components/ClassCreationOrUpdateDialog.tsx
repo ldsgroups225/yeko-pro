@@ -26,6 +26,7 @@ import {
 } from '@/components/ui/select'
 import { useClasses, useUser } from '@/hooks'
 import { zodResolver } from '@hookform/resolvers/zod'
+import { useRouter } from 'next/navigation'
 import { useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { toast } from 'sonner'
@@ -61,6 +62,8 @@ export function ClassCreationOrUpdateDialog({
   gradeOptions,
   oldClass,
 }: Props) {
+  const router = useRouter()
+
   const { user } = useUser()
   const { addClass, updateClass } = useClasses()
 
@@ -86,11 +89,16 @@ export function ClassCreationOrUpdateDialog({
 
     try {
       if (oldClass) {
-        await updateClass({
+        const updatedClass = await updateClass({
           classId: oldClass.id,
           name: data.name,
           gradeId: data.gradeId,
         })
+
+        reset()
+
+        // Redirect to the updated class's page
+        router.replace(`/t/classes/${updatedClass.slug}`)
         toast.success('Classe modifiée avec succès!')
       }
       else {
@@ -99,11 +107,12 @@ export function ClassCreationOrUpdateDialog({
           schoolId: user?.school.id,
           gradeId: data.gradeId,
         })
+
+        reset()
+        onOpenChange(false)
+
         toast.success('Classe créée avec succès!')
       }
-
-      reset()
-      onOpenChange(false)
     }
     catch (error) {
       console.error(

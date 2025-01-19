@@ -6,9 +6,10 @@ import {
   CardContent,
   CardHeader,
 } from '@/components/ui/card'
-import { useClasses, useUser } from '@/hooks'
+import { useClasses, useGrade, useUser } from '@/hooks'
 import { usePathname } from 'next/navigation'
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
+import { ClassCreationOrUpdateDialog } from '../_components'
 import { MetricsCards, MetricsCardsSkeleton, StudentTable, StudentTableHeader, TableSkeleton } from './_components'
 
 export default function ClassDetailsPage() {
@@ -16,8 +17,10 @@ export default function ClassDetailsPage() {
   const slug = useMemo(() => pathname.split('/').pop(), [pathname])
 
   const { user } = useUser()
+  const { grades } = useGrade()
 
   const [isLoading, setIsLoading] = useState(true)
+  const [showClassModal, setShowClassModal] = useState(false)
   const [classData, setClassData] = useState<IClass | null>(null)
   const [stats, setStats] = useState<IClassDetailsStats | null>(null)
   const [selectedStudents, setSelectedStudents] = useState<string[]>([])
@@ -101,7 +104,10 @@ export default function ClassDetailsPage() {
               <MetricsCards stats={stats} />
               <Card>
                 <CardHeader>
-                  <StudentTableHeader classData={classData} />
+                  <StudentTableHeader
+                    classData={classData}
+                    onOpenClassEditionModal={() => setShowClassModal(true)}
+                  />
                 </CardHeader>
                 <CardContent>
                   <StudentTable
@@ -117,6 +123,24 @@ export default function ClassDetailsPage() {
               </Card>
             </>
           )}
+
+      {/* Modals */}
+      {showClassModal && (
+        <ClassCreationOrUpdateDialog
+          open={showClassModal}
+          oldClass={
+            classData
+              ? {
+                  id: classData.id,
+                  name: classData.name,
+                  gradeId: classData.gradeId,
+                }
+              : undefined
+          }
+          onOpenChange={setShowClassModal}
+          gradeOptions={grades ?? []}
+        />
+      )}
     </div>
   )
 }

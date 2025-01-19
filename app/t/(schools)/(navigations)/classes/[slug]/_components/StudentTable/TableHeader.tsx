@@ -4,9 +4,10 @@ import { ClassActions } from './ClassActions'
 
 interface StudentTableHeaderProps {
   classData: IClass | null
+  onOpenClassEditionModal: () => void
 }
 
-export function StudentTableHeader({ classData }: StudentTableHeaderProps) {
+export function StudentTableHeader({ classData, onOpenClassEditionModal }: StudentTableHeaderProps) {
   return (
     <div className="flex justify-between">
       <div>
@@ -22,7 +23,11 @@ export function StudentTableHeader({ classData }: StudentTableHeaderProps) {
         </CardDescription>
       </div>
 
-      <ClassActions classId={classData!.id} />
+      <ClassActions
+        classId={classData!.id}
+        onOpenClassEditionModal={onOpenClassEditionModal}
+        studentCount={classData?.studentCount ?? 0}
+      />
     </div>
   )
 }
