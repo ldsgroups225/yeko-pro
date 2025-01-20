@@ -1,3 +1,5 @@
+import type { ClassDetailsStudent } from '@/types'
+
 import { Badge } from '@/components/ui/badge'
 import { Checkbox } from '@/components/ui/checkbox'
 import { TableCell, TableRow } from '@/components/ui/table'
@@ -5,7 +7,7 @@ import { AbsenceBadge, GradeBadge, LateBadge } from './Badges'
 import { StudentActions } from './StudentActions'
 
 interface StudentRowProps {
-  student: any
+  student: ClassDetailsStudent
   isSelected: boolean
   onSelect: (id: string) => void
 }
@@ -27,8 +29,7 @@ export function StudentRow({ student, isSelected, onSelect }: StudentRowProps) {
       <TableCell>
         <Badge variant="outline">
           {student.rank}
-          /
-          {student.totalStudents}
+          e
         </Badge>
       </TableCell>
       <TableCell>
@@ -44,7 +45,7 @@ export function StudentRow({ student, isSelected, onSelect }: StudentRowProps) {
         </div>
       </TableCell>
       <TableCell>
-        <StudentActions />
+        <StudentActions student={student} />
       </TableCell>
     </TableRow>
   )
