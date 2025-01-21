@@ -54,8 +54,9 @@ export function StudentTable({
             <StudentRow
               key={student.id}
               student={student}
-              isSelected={selectedStudents.includes(student.id)}
               onSelect={onSelectStudent}
+              classId={student.classroom?.id}
+              isSelected={selectedStudents.includes(student.id)}
             />
           ))}
         </TableBody>

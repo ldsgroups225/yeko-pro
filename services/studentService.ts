@@ -1,12 +1,64 @@
 'use server'
 
 import type { IClassesGrouped, IStudentDTO, IStudentsQueryParams } from '@/types'
-import type { LinkStudentParentData } from '@/validations'
+import type { LinkStudentParentData, StudentFormValues } from '@/validations'
 import { createClient } from '@/lib/supabase/server'
 import { formatFullName } from '@/lib/utils'
+import { extractStoragePath } from '@/lib/utils/extractStoragePath'
 import { linkStudentParentSchema } from '@/validations'
-import { snakeCase } from 'change-case'
+import { camelCase, snakeCase } from 'change-case'
+import { parseISO } from 'date-fns'
 import { nanoid } from 'nanoid'
+
+async function uploadImageToStorage(bucketName: string, studentId: string, avatarBase64: string): Promise<string> {
+  const client = createClient()
+
+  // Delete existing avatar if it exists
+  const { error: deleteError } = await client.storage
+    .from(bucketName)
+    .remove([studentId])
+
+  if (deleteError && deleteError.message !== 'Not Found') {
+    console.error('Error deleting old avatar:', deleteError)
+  }
+
+  // Extract MIME type from base64 string
+  const mimeTypeMatch = avatarBase64.match(/^data:(.*?);/)
+  if (!mimeTypeMatch) {
+    throw new Error('Invalid avatar base64 data')
+  }
+  const mimeType = mimeTypeMatch[1]
+  const base64Data = avatarBase64.split(',')[1]
+
+  // Convert base64 to Uint8Array
+  const byteString = atob(base64Data)
+  const arrayBuffer = new ArrayBuffer(byteString.length)
+  const uint8Array = new Uint8Array(arrayBuffer)
+  for (let i = 0; i < byteString.length; i++) {
+    uint8Array[i] = byteString.charCodeAt(i)
+  }
+
+  // Upload new avatar
+  const blob = new Blob([uint8Array], { type: mimeType })
+  const { data: uploadData, error: uploadError } = await client.storage
+    .from(bucketName)
+    .upload(studentId, blob, {
+      contentType: mimeType,
+      upsert: true,
+    })
+
+  if (uploadError) {
+    console.error('Error uploading new avatar:', uploadError)
+    throw new Error('Failed to upload new avatar')
+  }
+
+  // Retrieve public URL
+  const { data: { publicUrl } } = await client.storage
+    .from(bucketName)
+    .getPublicUrl(uploadData.path)
+
+  return extractStoragePath(publicUrl)
+}
 
 export async function getStudents(query: IStudentsQueryParams): Promise<{ data: IStudentDTO[], totalCount: number | null }> {
   const { data, count } = await buildSupabaseQuery(query)
@@ -86,6 +138,38 @@ export async function getStudentById(id: string): Promise<IStudentDTO | null> {
   } satisfies IStudentDTO
 }
 
+export async function getStudentByIdNumberForEdit(idNumber: string): Promise<StudentFormValues> {
+  const client = createClient()
+  const { data, error } = await client
+    .from('students')
+    .select(`
+        id, id_number, first_name, last_name, date_of_birth, gender, avatar_url, address,
+        class:classes(id, name)
+      `)
+    .eq('id_number', idNumber)
+    .single()
+
+  if (error) {
+    console.error('student to edit error fetch error', error)
+    throw new Error('student to edit error fetch error')
+  }
+
+  const _class = data.class ? { id: data.class.id, name: data.class.name } : undefined
+
+  return {
+    id: data.id,
+    idNumber: data.id_number,
+    firstName: data.first_name,
+    lastName: data.last_name,
+    classId: _class?.id,
+    class: _class,
+    dateOfBirth: data.date_of_birth ? parseISO(data.date_of_birth) : null,
+    avatarUrl: data.avatar_url,
+    address: data.address,
+    gender: (data as { gender: 'M' | 'F' | null }).gender,
+  } satisfies StudentFormValues
+}
+
 export async function getStudentByIdNumber(idNumber: string): Promise<IStudentDTO | null> {
   const client = createClient()
   const { data } = await client
@@ -132,28 +216,79 @@ export async function getStudentByIdNumber(idNumber: string): Promise<IStudentDT
   } satisfies IStudentDTO
 }
 
-export async function createStudent(params: Pick<IStudentDTO, 'firstName' | 'lastName' | 'schoolId' | 'classId' | 'idNumber'>): Promise<IStudentDTO | null> {
+export async function createStudent(params: Omit<IStudentDTO, 'id' | 'createdAt' | 'updatedAt' | 'createdBy' | 'updatedBy' >): Promise<string> {
   const client = createClient()
+
+  const isBase64 = params.avatarUrl?.startsWith('data:image')
 
   const snakeCaseParams = Object.fromEntries(Object.entries(params).map(([key, value]) => [snakeCase(key), value]))
 
-  const { data } = await client
+  const { data, error } = await client
     .from('students')
     .insert(snakeCaseParams as any)
     .select()
     .single()
-  return data as IStudentDTO | null
+
+  if (error) {
+    console.error('Fail to create student', error)
+    throw new Error(error.message)
+  }
+
+  if (isBase64) {
+    if (!params.avatarUrl) {
+      throw new Error('Incorrect avatar')
+    }
+    // Process avatar upload and update params with new URL
+    const newAvatarUrl = await uploadImageToStorage('student_avatar', data.id, params.avatarUrl)
+    params.avatarUrl = newAvatarUrl
+  }
+
+  return data.id
 }
 
-export async function updateStudent(params: Partial<IStudentDTO> & { id: string }): Promise<IStudentDTO | null> {
+export async function updateStudent(params: Partial<IStudentDTO> & { id: string }): Promise<IStudentDTO> {
   const client = createClient()
-  const { data } = await client
+
+  delete params.idNumber
+
+  const isBase64 = params.avatarUrl?.startsWith('data:image')
+  if (!isBase64) {
+    delete params.avatarUrl
+  }
+  else {
+    if (!params.avatarUrl) {
+      throw new Error('Incorrect avatar')
+    }
+    // Process avatar upload and update params with new URL
+    const newAvatarUrl = await uploadImageToStorage('student_avatar', params.id, params.avatarUrl)
+    params.avatarUrl = newAvatarUrl
+  }
+
+  const snakeCaseParams = Object.keys(params).reduce<Record<string, any>>((acc, key) => {
+    const snakeKey = snakeCase(key)
+    acc[snakeKey] = params[key as keyof typeof params]
+    return acc
+  }, {})
+
+  const { data, error } = await client
     .from('students')
-    .update(params)
+    .update(snakeCaseParams)
     .eq('id', params.id)
     .select()
     .single()
-  return data as IStudentDTO | null
+
+  if (error) {
+    console.error('Error updating student:', error)
+    throw new Error('Erreur lors de la mise à jour du profil de l\'élève')
+  }
+
+  const camelCaseParams = Object.keys(data).reduce<Record<string, any>>((acc, key) => {
+    const camelKey = camelCase(key)
+    acc[camelKey] = params[key as keyof typeof params]
+    return acc
+  }, {})
+
+  return camelCaseParams as IStudentDTO
 }
 
 export async function deleteStudent(id: string): Promise<boolean> {

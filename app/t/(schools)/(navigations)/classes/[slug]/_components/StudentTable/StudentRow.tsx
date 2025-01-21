@@ -7,12 +7,13 @@ import { AbsenceBadge, GradeBadge, LateBadge } from './Badges'
 import { StudentActions } from './StudentActions'
 
 interface StudentRowProps {
-  student: ClassDetailsStudent
+  classId: string
   isSelected: boolean
+  student: ClassDetailsStudent
   onSelect: (id: string) => void
 }
 
-export function StudentRow({ student, isSelected, onSelect }: StudentRowProps) {
+export function StudentRow({ student, isSelected, onSelect, classId }: StudentRowProps) {
   return (
     <TableRow>
       <TableCell>
@@ -45,7 +46,7 @@ export function StudentRow({ student, isSelected, onSelect }: StudentRowProps) {
         </div>
       </TableCell>
       <TableCell>
-        <StudentActions student={student} />
+        <StudentActions student={{ ...student, classId }} />
       </TableCell>
     </TableRow>
   )

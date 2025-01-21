@@ -2,6 +2,7 @@
 
 import type { Student } from '../../types'
 import { Badge } from '@/components/ui/badge'
+import { getFullImageUrl } from '@/lib/utils/extractStoragePath'
 import { UserCircle } from 'lucide-react'
 import Image from 'next/image'
 
@@ -37,7 +38,7 @@ export function StudentAvatar({ student, className = '', size = 'md' }: StudentA
       {student.avatarUrl
         ? (
             <Image
-              src={student.avatarUrl}
+              src={getFullImageUrl(student.avatarUrl)}
               alt={`${student.firstName} ${student.lastName}`}
               className="rounded-3xl object-cover"
               width={sizeConfig.image}

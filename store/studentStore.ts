@@ -1,5 +1,5 @@
 import type { IClassesGrouped, IStudentDTO, IStudentsQueryParams } from '@/types'
-import type { LinkStudentParentData } from '@/validations'
+import type { LinkStudentParentData, StudentFormValues } from '@/validations'
 import {
   bulkAddStudentsToClass,
   createStudent,
@@ -7,10 +7,12 @@ import {
   fetchClassesBySchool,
   getStudentById,
   getStudentByIdNumber,
+  getStudentByIdNumberForEdit,
   getStudents,
   linkStudentAndParent,
   updateStudent,
 } from '@/services'
+import { parseISO } from 'date-fns'
 import { create } from 'zustand'
 
 interface StudentFilters {
@@ -34,6 +36,7 @@ interface StudentStore {
   currentPage: number
   itemsPerPage: number
   filters: StudentFilters
+  studentToEdit: StudentFormValues | null
 
   setPage: (page: number) => void
   setError: (error: Error | null) => void
@@ -52,9 +55,10 @@ interface StudentStore {
   fetchStudentByIdNumber: (idNumber: string) => Promise<void>
   fetchStudents: (query: IStudentsQueryParams) => Promise<void>
   linkStudentAndParent: (data: LinkStudentParentData) => Promise<boolean>
+  getStudentByIdNumberForEdit: (idNumber: string) => Promise<StudentFormValues>
   updateStudent: (student: Partial<IStudentDTO> & { id: string }) => Promise<void>
   bulkAddStudentsToClass: (classId: string, studentIdNumber: string[]) => Promise<void>
-  createStudent: (student: Omit<IStudentDTO, 'id' | 'createdAt' | 'updatedAt'>) => Promise<void>
+  createStudent: (student: Omit<IStudentDTO, 'id' | 'createdAt' | 'updatedAt' | 'createdBy' | 'updatedBy' >) => Promise<string>
 }
 
 export const useStudentStore = create<StudentStore>((set, get) => {
@@ -72,6 +76,7 @@ export const useStudentStore = create<StudentStore>((set, get) => {
     currentPage: 1,
     itemsPerPage: 12,
     filters: {},
+    studentToEdit: null,
 
     setStudents: students => set({ students }),
     setSelectedStudent: student => set({ selectedStudent: student }),
@@ -176,11 +181,14 @@ export const useStudentStore = create<StudentStore>((set, get) => {
     createStudent: async (student) => {
       set({ isCreating: true, error: null })
       try {
-        await createStudent({ ...student, schoolId: student.schoolId || get().currentSchoolId! })
+        const studentId = await createStudent({ ...student, schoolId: student.schoolId || get().currentSchoolId! })
         await get().fetchStudents({ schoolId: student.schoolId! })
+
+        return studentId
       }
       catch (error: any) {
         set({ error })
+        return ''
       }
       finally {
         set({ isCreating: false })
@@ -190,7 +198,23 @@ export const useStudentStore = create<StudentStore>((set, get) => {
     updateStudent: async (student) => {
       set({ isUpdating: true, error: null })
       try {
-        await updateStudent(student)
+        const _student = await updateStudent(student)
+        const _class = _student.classroom ? { id: _student.classroom.id, name: _student.classroom.name } : undefined
+
+        set({
+          studentToEdit: {
+            id: _student.id,
+            idNumber: _student.idNumber,
+            firstName: _student.firstName,
+            lastName: _student.lastName,
+            classId: _class?.id,
+            class: _class,
+            dateOfBirth: _student.dateOfBirth ? parseISO(_student.dateOfBirth) : null,
+            avatarUrl: _student.avatarUrl ?? null,
+            address: _student.address,
+            gender: (_student as { gender: 'M' | 'F' | null }).gender,
+          },
+        })
         await get().fetchStudents({ schoolId: student.schoolId! })
       }
       catch (error: any) {
@@ -223,6 +247,24 @@ export const useStudentStore = create<StudentStore>((set, get) => {
           await get().fetchStudents({ schoolId: get().currentSchoolId! })
         }
         return success
+      }
+      catch (error: any) {
+        throw new Error((error as Error).message)
+      }
+      finally {
+        set({ isLoading: false })
+      }
+    },
+
+    getStudentByIdNumberForEdit: async (idNumber) => {
+      set({ isLoading: true, error: null })
+      try {
+        if (get().studentToEdit)
+          return get().studentToEdit!
+
+        const student = await getStudentByIdNumberForEdit(idNumber)
+        set({ studentToEdit: student })
+        return student
       }
       catch (error: any) {
         throw new Error((error as Error).message)

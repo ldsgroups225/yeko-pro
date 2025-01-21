@@ -111,9 +111,7 @@ export function useStudents(): UseStudentsResult {
     }
   }
 
-  const updateStudent = async (
-    params: Partial<IStudentDTO> & { id: string },
-  ): Promise<void> => {
+  const updateStudent = async (params: Partial<IStudentDTO> & { id: string }): Promise<void> => {
     try {
       await storeUpdateStudent(params)
     }

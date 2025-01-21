@@ -1,21 +1,29 @@
 'use client'
 
 import type { ClassDetailsStudent } from '@/types'
+import type { StudentFormValues } from '@/validations'
 import { StudentAvatar } from '@/app/t/(schools)/(navigations)/students/[idNumber]/components/StudentHeader/StudentAvatar'
-
 import { PersonalInfo } from '@/app/t/(schools)/(navigations)/students/[idNumber]/components/Tabs/ProfileTab/PersonalInfo'
 import { Button } from '@/components/ui/button'
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
+import { useStudentStore } from '@/store'
 import { Edit, Eye, FileText, Mail, MoreHorizontal, UserMinus } from 'lucide-react'
+
 import { useState } from 'react'
+import { toast } from 'sonner'
+import { EditStudentForm } from './EditStudentForm'
 
 interface StudentActionsProps {
-  student: ClassDetailsStudent
+  student: ClassDetailsStudent & { classId: string }
 }
 
 export function StudentActions({ student }: StudentActionsProps) {
   const [showProfileModal, setShowProfileModal] = useState(false)
+  const [showEditModal, setShowEditModal] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+
+  const { updateStudent, error } = useStudentStore()
 
   // Convert ClassDetailsStudent to Student type expected by PersonalInfo
   const studentData = {
@@ -25,7 +33,7 @@ export function StudentActions({ student }: StudentActionsProps) {
     idNumber: student.idNumber,
     gender: 'M' as const, // Default to 'M' since it's required
     dateOfBirth: undefined,
-    avatarUrl: undefined,
+    avatarUrl: undefined, // Changed to undefined to match Student type
     address: undefined,
     classroom: undefined,
     parent: undefined,
@@ -35,6 +43,42 @@ export function StudentActions({ student }: StudentActionsProps) {
     createdBy: undefined,
     updatedAt: undefined,
     updatedBy: undefined,
+  }
+
+  const handleEditSubmit = async (_values: StudentFormValues) => {
+    setIsSubmitting(true)
+
+    try {
+      await updateStudent({
+        id: _values.id,
+        gender: _values.gender,
+        address: _values.address,
+        lastName: _values.lastName,
+        firstName: _values.firstName,
+        avatarUrl: _values.avatarUrl,
+        dateOfBirth: _values.dateOfBirth?.toISOString(),
+      },
+      )
+
+      if (error) {
+        toast.error(error.message)
+        return
+      }
+
+      toast.success('Profil mis à jour avec succès')
+      setShowEditModal(false)
+    }
+    catch (error) {
+      console.error('Failed to update student:', error)
+      toast.error('Erreur lors de la mise à jour du profil')
+    }
+    finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  const handleEditCancel = () => {
+    setShowEditModal(false)
   }
 
   return (
@@ -55,6 +99,23 @@ export function StudentActions({ student }: StudentActionsProps) {
         </DialogContent>
       </Dialog>
 
+      <Dialog open={showEditModal} onOpenChange={setShowEditModal}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Modifier le profil</DialogTitle>
+            <DialogDescription>
+              Modifier les informations de l&apos;élève. Cliquez sur enregistrer une fois terminé.
+            </DialogDescription>
+          </DialogHeader>
+          <EditStudentForm
+            studentIdNumber={student.idNumber}
+            onSubmit={handleEditSubmit}
+            onCancel={handleEditCancel}
+            isLoading={isSubmitting}
+          />
+        </DialogContent>
+      </Dialog>
+
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" size="icon">
@@ -66,7 +127,7 @@ export function StudentActions({ student }: StudentActionsProps) {
             <Eye className="h-4 w-4 mr-2" />
             Voir le profil
           </DropdownMenuItem>
-          <DropdownMenuItem>
+          <DropdownMenuItem onClick={() => setShowEditModal(true)}>
             <Edit className="h-4 w-4 mr-2" />
             Modifier
           </DropdownMenuItem>
