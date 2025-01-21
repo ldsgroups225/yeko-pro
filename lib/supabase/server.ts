@@ -1,10 +1,11 @@
 import type { Database } from '@/lib/supabase/types'
-import { getEnvOrThrow } from '@/lib/utils/Env'
+import { getEnvOrThrowServerSide } from '@/lib/utils/EnvServer'
+
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 
 export function createClient() {
-  const env = getEnvOrThrow()
+  const env = getEnvOrThrowServerSide()
   // const cookieStore = cookies()
 
   return createServerClient<Database>(

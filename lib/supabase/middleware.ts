@@ -1,9 +1,9 @@
-import { getEnvOrThrow } from '@/lib/utils/Env'
+import { getEnvOrThrowServerSide } from '@/lib/utils/EnvServer'
 import { createServerClient } from '@supabase/ssr'
 import { type NextRequest, NextResponse } from 'next/server'
 
 export async function updateSession(request: NextRequest) {
-  const env = getEnvOrThrow()
+  const env = getEnvOrThrowServerSide()
 
   let supabaseResponse = NextResponse.next({
     request,

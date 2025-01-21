@@ -2,8 +2,8 @@
 
 import type { IUserProfileDTO } from '@/types'
 import { createClient } from '@/lib/supabase/server'
-import { getEnvOrThrow } from '@/lib/utils/Env'
 
+import { getEnvOrThrowServerSide } from '@/lib/utils/EnvServer'
 import { ERole, roleToString } from '@/types'
 import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
@@ -98,7 +98,7 @@ export async function fetchUserProfile(): Promise<IUserProfileDTO> {
  * @returns Object containing success status and any error message
  */
 export async function signUp(email: string, password: string) {
-  const env = getEnvOrThrow()
+  const env = getEnvOrThrowServerSide()
   const supabase = createClient()
 
   const { error } = await supabase.auth.signUp({
@@ -179,7 +179,7 @@ export async function handleAuthCallback(code: string) {
  * @param email - Email address of the user
  */
 export async function resetPassword(email: string) {
-  const env = getEnvOrThrow()
+  const env = getEnvOrThrowServerSide()
   const supabase = createClient()
 
   const { error } = await supabase.auth.resetPasswordForEmail(email, {
