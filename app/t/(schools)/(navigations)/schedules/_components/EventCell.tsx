@@ -37,7 +37,7 @@ export const EventCell: React.FC<EventCellProps> = ({ event, onEventUpdate }) =>
   return (
     <>
       <div
-        className={`${styles.eventCell} relative group`}
+        className={`${styles.eventCell} relative group select-none`}
         style={{ top: `${top}px`, height: `${height}px` }}
         onDoubleClick={handleDoubleClick}
       >
