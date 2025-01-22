@@ -1,30 +1,74 @@
 import type { IScheduleCalendarDTO } from '@/types'
-import { calculateEventDuration, calculateEventPosition } from '@/lib/utils'
+import { calculateEventDuration, calculateEventPosition, cn } from '@/lib/utils'
+import { useState } from 'react'
+import { EditCourseDialog } from './EditCourseDialog'
+import styles from './EventCell.module.css'
 
 interface EventCellProps {
   event: IScheduleCalendarDTO
+  onEventUpdate?: (event: IScheduleCalendarDTO) => void
 }
 
-export const EventCell: React.FC<EventCellProps> = ({ event }) => {
+export const EventCell: React.FC<EventCellProps> = ({ event, onEventUpdate }) => {
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
   const top = calculateEventPosition(event.startTime)
   const height = calculateEventDuration(event.startTime, event.endTime)
 
+  // Improved duration calculation
+  const timeToMinutes = (time: string) => {
+    const [hours, minutes] = time.split(':').map(Number)
+    return hours * 60 + (minutes || 0)
+  }
+
+  const start = timeToMinutes(event.startTime)
+  const end = timeToMinutes(event.endTime)
+  const isOneHour = (end - start) === 60
+
+  const handleDoubleClick = (e: React.MouseEvent) => {
+    e.preventDefault()
+    setIsEditDialogOpen(true)
+  }
+
+  const handleEventUpdate = (updatedEvent: IScheduleCalendarDTO) => {
+    onEventUpdate?.(updatedEvent)
+    setIsEditDialogOpen(false)
+  }
+
   return (
-    <div
-      className="absolute left-0 right-0 m-0 bg-primary/20 hover:bg-primary/30 p-2
-        rounded-lg shadow-sm hover:shadow-md transition-all duration-200
-        cursor-pointer border border-border/50"
-      style={{
-        top: `${top}px`,
-        height: `${height}px`,
-      }}
-    >
-      <div className="font-medium text-foreground">{event.subjectName}</div>
-      <div className="text-xs space-y-1 text-muted-foreground">
-        <div>{event.teacherName}</div>
-        <div>{event.room || event.classroomName}</div>
-        <div>{`${event.startTime} - ${event.endTime}`}</div>
+    <>
+      <div
+        className={`${styles.eventCell} relative group`}
+        style={{ top: `${top}px`, height: `${height}px` }}
+        onDoubleClick={handleDoubleClick}
+      >
+        <div className={cn(
+          'font-medium text-foreground truncate overflow-x-hidden',
+          isOneHour && '-mt-3',
+        )}
+        >
+          {event.subjectName}
+        </div>
+
+        {/* Conditional rendering with hover */}
+        <div className={cn(
+          'text-xs text-muted-foreground',
+          isOneHour
+            ? '-space-y-1'
+            : 'space-y-1.5',
+        )}
+        >
+          <div>{event.teacherName}</div>
+          <div>{event.room || event.classroomName}</div>
+          <div>{`${event.startTime} - ${event.endTime}`}</div>
+        </div>
       </div>
-    </div>
+
+      <EditCourseDialog
+        event={event}
+        isOpen={isEditDialogOpen}
+        onClose={() => setIsEditDialogOpen(false)}
+        onEditEvent={handleEventUpdate}
+      />
+    </>
   )
 }

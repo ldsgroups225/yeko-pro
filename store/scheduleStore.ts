@@ -1,5 +1,5 @@
 import type { IClassesGrouped, IScheduleCalendarDTO } from '@/types'
-import { fetchClassSchedule, getClassId } from '@/services'
+import { fetchClassSchedule, getClassId, updateSchedule as updateScheduleService } from '@/services'
 import { create } from 'zustand'
 import { devtools } from 'zustand/middleware'
 
@@ -25,6 +25,7 @@ interface ClassActions {
     classSlug: string,
     mergedClasses: IClassesGrouped['subclasses']
   ) => Promise<IScheduleCalendarDTO[]>
+  updateSchedule: (updatedSchedule: IScheduleCalendarDTO) => void
   clearSchedules: () => void
 }
 
@@ -110,6 +111,66 @@ const useScheduleStore = create<ClassState & ClassActions>()(
             { error: errorMessage },
             false,
             'scheduleStore/getSchedulesByClass/rejected',
+          )
+
+          throw error
+        }
+      },
+
+      updateSchedule: async (updatedSchedule) => {
+        try {
+          set({ isLoading: true, error: null }, false, 'scheduleStore/updateSchedule/pending')
+
+          const currentSchedules = get().currentClassSchedule
+          const classSlug = currentSchedules[0]?.classId
+
+          if (!classSlug) {
+            throw new Error('No active class found')
+          }
+
+          // Get all subclasses from the current class
+          const currentClass = get().currentClassSchedule[0]
+          if (!currentClass) {
+            throw new Error('No active schedule found')
+          }
+
+          const updated = await updateScheduleService(
+            updatedSchedule.id,
+            {
+              dayOfWeek: updatedSchedule.dayOfWeek,
+              startTime: updatedSchedule.startTime,
+              endTime: updatedSchedule.endTime,
+              subjectId: updatedSchedule.subjectId,
+              teacherId: updatedSchedule.teacherId,
+            },
+          )
+
+          const updatedSchedules = currentSchedules.map(schedule =>
+            schedule.id === updatedSchedule.id ? updatedSchedule : schedule,
+          )
+
+          set(
+            {
+              currentClassSchedule: updatedSchedules,
+              isLoading: false,
+            },
+            false,
+            'scheduleStore/updateSchedule/fulfilled',
+          )
+
+          return updated
+        }
+        catch (error) {
+          const message = error instanceof Error ? error.message : 'Failed to update schedule'
+          console.error('updateSchedule error:', message)
+
+          set(
+            {
+              error: message,
+              isLoading: false,
+            },
+            false,
+            'scheduleStore/updateSchedule/rejected',
           )
 
           throw error

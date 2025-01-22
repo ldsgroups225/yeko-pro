@@ -9,6 +9,7 @@ interface UseSchedulesResult {
 
   loadSchedules: (classSlug: string, mergedClasses: IClassesGrouped['subclasses']) => Promise<void>
   clearSchedules: () => void
+  updateSchedule: (updatedSchedule: IScheduleCalendarDTO) => void
 }
 
 /**
@@ -24,6 +25,7 @@ export function useSchedules(): UseSchedulesResult {
     clearSchedules,
     getSchedulesByClass,
     currentClassSchedule: schedules,
+    updateSchedule,
   } = useScheduleStore()
 
   // Schedules
@@ -51,5 +53,6 @@ export function useSchedules(): UseSchedulesResult {
     // Actions
     loadSchedules,
     clearSchedules,
+    updateSchedule,
   }
 }

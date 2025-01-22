@@ -136,3 +136,79 @@ export async function fetchClassSchedule(
     throw error
   }
 }
+
+interface ValidationError {
+  field: string
+  message: string
+}
+
+class ScheduleUpdateError extends Error {
+  constructor(
+    message: string,
+    public readonly code: string,
+    public readonly validationErrors?: ValidationError[],
+  ) {
+    super(message)
+    this.name = 'ScheduleUpdateError'
+  }
+}
+
+/**
+ * Updates an existing schedule entry with provided data.
+ * Supports partial updates of schedule fields.
+ *
+ * @param {string} scheduleId - ID of the schedule to update
+ * @param {UpdateScheduleInput} updateData - Data to update the schedule with
+ * @returns {Promise<void>} Updated schedule data
+ * @throws {ScheduleUpdateError} If update fails or validation errors occur
+ */
+export async function updateSchedule(
+  scheduleId: string,
+  updateData: Partial<IScheduleCalendarDTO>,
+): Promise<void> {
+  const supabase = createClient()
+
+  try {
+    // Update schedule
+    const { data: updatedSchedule, error: updateError } = await supabase
+      .from('schedules')
+      .update({
+        day_of_week: updateData.dayOfWeek,
+        start_time: updateData.startTime,
+        end_time: updateData.endTime,
+        subject_id: updateData.subjectId,
+        teacher_id: updateData.teacherId,
+        class_id: updateData.classId,
+      })
+      .eq('id', scheduleId)
+      .select('*, subject:subjects(name), teacher:users(first_name, last_name)')
+      .single()
+      .throwOnError()
+
+    if (updateError) {
+      console.error('Failed to update schedule:', updateError)
+      throw new ScheduleUpdateError(
+        'Failed to update schedule',
+        'UPDATE_ERROR',
+      )
+    }
+
+    if (!updatedSchedule) {
+      throw new ScheduleUpdateError(
+        'No data returned after update',
+        'UPDATE_ERROR',
+      )
+    }
+  }
+  catch (error) {
+    // Handle known errors
+    if (error instanceof ScheduleUpdateError) {
+      throw error
+    }
+
+    // Log and wrap unknown errors
+    const message = error instanceof Error ? error.message : 'Unknown error occurred while updating schedule'
+    console.error('updateSchedule error:', message)
+    throw new ScheduleUpdateError(message, 'UNKNOWN_ERROR')
+  }
+}

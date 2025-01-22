@@ -1,10 +1,10 @@
 'use client'
 
-import type { IClassesGrouped } from '@/types'
+import type { IClassesGrouped, IScheduleCalendarDTO } from '@/types'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
-import { useSchedules, useStudents, useUser } from '@/hooks'
+import { useScheduleOptimistic, useSchedules, useStudents, useUser } from '@/hooks'
 import { getDayName } from '@/lib/utils'
 import { ChevronDownIcon, EyeOpenIcon } from '@radix-ui/react-icons'
 import { Fragment, useEffect, useState } from 'react'
@@ -15,7 +15,8 @@ const DAYS = [1, 2, 3, 4, 5] // Monday to Friday
 export default function SchedulePage() {
   const { user } = useUser()
   const { groupedClasses, fetchClassesBySchool } = useStudents()
-  const { loadSchedules, schedules } = useSchedules()
+  const { loadSchedules } = useSchedules()
+  const { schedules, updateSchedule } = useScheduleOptimistic()
 
   const [isLoading, setIsLoading] = useState<boolean>(false)
   const [selectedClassId, setSelectedClassId] = useState<string>('')
@@ -113,16 +114,31 @@ export default function SchedulePage() {
             {DAYS.map(day => (
               <div
                 key={`${day}-${hour}`}
-                className="h-16 border-x border-border/50 relative hover:bg-muted/50 transition-colors duration-200"
+                className="h-16 border-x border-border/50 relative"
               >
                 {schedules
                   .filter(event =>
                     event.dayOfWeek === day
                     && Number.parseInt(event.startTime.split(':')[0]) === hour,
                   )
-                  .map(event => (
-                    <EventCell key={event.id} event={event} />
-                  ))}
+                  .map((event) => {
+                    const handleEventUpdate = async (updatedEvent: IScheduleCalendarDTO) => {
+                      try {
+                        await updateSchedule(updatedEvent)
+                      }
+                      catch (error) {
+                        console.error('Failed to update schedule:', error)
+                      }
+                    }
+
+                    return (
+                      <EventCell
+                        key={event.id}
+                        event={event}
+                        onEventUpdate={handleEventUpdate}
+                      />
+                    )
+                  })}
               </div>
             ))}
           </Fragment>
