@@ -150,6 +150,11 @@ export interface IGrade {
   name: string
 }
 
+export interface ISubject {
+  id: string
+  name: string
+}
+
 export interface IClass {
   id: string
   name: string

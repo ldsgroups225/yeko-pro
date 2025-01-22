@@ -2,6 +2,7 @@ import { useCallback } from 'react'
 
 import { useGrade } from './useGrade'
 import { useSchoolYear } from './useSchoolYear'
+import { useSubject } from './useSubject'
 import { useUser } from './useUser'
 
 /**
@@ -9,6 +10,7 @@ import { useUser } from './useUser'
  */
 export function useInitUsefulData() {
   const { loadGrades } = useGrade()
+  const { loadSubjects } = useSubject()
   const { loadSchoolYears } = useSchoolYear()
   const { fetchUser, isAuthenticated } = useUser()
 
@@ -27,6 +29,7 @@ export function useInitUsefulData() {
       if (user?.school?.cycleId) {
         // Load grades in parallel with other potential data fetching
         await Promise.all([
+          loadSubjects(),
           loadSchoolYears(),
           loadGrades(user.school.cycleId),
           // Add other parallel loading operations here
