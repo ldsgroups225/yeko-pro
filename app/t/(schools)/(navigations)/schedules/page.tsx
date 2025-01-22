@@ -21,10 +21,6 @@ export default function SchedulePage() {
   const [isLoading, setIsLoading] = useState<boolean>(false)
   const [selectedClassId, setSelectedClassId] = useState<string>('')
 
-  // const handleAddEvent = (newEvent: IScheduleCalendarDTO) => {
-  //   // setEvents([...events, newEvent])
-  // }
-
   function gradeHasSelectedSubclass(cls: IClassesGrouped) {
     return cls.subclasses.some(subclass => selectedClassId === subclass.id)
   }
@@ -86,8 +82,17 @@ export default function SchedulePage() {
       return (
         <div className="flex flex-col items-center justify-center h-[400px] space-y-4">
           <p className="text-lg text-muted-foreground">Cette classe n'a aucun emploi du temps</p>
-          <AddCourseDialog onAddEvent={() => {}} />
-          {/* <AddCourseDialog onAddEvent={handleAddEvent} /> */}
+          <AddCourseDialog
+            classSlug={selectedClassId}
+            mergedClasses={groupedClasses.flatMap(cls => cls.subclasses)}
+            onAddSuccess={() => {
+              // Optionally refresh data or show success message
+            }}
+            onError={(error) => {
+              console.error('Failed to add schedule:', error)
+              // Optionally show error message to user
+            }}
+          />
         </div>
       )
     }
@@ -154,8 +159,17 @@ export default function SchedulePage() {
         <div className="flex justify-between items-center">
           <h2 className="text-xl font-semibold">Emploi du temps</h2>
           {selectedClassId && schedules.length > 0 && (
-            <AddCourseDialog onAddEvent={() => {}} />
-            // <AddCourseDialog onAddEvent={handleAddEvent} />
+            <AddCourseDialog
+              classSlug={selectedClassId}
+              mergedClasses={groupedClasses.flatMap(cls => cls.subclasses)}
+              onAddSuccess={() => {
+                // Optionally refresh data or show success message
+              }}
+              onError={(error) => {
+                console.error('Failed to add schedule:', error)
+                // Optionally show error message to user
+              }}
+            />
           )}
         </div>
 

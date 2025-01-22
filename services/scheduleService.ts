@@ -162,6 +162,72 @@ class ScheduleUpdateError extends Error {
  * @returns {Promise<void>} Updated schedule data
  * @throws {ScheduleUpdateError} If update fails or validation errors occur
  */
+/**
+ * Creates a new schedule entry.
+ *
+ * @param {Omit<IScheduleCalendarDTO, 'id'>} scheduleData - Data for the new schedule
+ * @param {string} classSlug - Class slug for mapping the response
+ * @param {IClassesGrouped['subclasses']} mergedClasses - Merged classes data for mapping
+ * @returns {Promise<IScheduleCalendarDTO>} Created schedule data
+ * @throws {ScheduleUpdateError} If creation fails or validation errors occur
+ */
+export async function createSchedule(
+  scheduleData: Omit<IScheduleCalendarDTO, 'id'>,
+  classSlug: string,
+  mergedClasses: IClassesGrouped['subclasses'],
+): Promise<IScheduleCalendarDTO> {
+  const supabase = createClient()
+
+  try {
+    // First get the class ID from slug
+    const classId = await getClassId(classSlug)
+
+    // Create schedule
+    const { data: newSchedule, error: createError } = await supabase
+      .from('schedules')
+      .insert({
+        day_of_week: scheduleData.dayOfWeek,
+        start_time: scheduleData.startTime,
+        end_time: scheduleData.endTime,
+        subject_id: scheduleData.subjectId,
+        teacher_id: scheduleData.teacherId,
+        class_id: classId,
+      })
+      .select('*, subject:subjects(name), teacher:users(first_name, last_name)')
+      .single()
+      .throwOnError()
+
+    if (createError) {
+      console.error('Failed to create schedule:', createError)
+      throw new ScheduleUpdateError(
+        'Failed to create schedule',
+        'CREATE_ERROR',
+      )
+    }
+
+    if (!newSchedule) {
+      throw new ScheduleUpdateError(
+        'No data returned after creation',
+        'CREATE_ERROR',
+      )
+    }
+
+    // Map response to DTO
+    return mapScheduleToDTO(newSchedule as ScheduleResponse, classSlug, mergedClasses)
+  }
+  catch (error) {
+    // Handle known errors
+    if (error instanceof ScheduleUpdateError) {
+      throw error
+    }
+
+    // Log and wrap unknown errors
+    const message = error instanceof Error ? error.message : 'Unknown error occurred while creating schedule'
+    console.error('createSchedule error:', message)
+    throw new ScheduleUpdateError(message, 'UNKNOWN_ERROR')
+  }
+}
+
 export async function updateSchedule(
   scheduleId: string,
   updateData: Partial<IScheduleCalendarDTO>,

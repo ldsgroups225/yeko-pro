@@ -1,18 +1,29 @@
-import type { IScheduleCalendarDTO } from '@/types'
+import type { IClassesGrouped, IScheduleCalendarDTO } from '@/types'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { useScheduleCreate } from '@/hooks/useScheduleCreate'
 import { getDayName } from '@/lib/utils'
 import { Plus } from 'lucide-react'
 import { useState } from 'react'
 
 interface AddCourseDialogProps {
-  onAddEvent: (event: IScheduleCalendarDTO) => void
+  classSlug: string
+  mergedClasses: IClassesGrouped['subclasses']
+  onAddSuccess?: () => void
+  onError?: (error: Error) => void
 }
 
-export const AddCourseDialog: React.FC<AddCourseDialogProps> = ({ onAddEvent }) => {
+export const AddCourseDialog: React.FC<AddCourseDialogProps> = ({
+  classSlug,
+  mergedClasses,
+  onAddSuccess,
+  onError,
+}) => {
+  const { createSchedule } = useScheduleCreate()
+  const [isOpen, setIsOpen] = useState(false)
   const [formData, setFormData] = useState({
     subjectName: '',
     teacherName: '',
@@ -22,21 +33,41 @@ export const AddCourseDialog: React.FC<AddCourseDialogProps> = ({ onAddEvent }) 
     endTime: '09:00',
   })
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    const newEvent: IScheduleCalendarDTO = {
-      id: crypto.randomUUID(),
-      classId: '', // These would need to come from your actual data
-      subjectId: '',
-      teacherId: '',
-      ...formData,
-    }
 
-    onAddEvent(newEvent)
+    try {
+      const scheduleData = {
+        subjectId: '', // TODO: Add subject selection
+        teacherId: '', // TODO: Add teacher selection
+        classId: classSlug,
+        subjectName: formData.subjectName,
+        teacherName: formData.teacherName,
+        classroomName: formData.room,
+        dayOfWeek: formData.dayOfWeek,
+        startTime: formData.startTime,
+        endTime: formData.endTime,
+      }
+
+      await createSchedule(scheduleData, classSlug, mergedClasses)
+      setIsOpen(false)
+      setFormData({
+        subjectName: '',
+        teacherName: '',
+        room: '',
+        dayOfWeek: 1,
+        startTime: '08:00',
+        endTime: '09:00',
+      })
+      onAddSuccess?.()
+    }
+    catch (error) {
+      onError?.(error instanceof Error ? error : new Error('Failed to create schedule'))
+    }
   }
 
   return (
-    <Dialog>
+    <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
         <Button variant="outline" className="gap-2">
           <Plus className="h-4 w-4" />
