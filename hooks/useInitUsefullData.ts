@@ -1,18 +1,17 @@
+import useGradeStore from '@/store/gradeStore'
+import useSchoolYearStore from '@/store/schoolYearStore'
+import useSubjectStore from '@/store/subjectStore'
+import useUserStore from '@/store/userStore'
 import { useCallback } from 'react'
-
-import { useGrade } from './useGrade'
-import { useSchoolYear } from './useSchoolYear'
-import { useSubject } from './useSubject'
-import { useUser } from './useUser'
 
 /**
  * Hook to initialize reusable data with memoization and better state management
  */
 export function useInitUsefulData() {
-  const { loadGrades } = useGrade()
-  const { loadSubjects } = useSubject()
-  const { loadSchoolYears } = useSchoolYear()
-  const { fetchUser, isAuthenticated } = useUser()
+  const { fetchGrades } = useGradeStore()
+  const { fetchSubjects } = useSubjectStore()
+  const { fetchSchoolYears } = useSchoolYearStore()
+  const { fetchUser, isAuthenticated } = useUserStore()
 
   // Memoize the initialize function to prevent unnecessary recreations
   const initialize = useCallback(async (): Promise<void> => {
@@ -29,9 +28,9 @@ export function useInitUsefulData() {
       if (user?.school?.cycleId) {
         // Load grades in parallel with other potential data fetching
         await Promise.all([
-          loadSubjects(),
-          loadSchoolYears(),
-          loadGrades(user.school.cycleId),
+          fetchSubjects(),
+          fetchSchoolYears(),
+          fetchGrades(user.school.cycleId),
           // Add other parallel loading operations here
         ])
       }
