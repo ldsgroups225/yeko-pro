@@ -166,8 +166,6 @@ class ScheduleUpdateError extends Error {
  * Creates a new schedule entry.
  *
  * @param {Omit<IScheduleCalendarDTO, 'id'>} scheduleData - Data for the new schedule
- * @param {string} classSlug - Class slug for mapping the response
- * @param {IClassesGrouped['subclasses']} mergedClasses - Merged classes data for mapping
  * @returns {Promise<IScheduleCalendarDTO>} Created schedule data
  * @throws {ScheduleUpdateError} If creation fails or validation errors occur
  */

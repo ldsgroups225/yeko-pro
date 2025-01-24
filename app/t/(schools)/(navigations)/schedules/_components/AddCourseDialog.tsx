@@ -19,7 +19,6 @@ import useSubjectStore from '@/store/subjectStore'
 import useUserStore from '@/store/userStore'
 import { Loader2, Plus } from 'lucide-react'
 import { useCallback, useEffect, useState } from 'react'
-import { useDebounce } from 'use-debounce'
 
 interface AddCourseDialogProps {
   classId: string

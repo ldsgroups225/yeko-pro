@@ -9,6 +9,11 @@ export const studentFormSchema = z.object({
   lastName: z.string().min(2, 'Le nom doit contenir au moins 2 caractères'),
   gender: z.enum(['M', 'F'], { required_error: 'Veuillez sélectionner le genre' }).nullable(),
   gradeName: z.string().optional(),
+  classId: z.string().optional(),
+  class: z.object({
+    id: z.string(),
+    name: z.string(),
+  }).optional(),
   dateOfBirth: z.date({
     required_error: 'Veuillez sélectionner une date',
     invalid_type_error: 'Format de date invalide',
