@@ -68,7 +68,7 @@ export function EditStudentForm({ studentIdNumber, onSubmit, onCancel, isLoading
       form.reset(student)
       setDateInputValue(student.dateOfBirth ? format(student.dateOfBirth, 'dd/MM/yyyy') : '')
     })
-  }, [studentIdNumber])
+  }, [])
 
   if (!student) {
     return (

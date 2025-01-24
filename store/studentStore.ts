@@ -259,7 +259,8 @@ export const useStudentStore = create<StudentStore>((set, get) => {
     getStudentByIdNumberForEdit: async (idNumber) => {
       set({ isLoading: true, error: null })
       try {
-        if (get().studentToEdit)
+        const oldStudent = get().studentToEdit
+        if (oldStudent && oldStudent.idNumber === idNumber)
           return get().studentToEdit!
 
         const student = await getStudentByIdNumberForEdit(idNumber)
