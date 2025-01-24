@@ -173,27 +173,21 @@ class ScheduleUpdateError extends Error {
  */
 export async function createSchedule(
   scheduleData: Omit<IScheduleCalendarDTO, 'id'>,
-  classSlug: string,
-  mergedClasses: IClassesGrouped['subclasses'],
-): Promise<IScheduleCalendarDTO> {
+): Promise<string> {
   const supabase = createClient()
 
   try {
-    // First get the class ID from slug
-    const classId = await getClassId(classSlug)
-
-    // Create schedule
     const { data: newSchedule, error: createError } = await supabase
       .from('schedules')
       .insert({
-        day_of_week: scheduleData.dayOfWeek,
-        start_time: scheduleData.startTime,
+        class_id: scheduleData.classId,
         end_time: scheduleData.endTime,
+        start_time: scheduleData.startTime,
         subject_id: scheduleData.subjectId,
         teacher_id: scheduleData.teacherId,
-        class_id: classId,
+        day_of_week: scheduleData.dayOfWeek,
       })
-      .select('*, subject:subjects(name), teacher:users(first_name, last_name)')
+      .select('id')
       .single()
       .throwOnError()
 
@@ -212,11 +206,9 @@ export async function createSchedule(
       )
     }
 
-    // Map response to DTO
-    return mapScheduleToDTO(newSchedule as ScheduleResponse, classSlug, mergedClasses)
+    return newSchedule.id
   }
   catch (error) {
-    // Handle known errors
     if (error instanceof ScheduleUpdateError) {
       throw error
     }

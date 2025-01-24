@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { getDayName } from '@/lib/utils'
+import useSubjectStore from '@/store/subjectStore'
 import { useEffect, useState } from 'react'
 
 interface EditCourseDialogProps {
@@ -20,8 +21,9 @@ export const EditCourseDialog: React.FC<EditCourseDialogProps> = ({
   onClose,
   onEditEvent,
 }) => {
+  const { subjects } = useSubjectStore()
   const [formData, setFormData] = useState({
-    subjectName: '',
+    subjectId: '',
     teacherName: '',
     room: '',
     dayOfWeek: 1,
@@ -31,7 +33,7 @@ export const EditCourseDialog: React.FC<EditCourseDialogProps> = ({
 
   useEffect(() => {
     setFormData({
-      subjectName: event.subjectName ?? '',
+      subjectId: event.subjectId,
       teacherName: event.teacherName ?? '',
       room: event.room ?? event.classroomName ?? '',
       dayOfWeek: event.dayOfWeek,
@@ -45,6 +47,7 @@ export const EditCourseDialog: React.FC<EditCourseDialogProps> = ({
     onEditEvent({
       ...event,
       ...formData,
+      subjectName: subjects.find(subject => subject.id === formData.subjectId)?.name,
     })
     onClose()
   }
@@ -58,11 +61,22 @@ export const EditCourseDialog: React.FC<EditCourseDialogProps> = ({
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <Label>Matière</Label>
-            <Input
-              value={formData.subjectName}
-              onChange={e => setFormData({ ...formData, subjectName: e.target.value })}
+            <Select
+              value={formData.subjectId}
+              onValueChange={value => setFormData({ ...formData, subjectId: value })}
               required
-            />
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Sélectionnez une matière" />
+              </SelectTrigger>
+              <SelectContent>
+                {subjects.map(subject => (
+                  <SelectItem key={subject.id} value={subject.id}>
+                    {subject.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="space-y-2">

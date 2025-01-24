@@ -1,5 +1,5 @@
-import type { ITeacherDTO, ITeacherQueryParams } from '@/types'
-import { createInviteTeacher, getTeachers, updateTeacherStatus } from '@/services'
+import type { ITeacherDTO, ITeacherOptions, ITeacherQueryParams } from '@/types'
+import { createInviteTeacher, getTeachers, getTeacherToSetToCourse, updateTeacherStatus } from '@/services'
 import { create } from 'zustand'
 
 interface TeacherFilters {
@@ -10,24 +10,25 @@ interface TeacherFilters {
 }
 
 interface TeacherStore {
-  teachers: ITeacherDTO[]
-  currentSchoolId?: string
   isLoading: boolean
-  totalCount: number | null
   error: Error | null
   currentPage: number
   itemsPerPage: number
   filters: TeacherFilters
+  teachers: ITeacherDTO[]
+  currentSchoolId?: string
+  totalCount: number | null
 
-  setTeachers: (teachers: ITeacherDTO[]) => void
-  setFilters: (newFilters: Partial<TeacherFilters>) => void
-  setIsLoading: (isLoading: boolean) => void
-  setError: (error: Error | null) => void
   setPage: (page: number) => void
+  setError: (error: Error | null) => void
   setItemsPerPage: (count: number) => void
-  fetchTeachers: (query: ITeacherQueryParams) => Promise<void>
-  updateTeacherStatus: (teacherId: string, status: 'pending' | 'accepted' | 'rejected') => Promise<void>
+  setIsLoading: (isLoading: boolean) => void
+  setTeachers: (teachers: ITeacherDTO[]) => void
   inviteTeacher: (schoolId: string) => Promise<string>
+  setFilters: (newFilters: Partial<TeacherFilters>) => void
+  fetchTeachers: (query: ITeacherQueryParams) => Promise<void>
+  getTeacherToSetToCourse: (schoolId: string, search?: string) => Promise<ITeacherOptions[]>
+  updateTeacherStatus: (teacherId: string, status: 'pending' | 'accepted' | 'rejected') => Promise<void>
 }
 
 export const useTeacherStore = create<TeacherStore>((set, get) => ({
@@ -111,6 +112,20 @@ export const useTeacherStore = create<TeacherStore>((set, get) => ({
     }
     catch (error: any) {
       set({ error })
+    }
+    finally {
+      set({ isLoading: false })
+    }
+  },
+
+  getTeacherToSetToCourse: async (schoolId, search) => {
+    set({ isLoading: true, error: null })
+    try {
+      return await getTeacherToSetToCourse(schoolId, search)
+    }
+    catch (error: any) {
+      set({ error })
+      return []
     }
     finally {
       set({ isLoading: false })

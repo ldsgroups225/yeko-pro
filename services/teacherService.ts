@@ -1,7 +1,8 @@
 'use server'
 
-import type { ITeacherDTO, ITeacherQueryParams } from '@/types'
+import type { ITeacherDTO, ITeacherOptions, ITeacherQueryParams } from '@/types'
 import { createClient } from '@/lib/supabase/server'
+import { formatFullName } from '@/lib/utils'
 
 export async function getTeachers(query: ITeacherQueryParams): Promise<{ data: ITeacherDTO[], totalCount: number | null }> {
   const client = createClient()
@@ -132,4 +133,49 @@ export async function createInviteTeacher(schoolId: string): Promise<string> {
   }
 
   return data
+}
+
+export async function getTeacherToSetToCourse(
+  schoolId: string,
+  search?: string,
+): Promise<ITeacherOptions[]> {
+  const client = createClient()
+
+  let supabaseQuery = client
+    .from('schools_teachers')
+    .select('teacher:users!teacher_id (id, first_name, last_name, email)')
+    .eq('school_id', schoolId)
+    .eq('status', 'accepted')
+
+  if (search) {
+    const trimmedSearch = search.trim()
+    if (trimmedSearch) {
+      const escapedSearch = trimmedSearch.replace(/'/g, '\'\'')
+      const searchPattern = `'%${escapedSearch}%'`
+
+      supabaseQuery = supabaseQuery.or(
+        `first_name.ilike.${searchPattern},last_name.ilike.${searchPattern},email.ilike.${searchPattern}`,
+        { foreignTable: 'teacher' },
+      )
+    }
+  }
+
+  const { data, error } = await supabaseQuery
+    .order('last_name', { ascending: true, foreignTable: 'teacher' })
+    .order('first_name', { ascending: true, foreignTable: 'teacher' })
+
+  if (error) {
+    throw error
+  }
+
+  const teachers = data.map(t => ({
+    id: t.teacher.id,
+    name: formatFullName(
+      t.teacher.first_name,
+      t.teacher.last_name,
+      t.teacher.email,
+    ),
+  }))
+
+  return teachers
 }

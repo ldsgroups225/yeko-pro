@@ -296,6 +296,11 @@ export interface ITeacherDTO {
   }[]
 }
 
+export interface ITeacherOptions {
+  id: string
+  name: string
+}
+
 export interface ITeacherQueryParams {
   searchTerm?: string
   selectedClasses?: string[]

@@ -915,6 +915,7 @@ export interface Database {
           date_of_birth: string | null
           first_name: string
           gender: string | null
+          grade_id: number | null
           id: string
           id_number: string
           last_name: string
@@ -932,6 +933,7 @@ export interface Database {
           date_of_birth?: string | null
           first_name: string
           gender?: string | null
+          grade_id?: number | null
           id?: string
           id_number: string
           last_name: string
@@ -949,6 +951,7 @@ export interface Database {
           date_of_birth?: string | null
           first_name?: string
           gender?: string | null
+          grade_id?: number | null
           id?: string
           id_number?: string
           last_name?: string
@@ -963,6 +966,13 @@ export interface Database {
             columns: ['class_id']
             isOneToOne: false
             referencedRelation: 'classes'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'students_grade_id_fkey'
+            columns: ['grade_id']
+            isOneToOne: false
+            referencedRelation: 'grades'
             referencedColumns: ['id']
           },
           {

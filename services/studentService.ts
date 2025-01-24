@@ -144,7 +144,7 @@ export async function getStudentByIdNumberForEdit(idNumber: string): Promise<Stu
     .from('students')
     .select(`
         id, id_number, first_name, last_name, date_of_birth, gender, avatar_url, address,
-        class:classes(id, name)
+        grade:grades(name)
       `)
     .eq('id_number', idNumber)
     .single()
@@ -154,15 +154,14 @@ export async function getStudentByIdNumberForEdit(idNumber: string): Promise<Stu
     throw new Error('student to edit error fetch error')
   }
 
-  const _class = data.class ? { id: data.class.id, name: data.class.name } : undefined
+  const _grade = data.grade ? { name: data.grade.name } : undefined
 
   return {
     id: data.id,
     idNumber: data.id_number,
     firstName: data.first_name,
     lastName: data.last_name,
-    classId: _class?.id,
-    class: _class,
+    gradeName: _grade?.name,
     dateOfBirth: data.date_of_birth ? parseISO(data.date_of_birth) : null,
     avatarUrl: data.avatar_url,
     address: data.address,
@@ -313,7 +312,7 @@ export async function getStudentParentById(parentId: string): Promise<IStudentDT
 interface ClassRPCResponse {
   grade_name: string
   count: number
-  subclasses: Array<{ slug: string, name: string }>
+  subclasses: Array<{ id: string, slug: string, name: string }>
 }
 
 export async function fetchClassesBySchool(schoolId: string) {
@@ -328,7 +327,7 @@ export async function fetchClassesBySchool(schoolId: string) {
     id: nanoid(),
     name: el.grade_name,
     count: el.count,
-    subclasses: el.subclasses.map(s => ({ id: nanoid(), slug: s.slug, name: s.name })),
+    subclasses: el.subclasses.map(s => ({ id: s.id ?? nanoid(), slug: s.slug, name: s.name })),
   } satisfies IClassesGrouped))
 
   return parsedClasses

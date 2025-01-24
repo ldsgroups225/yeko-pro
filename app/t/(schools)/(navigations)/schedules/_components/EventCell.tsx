@@ -14,7 +14,6 @@ export const EventCell: React.FC<EventCellProps> = ({ event, onEventUpdate }) =>
   const top = calculateEventPosition(event.startTime)
   const height = calculateEventDuration(event.startTime, event.endTime)
 
-  // Improved duration calculation
   const timeToMinutes = (time: string) => {
     const [hours, minutes] = time.split(':').map(Number)
     return hours * 60 + (minutes || 0)

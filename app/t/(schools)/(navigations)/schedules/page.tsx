@@ -8,15 +8,16 @@ import { useScheduleOptimistic, useSchedules, useStudents, useUser } from '@/hoo
 import { getDayName } from '@/lib/utils'
 import { ChevronDownIcon, EyeOpenIcon } from '@radix-ui/react-icons'
 import { Fragment, useEffect, useState } from 'react'
+import { toast } from 'sonner'
 import { AddCourseDialog, EventCell, TimelineIndicator } from './_components'
 
 const DAYS = [1, 2, 3, 4, 5] // Monday to Friday
 
 export default function SchedulePage() {
   const { user } = useUser()
-  const { groupedClasses, fetchClassesBySchool } = useStudents()
   const { loadSchedules } = useSchedules()
   const { schedules, updateSchedule } = useScheduleOptimistic()
+  const { groupedClasses, fetchClassesBySchool } = useStudents()
 
   const [isLoading, setIsLoading] = useState<boolean>(false)
   const [selectedClassId, setSelectedClassId] = useState<string>('')
@@ -83,14 +84,14 @@ export default function SchedulePage() {
         <div className="flex flex-col items-center justify-center h-[400px] space-y-4">
           <p className="text-lg text-muted-foreground">Cette classe n'a aucun emploi du temps</p>
           <AddCourseDialog
-            classSlug={selectedClassId}
+            classId={selectedClassId}
             mergedClasses={groupedClasses.flatMap(cls => cls.subclasses)}
             onAddSuccess={() => {
-              // Optionally refresh data or show success message
+              toast('Le cours a bien été ajouté à votre emploi du temps')
             }}
             onError={(error) => {
               console.error('Failed to add schedule:', error)
-              // Optionally show error message to user
+              toast('Nous n\'avons pas pu ajouter le cours à votre emploi du temps')
             }}
           />
         </div>
@@ -160,14 +161,14 @@ export default function SchedulePage() {
           <h2 className="text-xl font-semibold">Emploi du temps</h2>
           {selectedClassId && schedules.length > 0 && (
             <AddCourseDialog
-              classSlug={selectedClassId}
+              classId={selectedClassId}
               mergedClasses={groupedClasses.flatMap(cls => cls.subclasses)}
               onAddSuccess={() => {
-                // Optionally refresh data or show success message
+                toast('Le cours a bien été ajouté à votre emploi du temps')
               }}
               onError={(error) => {
                 console.error('Failed to add schedule:', error)
-                // Optionally show error message to user
+                toast('Nous n\'avons pas pu ajouter le cours à votre emploi du temps')
               }}
             />
           )}

@@ -1,6 +1,5 @@
 import type { IClassesGrouped, IScheduleCalendarDTO } from '@/types'
 import useScheduleStore from '@/store/scheduleStore'
-import { useDebouncedCallback } from 'use-debounce'
 
 interface UseSchedulesResult {
   schedules: IScheduleCalendarDTO[]
@@ -9,7 +8,8 @@ interface UseSchedulesResult {
 
   loadSchedules: (classSlug: string, mergedClasses: IClassesGrouped['subclasses']) => Promise<void>
   clearSchedules: () => void
-  updateSchedule: (updatedSchedule: IScheduleCalendarDTO) => void
+  updateSchedule: (updatedSchedule: IScheduleCalendarDTO) => Promise<void>
+  createSchedule: (scheduleData: Omit<IScheduleCalendarDTO, 'id'>) => Promise<string>
 }
 
 /**
@@ -22,10 +22,11 @@ export function useSchedules(): UseSchedulesResult {
   const {
     error,
     isLoading,
+    createSchedule,
+    updateSchedule,
     clearSchedules,
     getSchedulesByClass,
     currentClassSchedule: schedules,
-    updateSchedule,
   } = useScheduleStore()
 
   // Schedules
@@ -39,11 +40,6 @@ export function useSchedules(): UseSchedulesResult {
     }
   }
 
-  // useDebouncedCallback for loadSchedules
-  const _debouncedLoadSchedules = useDebouncedCallback(async (classSlug: string, mergedClasses: IClassesGrouped['subclasses']) => {
-    await loadSchedules(classSlug, mergedClasses)?.then(r => r)
-  }, 0)
-
   return {
     // Data
     schedules,
@@ -53,6 +49,7 @@ export function useSchedules(): UseSchedulesResult {
     // Actions
     loadSchedules,
     clearSchedules,
+    createSchedule,
     updateSchedule,
   }
 }
