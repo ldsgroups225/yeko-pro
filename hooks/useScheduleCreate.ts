@@ -2,16 +2,39 @@ import type { IScheduleCalendarDTO } from '@/types'
 import { startTransition, useOptimistic } from 'react'
 import { useSchedules } from './useSchedule'
 
+interface ScheduleUpdate {
+  temp: IScheduleCalendarDTO
+  actual?: IScheduleCalendarDTO
+}
+
 export function useScheduleCreate() {
   const { schedules, createSchedule } = useSchedules()
 
-  const [optimisticSchedules, addOptimisticSchedule] = useOptimistic(
+  const [optimisticSchedules, addOptimisticSchedule] = useOptimistic<
+    IScheduleCalendarDTO[],
+    ScheduleUpdate
+  >(
     schedules,
-    (
-      state: IScheduleCalendarDTO[],
-      newSchedule: IScheduleCalendarDTO,
-    ) =>
-      [...state, newSchedule]
+    (state, newScheduleUpdate) => {
+      if (newScheduleUpdate.actual) {
+        // Replace temporary schedule with actual one
+        return state
+          .filter(s => s.id !== newScheduleUpdate.temp.id)
+          .concat(newScheduleUpdate.actual)
+          .sort((a, b) => {
+            if (a.dayOfWeek !== b.dayOfWeek)
+              return a.dayOfWeek - b.dayOfWeek
+
+            const startTimeComparison = a.startTime.localeCompare(b.startTime)
+            if (startTimeComparison !== 0)
+              return startTimeComparison
+
+            return a.endTime.localeCompare(b.endTime)
+          })
+      }
+
+      // Add temporary schedule
+      return [...state, newScheduleUpdate.temp]
         .sort((a, b) => {
           if (a.dayOfWeek !== b.dayOfWeek)
             return a.dayOfWeek - b.dayOfWeek
@@ -21,7 +44,8 @@ export function useScheduleCreate() {
             return startTimeComparison
 
           return a.endTime.localeCompare(b.endTime)
-        }),
+        })
+    },
   )
 
   async function createScheduleOptimistic(scheduleData: Omit<IScheduleCalendarDTO, 'id'>) {
@@ -32,11 +56,24 @@ export function useScheduleCreate() {
     }
 
     startTransition(() => {
-      addOptimisticSchedule(tempSchedule)
+      addOptimisticSchedule({ temp: tempSchedule })
     })
 
     try {
-      await createSchedule(scheduleData)
+      const createdId = await createSchedule(scheduleData)
+
+      // Create the actual schedule with the returned ID
+      const actualSchedule: IScheduleCalendarDTO = {
+        ...scheduleData,
+        id: createdId,
+      }
+
+      // Update optimistic state with actual schedule
+      startTransition(() => {
+        addOptimisticSchedule({ temp: tempSchedule, actual: actualSchedule })
+      })
+
+      return actualSchedule
     }
     catch (error) {
       console.error('Failed to create schedule:', error)

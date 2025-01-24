@@ -123,11 +123,25 @@ const useScheduleStore = create<ClassState & ClassActions>()(
         try {
           set({ isLoading: true, error: null }, false, 'scheduleStore/createSchedule/pending')
 
-          const existingSchedules = get().currentClassSchedule
+          // Validate required fields
+          if (!schedule.classId?.length || !schedule.subjectId?.length || !schedule.teacherId?.length) {
+            throw new Error('Veuillez remplir tous les champs')
+          }
 
+          // Check if there's an active class schedule
+          const currentClass = get().currentClassSchedule[0]
+          if (!currentClass) {
+            throw new Error('Pas de planning actif trouvé')
+          }
+
+          // Validate time slot availability
           const { isValid } = ScheduleValidator.validateSchedule(
-            { start_time: schedule.startTime, end_time: schedule.endTime, day_of_week: schedule.dayOfWeek },
-            existingSchedules.map(s => ({
+            {
+              start_time: schedule.startTime,
+              end_time: schedule.endTime,
+              day_of_week: schedule.dayOfWeek,
+            },
+            get().currentClassSchedule.map(s => ({
               start_time: s.startTime,
               end_time: s.endTime,
               day_of_week: s.dayOfWeek,
@@ -138,46 +152,42 @@ const useScheduleStore = create<ClassState & ClassActions>()(
             throw new Error('Cette plage de temps est déjà occupée')
           }
 
-          const currentSchedules = get().currentClassSchedule
-
-          if (!schedule.classId?.length || !schedule.subjectId?.length || !schedule.teacherId?.length) {
-            throw new Error('Veuillez remplir tous les champs')
-          }
-
-          // Get all subclasses from the current class
-          const currentClass = get().currentClassSchedule[0]
-          if (!currentClass) {
-            throw new Error('Pas de planning actif trouvé')
-          }
-
+          // Create the schedule
           const createdId = await createSchedule(schedule)
 
-          const updatedSchedules = currentSchedules.map(oldSchedule =>
-            oldSchedule.id === createdId ? { ...schedule, id: createdId } : oldSchedule,
-          )
+          // Create new schedule with the returned ID
+          const newSchedule: IScheduleCalendarDTO = {
+            ...schedule,
+            id: createdId,
+          }
+
+          // Update state with new schedule
+          const updatedSchedules = [...get().currentClassSchedule, newSchedule]
+            .sort((a, b) => {
+              if (a.dayOfWeek !== b.dayOfWeek)
+                return a.dayOfWeek - b.dayOfWeek
+
+              const startTimeComparison = a.startTime.localeCompare(b.startTime)
+              if (startTimeComparison !== 0)
+                return startTimeComparison
+
+              return a.endTime.localeCompare(b.endTime)
+            })
 
           set(
             {
-              currentClassSchedule: updatedSchedules
-                .sort((a, b) => {
-                  if (a.dayOfWeek !== b.dayOfWeek)
-                    return a.dayOfWeek - b.dayOfWeek
-
-                  const startTimeComparison = a.startTime.localeCompare(b.startTime)
-                  if (startTimeComparison !== 0)
-                    return startTimeComparison
-
-                  return a.endTime.localeCompare(b.endTime)
-                }),
+              currentClassSchedule: updatedSchedules,
               isLoading: false,
             },
             false,
             'scheduleStore/createSchedule/fulfilled',
           )
+
+          return createdId
         }
         catch (error) {
-          const message = error instanceof Error ? error.message : 'Failed to update schedule'
-          console.error('updateSchedule error:', message)
+          const message = error instanceof Error ? error.message : 'Failed to create schedule'
+          console.error('createSchedule error:', message)
 
           set(
             {
@@ -185,7 +195,7 @@ const useScheduleStore = create<ClassState & ClassActions>()(
               isLoading: false,
             },
             false,
-            'scheduleStore/updateSchedule/rejected',
+            'scheduleStore/createSchedule/rejected',
           )
 
           throw error
@@ -207,6 +217,26 @@ const useScheduleStore = create<ClassState & ClassActions>()(
           const currentClass = get().currentClassSchedule[0]
           if (!currentClass) {
             throw new Error('No active schedule found')
+          }
+
+          // Validate time slot availability
+          // Filter out the current schedule being updated from validation
+          const otherSchedules = currentSchedules.filter(s => s.id !== updatedSchedule.id)
+          const { isValid } = ScheduleValidator.validateSchedule(
+            {
+              start_time: updatedSchedule.startTime,
+              end_time: updatedSchedule.endTime,
+              day_of_week: updatedSchedule.dayOfWeek,
+            },
+            otherSchedules.map(s => ({
+              start_time: s.startTime,
+              end_time: s.endTime,
+              day_of_week: s.dayOfWeek,
+            })),
+          )
+
+          if (!isValid) {
+            throw new Error('Cette plage de temps est déjà occupée')
           }
 
           const updated = await updateScheduleService(
