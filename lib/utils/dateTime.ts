@@ -187,14 +187,27 @@ export function timeToMinutes(time: string): number {
   return hours * 60 + minutes
 }
 
+// Constants for grid calculations
+export const CELL_HEIGHT = 64 // matches h-16 from Tailwind
+export const HEADER_HEIGHT = 48 // matches h-12 from Tailwind
+export const BORDER_WIDTH = 1
+export const START_HOUR = 7 // 7:00 AM
+export const END_HOUR = 19 // 19:00 (7:00 PM)
+export const COLUMN_WIDTH = 120 // minmax(120px, 1fr) from grid
+export const TIME_COLUMN_WIDTH = 60 // 60px from grid
+
 export function calculateEventPosition(startTime: string): number {
   const minutes = timeToMinutes(startTime)
-  const startOfDay = 7 * 60 // 7:00 AM
-  return ((minutes - startOfDay) / 60) * 64
+  const startOfDay = START_HOUR * 60
+  // Calculate position including header height and accounting for borders
+  const hoursPassed = (minutes - startOfDay) / 60
+  return HEADER_HEIGHT + (hoursPassed * CELL_HEIGHT) + (Math.floor(hoursPassed) * BORDER_WIDTH)
 }
 
 export function calculateEventDuration(startTime: string, endTime: string): number {
   const start = timeToMinutes(startTime)
   const end = timeToMinutes(endTime)
-  return ((end - start) / 60) * 64
+  const hours = (end - start) / 60
+  // Account for borders by adding border width for each full hour within the duration
+  return (hours * CELL_HEIGHT) + (Math.floor(hours - 1) * BORDER_WIDTH)
 }

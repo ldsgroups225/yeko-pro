@@ -1,4 +1,4 @@
-import type { IClassesGrouped, ITeacherOptions } from '@/types'
+import type { IClassesGrouped, IScheduleCalendarDTO, ITeacherOptions } from '@/types'
 import { Combobox } from '@/components/Combobox'
 import { GenericSelect } from '@/components/GenericSelect'
 import { Button } from '@/components/ui/button'
@@ -112,7 +112,7 @@ export const AddCourseDialog: React.FC<AddCourseDialogProps> = ({
     }
 
     try {
-      const scheduleData = {
+      const scheduleData: Omit<IScheduleCalendarDTO, 'id'> = {
         classId,
         endTime,
         classroomName: room,

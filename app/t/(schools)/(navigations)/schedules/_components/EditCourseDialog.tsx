@@ -47,7 +47,7 @@ export const EditCourseDialog: React.FC<EditCourseDialogProps> = ({
     onEditEvent({
       ...event,
       ...formData,
-      subjectName: subjects.find(subject => subject.id === formData.subjectId)?.name,
+      subjectName: subjects.find(subject => subject.id === formData.subjectId)?.name ?? '',
     })
     onClose()
   }

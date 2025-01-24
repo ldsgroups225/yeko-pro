@@ -1,27 +1,36 @@
 import type { IScheduleCalendarDTO } from '@/types'
-import { calculateEventDuration, calculateEventPosition, cn } from '@/lib/utils'
-import { useState } from 'react'
+import { cn } from '@/lib/utils'
+import { format } from 'date-fns'
+import { useEffect, useMemo, useState } from 'react'
 import { EditCourseDialog } from './EditCourseDialog'
-import styles from './EventCell.module.css'
 
 interface EventCellProps {
   event: IScheduleCalendarDTO
+  style: React.CSSProperties
   onEventUpdate?: (event: IScheduleCalendarDTO) => void
 }
 
-export const EventCell: React.FC<EventCellProps> = ({ event, onEventUpdate }) => {
+function EventCell({ event, style, onEventUpdate }: EventCellProps) {
+  const [currentTime, setCurrentTime] = useState(format(new Date(), 'HH:mm:ss'))
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
-  const top = calculateEventPosition(event.startTime)
-  const height = calculateEventDuration(event.startTime, event.endTime)
 
-  const timeToMinutes = (time: string) => {
-    const [hours, minutes] = time.split(':').map(Number)
-    return hours * 60 + (minutes || 0)
-  }
+  const isOneHour = useMemo(() => {
+    const startHour = Number.parseInt(event.startTime.split(':')[0])
+    const endHour = Number.parseInt(event.endTime.split(':')[0])
+    return endHour - startHour === 1
+  }, [event.startTime, event.endTime])
 
-  const start = timeToMinutes(event.startTime)
-  const end = timeToMinutes(event.endTime)
-  const isOneHour = (end - start) === 60
+  const isActive = useMemo(() => {
+    return currentTime >= event.startTime && currentTime <= event.endTime
+  }, [currentTime, event.startTime, event.endTime])
+
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      setCurrentTime(format(new Date(), 'HH:mm:ss'))
+    }, 60000)
+
+    return () => clearInterval(intervalId)
+  }, [])
 
   const handleDoubleClick = (e: React.MouseEvent) => {
     e.preventDefault()
@@ -36,32 +45,36 @@ export const EventCell: React.FC<EventCellProps> = ({ event, onEventUpdate }) =>
   return (
     <>
       <div
-        className={`${styles.eventCell} relative group select-none`}
-        style={{ top: `${top}px`, height: `${height}px` }}
+        className={cn(
+          'absolute left-1 right-1 overflow-hidden rounded-lg border bg-card p-2 shadow-sm transition-all',
+          'hover:shadow-md hover:z-10 cursor-pointer border-l-4',
+          isActive
+            ? 'border-primary opacity-100'
+            : 'border-muted opacity-70',
+        )}
+        style={style}
         onDoubleClick={handleDoubleClick}
       >
+        <h3 className="text-sm font-medium truncate">{event.subjectName}</h3>
+        <p className="text-xs text-muted-foreground truncate">
+          {event.teacherName}
+        </p>
         <div className={cn(
-          'font-medium text-foreground truncate overflow-x-hidden',
-          isOneHour && '-mt-3',
+          'text-xs flex justify-between items-center',
+          isOneHour ? '-mt-0.5' : 'mt-1',
         )}
         >
-          {event.subjectName}
-        </div>
-
-        {/* Conditional rendering with hover */}
-        <div className={cn(
-          'text-xs text-muted-foreground',
-          isOneHour
-            ? '-space-y-1'
-            : 'space-y-1.5',
-        )}
-        >
-          <div>{event.teacherName}</div>
-          <div>{event.room || event.classroomName}</div>
-          <div>{`${event.startTime} - ${event.endTime}`}</div>
+          <span>
+            {event.startTime.substring(0, 5)}
+            {' '}
+            -
+            {event.endTime.substring(0, 5)}
+          </span>
+          <span className="bg-muted px-2 py-1 rounded text-xs">
+            {event.room}
+          </span>
         </div>
       </div>
-
       <EditCourseDialog
         event={event}
         isOpen={isEditDialogOpen}
@@ -71,3 +84,5 @@ export const EventCell: React.FC<EventCellProps> = ({ event, onEventUpdate }) =>
     </>
   )
 }
+
+export { EventCell }

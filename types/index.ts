@@ -238,7 +238,7 @@ export interface IScheduleCalendarDTO {
   classId: string
   classroomName?: string
   subjectId: string
-  subjectName?: string
+  subjectName: string
   teacherId: string
   teacherName?: string
   dayOfWeek: number

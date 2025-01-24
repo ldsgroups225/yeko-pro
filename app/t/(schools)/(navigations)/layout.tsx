@@ -19,7 +19,7 @@ export default function NavigationLayout({ children }: { children: React.ReactNo
           <div className="bg-primary h-3"></div>
           <div className="bg-blue-600 h-9 mx-12 rounded-b-lg"></div>
         </header>
-        <div className="flex flex-col h-full overflow-y-auto py-4 px-6">
+        <div className="flex flex-col h-full py-4 px-6">
           <div className="flex items-center justify-between px-6">
             <MobileNavbar />
             <div className="hidden md:flex items-center justify-between w-full">

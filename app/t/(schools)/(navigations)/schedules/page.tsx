@@ -5,13 +5,13 @@ import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { useScheduleOptimistic, useSchedules, useStudents, useUser } from '@/hooks'
-import { getDayName } from '@/lib/utils'
+import { calculatePosition } from '@/lib/utils'
 import { ChevronDownIcon, EyeOpenIcon } from '@radix-ui/react-icons'
-import { Fragment, useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { toast } from 'sonner'
-import { AddCourseDialog, EventCell, TimelineIndicator } from './_components'
+import { AddCourseDialog, CurrentTimeLine, EventCell, TimelineIndicator } from './_components'
 
-const DAYS = [1, 2, 3, 4, 5] // Monday to Friday
+const DAYS = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi']
 
 export default function SchedulePage() {
   const { user } = useUser()
@@ -19,8 +19,21 @@ export default function SchedulePage() {
   const { schedules, updateSchedule } = useScheduleOptimistic()
   const { groupedClasses, fetchClassesBySchool } = useStudents()
 
+  const [headerHeight] = useState(64)
+  const [calendarHeight, setCalendarHeight] = useState(0)
   const [isLoading, setIsLoading] = useState<boolean>(false)
   const [selectedClassId, setSelectedClassId] = useState<string>('')
+
+  const groupedEvents = useMemo(() => {
+    const groups: Record<number, IScheduleCalendarDTO[]> = { 0: [], 1: [], 2: [], 3: [], 4: [] }
+    schedules?.forEach((event) => {
+      const dayIndex = event.dayOfWeek - 1
+      if (dayIndex >= 0 && dayIndex < 5) {
+        groups[dayIndex].push(event)
+      }
+    })
+    return groups
+  }, [schedules])
 
   function gradeHasSelectedSubclass(cls: IClassesGrouped) {
     return cls.subclasses.some(subclass => selectedClassId === subclass.id)
@@ -39,6 +52,10 @@ export default function SchedulePage() {
       fetchClassesBySchool(user.school.id)
     }
   }, [])
+
+  useEffect(() => {
+    setCalendarHeight(window.innerHeight - headerHeight)
+  }, [headerHeight])
 
   useEffect(() => {
     async function fetchSchedules() {
@@ -64,7 +81,7 @@ export default function SchedulePage() {
   const renderContent = () => {
     if (!selectedClassId) {
       return (
-        <div className="flex flex-col items-center justify-center h-[400px] text-muted-foreground">
+        <div className="flex flex-col items-center justify-center h-[600px] text-muted-foreground">
           <p className="text-lg">Sélectionner une classe pour voir son emploi du temps</p>
         </div>
       )
@@ -72,7 +89,7 @@ export default function SchedulePage() {
 
     if (isLoading) {
       return (
-        <div className="flex flex-col items-center justify-center h-[400px] text-muted-foreground">
+        <div className="flex flex-col items-center justify-center h-[600px] text-muted-foreground">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mb-4" />
           <p>Chargement de l'emploi du temps...</p>
         </div>
@@ -81,7 +98,7 @@ export default function SchedulePage() {
 
     if (schedules.length === 0) {
       return (
-        <div className="flex flex-col items-center justify-center h-[400px] space-y-4">
+        <div className="flex flex-col items-center justify-center h-[600px] space-y-4">
           <p className="text-lg text-muted-foreground">Cette classe n'a aucun emploi du temps</p>
           <AddCourseDialog
             classId={selectedClassId}
@@ -99,114 +116,106 @@ export default function SchedulePage() {
     }
 
     return (
-      <div className="grid grid-cols-6">
-        <div className="h-12" />
-        {DAYS.map(day => (
-          <Button
-            key={day}
-            variant="ghost"
-            className="h-12 font-medium"
-          >
-            {getDayName(day)}
-          </Button>
-        ))}
+      <div className="flex flex-col overflow-hidden bg-blacks" style={{ height: calendarHeight }}>
+        <div className="flex-1 overflow-x-auto relative">
+          <div className="grid grid-cols-[auto_repeat(5,1fr)] gap-x-4 min-w-[1200px] p-4">
+            <TimelineIndicator />
 
-        {Array.from({ length: 12 }, (_, i) => i + 7).map(hour => (
-          <Fragment key={hour}>
-            <div className="h-16 flex items-start justify-end pr-2 font-medium text-muted-foreground">
-              {hour.toString().padStart(2, '0')}
-              :00
-            </div>
-            {DAYS.map(day => (
+            {DAYS.map((day, index) => (
               <div
-                key={`${day}-${hour}`}
-                className="h-16 border-x border-border/50 relative"
+                key={day}
+                className="relative h-[660px] bg-background/50 border rounded-lg p-2"
               >
-                {schedules
-                  .filter(event =>
-                    event.dayOfWeek === day
-                    && Number.parseInt(event.startTime.split(':')[0]) === hour,
-                  )
-                  .map((event) => {
-                    const handleEventUpdate = async (updatedEvent: IScheduleCalendarDTO) => {
-                      try {
-                        await updateSchedule(updatedEvent)
-                      }
-                      catch (error) {
-                        console.error('Failed to update schedule:', error)
-                      }
-                    }
+                <div className="sticky top-0 z-30 h-[40px] bg-background/80 backdrop-blur-sm pb-2 mb-2 border-b">
+                  <h3 className="text-sm font-medium text-foreground">{day}</h3>
+                </div>
+
+                <div className="relative h-[calc(100%-40px)]">
+                  {groupedEvents[index].map((event) => {
+                    const top = calculatePosition(event.startTime)
+                    const height = calculatePosition(event.endTime) - top
 
                     return (
                       <EventCell
                         key={event.id}
                         event={event}
-                        onEventUpdate={handleEventUpdate}
+                        style={{
+                          top: `${top}px`,
+                          height: `${height}px`,
+                          width: 'calc(100% - 0.5rem)',
+                        }}
+                        onEventUpdate={async (updatedEvent: IScheduleCalendarDTO) => {
+                          try {
+                            await updateSchedule(updatedEvent)
+                          }
+                          catch (error) {
+                            console.error('Failed to update schedule:', error)
+                          }
+                        }}
                       />
                     )
                   })}
+                  <CurrentTimeLine />
+                </div>
               </div>
             ))}
-          </Fragment>
-        ))}
-        <TimelineIndicator />
+          </div>
+        </div>
       </div>
     )
   }
 
   return (
-    <Card className="relative">
-      <div className="p-2 space-y-6">
-        <div className="flex justify-between items-center">
-          <h2 className="text-xl font-semibold">Emploi du temps</h2>
-          {selectedClassId && schedules.length > 0 && (
-            <AddCourseDialog
-              classId={selectedClassId}
-              mergedClasses={groupedClasses.flatMap(cls => cls.subclasses)}
-              onAddSuccess={() => {
-                toast('Le cours a bien été ajouté à votre emploi du temps')
-              }}
-              onError={(error) => {
-                console.error('Failed to add schedule:', error)
-                toast('Nous n\'avons pas pu ajouter le cours à votre emploi du temps')
-              }}
-            />
-          )}
-        </div>
-
-        <div className="flex flex-wrap gap-2">
-          {groupedClasses.map(cls => (
-            <DropdownMenu key={cls.name}>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="outline"
-                  className="flex items-center"
-                  onClick={() => setSelectedClassId(cls.id)}
-                >
-                  {cls.name}
-                  <ChevronDownIcon className="ml-2 h-4 w-4" />
-                  {gradeHasSelectedSubclass(cls) && (
-                    <EyeOpenIcon className="ml-1 h-4 w-4 text-green-700 dark:text-green-400" />
-                  )}
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent>
-                {getDropdownItems(cls.subclasses).map(item => (
-                  <DropdownMenuCheckboxItem
-                    key={item.label}
-                    checked={item.selected}
-                    onCheckedChange={item.click}
-                  >
-                    {item.label}
-                  </DropdownMenuCheckboxItem>
-                ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
-          ))}
-        </div>
-
-        {renderContent()}
+    <Card className="p-4 space-y-6 overflow-hidden">
+      <div className="flex justify-between items-center">
+        <h2 className="text-xl font-semibold">Emploi du temps</h2>
+        {selectedClassId && schedules.length > 0 && (
+          <AddCourseDialog
+            classId={selectedClassId}
+            mergedClasses={groupedClasses.flatMap(cls => cls.subclasses)}
+            onAddSuccess={() => {
+              toast('Le cours a bien été ajouté à votre emploi du temps')
+            }}
+            onError={(error) => {
+              console.error('Failed to add schedule:', error)
+              toast('Nous n\'avons pas pu ajouter le cours à votre emploi du temps')
+            }}
+          />
+        )}
       </div>
+
+      <div className="flex flex-wrap gap-2">
+        {groupedClasses.map(cls => (
+          <DropdownMenu key={cls.name}>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="outline"
+                className="flex items-center"
+                onClick={() => setSelectedClassId(cls.id)}
+              >
+                {cls.name}
+                <ChevronDownIcon className="ml-2 h-4 w-4" />
+                {gradeHasSelectedSubclass(cls) && (
+                  <EyeOpenIcon className="ml-1 h-4 w-4 text-green-700 dark:text-green-400" />
+                )}
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              {getDropdownItems(cls.subclasses).map(item => (
+                <DropdownMenuCheckboxItem
+                  key={item.label}
+                  checked={item.selected}
+                  onCheckedChange={item.click}
+                >
+                  {item.label}
+                </DropdownMenuCheckboxItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        ))}
+      </div>
+
+      {renderContent()}
     </Card>
   )
 }
