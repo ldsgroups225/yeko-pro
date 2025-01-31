@@ -324,3 +324,48 @@ export interface FilterStudentWhereNotInTheClass {
   } | null
   imageUrl: string | null
 }
+
+export interface IPonctualite {
+  month: string
+  absences: number
+  lates: number
+}
+
+export interface ICandidature {
+  time: string
+  name: string
+  type: string
+  status: string
+}
+
+export interface IGradeNote {
+  id: string
+  classroom: string
+  studentCount: number
+  minNote: number
+  maxNote: number
+  createdAt: string
+  teacher: string
+  subject: string
+  status: string
+}
+
+export interface IMetricCardProps {
+  title: string
+  icon: React.ReactNode
+  variant: 'primary' | 'destructive' | 'input' | 'success'
+  children: React.ReactNode
+}
+
+export interface IDashboardChartProps {
+  data: IPonctualite[]
+}
+
+export interface IApplicationsProps {
+  applications: ICandidature[]
+}
+
+export interface IGradesTableProps {
+  notes: IGradeNote[]
+  onPublish?: (id: string) => void
+}
