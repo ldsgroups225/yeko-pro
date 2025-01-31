@@ -1,5 +1,3 @@
-'use client'
-
 import type { IMetricCardProps } from '@/types'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 

@@ -1,8 +1,4 @@
-'use client'
-
-import type { IGradesTableProps } from '@/types'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import {
   Table,
   TableBody,
@@ -11,8 +7,13 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import { formatDate } from '@/lib/utils'
+import { DashboardService } from '@/services/dashboardService'
+import { PublishNotesButton } from './PublishNotesButton'
 
-export function GradesTable({ notes, onPublish }: IGradesTableProps) {
+export async function GradesTable() {
+  const notes = await DashboardService.getNotes()
+
   return (
     <Card>
       <CardHeader>
@@ -22,12 +23,11 @@ export function GradesTable({ notes, onPublish }: IGradesTableProps) {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>ID</TableHead>
               <TableHead>Classe</TableHead>
               <TableHead>Nb Élèves</TableHead>
               <TableHead>Note Min</TableHead>
               <TableHead>Note Max</TableHead>
-              <TableHead>Date Création</TableHead>
+              <TableHead>Date</TableHead>
               <TableHead>Professeur</TableHead>
               <TableHead>Matière</TableHead>
               <TableHead className="text-right">Action</TableHead>
@@ -36,7 +36,6 @@ export function GradesTable({ notes, onPublish }: IGradesTableProps) {
           <TableBody>
             {notes.map(note => (
               <TableRow key={note.id}>
-                <TableCell>{note.id}</TableCell>
                 <TableCell>{note.classroom}</TableCell>
                 <TableCell>{note.studentCount}</TableCell>
                 <TableCell>
@@ -47,31 +46,17 @@ export function GradesTable({ notes, onPublish }: IGradesTableProps) {
                   {note.maxNote}
                   /20
                 </TableCell>
-                <TableCell>{note.createdAt}</TableCell>
+                <TableCell>{formatDate(note.createdAt)}</TableCell>
                 <TableCell>{note.teacher}</TableCell>
                 <TableCell>{note.subject}</TableCell>
                 <TableCell className="text-right">
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="bg-primary/10 text-primary hover:bg-primary/20"
-                    onClick={() => onPublish?.(note.id)}
-                  >
-                    Publier
-                  </Button>
+                  <PublishNotesButton noteId={note.id} />
                 </TableCell>
               </TableRow>
             ))}
           </TableBody>
         </Table>
       </CardContent>
-      <CardFooter className="text-sm text-muted-foreground">
-        Affichage de 1 à
-        {' '}
-        {notes.length}
-        {' '}
-        sur 30 entrées
-      </CardFooter>
     </Card>
   )
 }

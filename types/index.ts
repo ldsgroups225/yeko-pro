@@ -366,6 +366,5 @@ export interface IApplicationsProps {
 }
 
 export interface IGradesTableProps {
-  notes: IGradeNote[]
   onPublish?: (id: string) => void
 }
