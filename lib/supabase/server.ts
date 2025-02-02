@@ -33,3 +33,5 @@ export function createClient() {
     },
   )
 }
+
+export type SupabaseClient = ReturnType<typeof createServerClient<Database>>

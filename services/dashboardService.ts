@@ -1,3 +1,4 @@
+import type { SupabaseClient } from '@/lib/supabase/server'
 import { NOTE_TYPE } from '@/constants'
 import { createClient } from '@/lib/supabase/server'
 import { formatFullName } from '@/lib/utils'
@@ -66,13 +67,130 @@ const candidatures: ICandidature[] = [
   { time: '2j', name: 'Emma Dubois', type: 'Élève', status: 'En attente' },
 ]
 
+async function checkAuthUserId(client: SupabaseClient): Promise<string> {
+  const { data: user, error: userError } = await client.auth.getUser()
+  if (userError) {
+    console.error('Error fetching user:', userError)
+    throw new Error('Vous n\'êtes pas autorisé à accéder à cette page')
+  }
+  return user.user.id
+}
+
+async function getDirectorSchoolId(client: SupabaseClient, userId: string): Promise<string> {
+  const { data: userSchool, error: userSchoolError } = await client
+    .from('users')
+    .select('school_id, user_roles(role_id)')
+    .eq('id', userId)
+    .eq('user_roles.role_id', ERole.DIRECTOR)
+    .single()
+  if (userSchoolError) {
+    console.error('Error fetching user school:', userSchoolError)
+    throw new Error('Seul un directeur peut accéder à cette page')
+  }
+
+  if (!userSchool.school_id) {
+    throw new Error('Utilisateur non associé à un établissement scolaire')
+  }
+  return userSchool.school_id
+}
+
+async function getStudentPopulation(client: SupabaseClient, schoolId: string): Promise<{ total: number, yearOverYearGrowth: number }> {
+  const { error, count } = await client
+    .from('students') // TODO: use 'student_school_class' table in future
+    .select('*', { count: 'estimated' })
+    .eq('school_id', schoolId)
+    // TODO: Use this ==> .eq('status', 'active') and filter by school_year_id too
+
+  if (error) {
+    console.error('Error fetching student population:', error.message)
+    return { total: 0, yearOverYearGrowth: 0 }
+  }
+
+  return { total: count || 0, yearOverYearGrowth: 15 } // TODO: implement yearOverYearGrowth calculation
+}
+
+async function getStudentFiles(client: SupabaseClient, schoolId: string): Promise<{ pendingApplications: number, withoutParent: number, withoutClass: number }> {
+  const pendingApplicationsQs = 0 // TODO: Implement this after your will create 'student_school_class' table
+  const withoutParentQs = client.from('students').select('id', { count: 'estimated' }).eq('school_id', schoolId).is('parent_id', null)
+  const withoutClassQs = client.from('students').select('id', { count: 'estimated' }).eq('school_id', schoolId).is('class_id', null)
+
+  const [
+    // { count: pendingApplications, error: pendingApplicationsError },
+    { count: withoutParent, error: withoutParentError },
+    { count: withoutClass, error: withoutClassError },
+  ] = await Promise.all([
+    // pendingApplicationsQs,
+    withoutParentQs,
+    withoutClassQs,
+  ])
+
+  // if (pendingApplicationsError || withoutParentError || withoutClassError) {
+  if (withoutParentError || withoutClassError) {
+    // console.error('Error fetching student files:', pendingApplicationsError?.message, withoutParentError?.message, withoutClassError?.message)
+    console.error('Error fetching student files:', withoutParentError?.message, withoutClassError?.message)
+    return { pendingApplications: 0, withoutParent: 0, withoutClass: 0 }
+  }
+
+  return { pendingApplications: pendingApplicationsQs, withoutParent: withoutParent ?? 0, withoutClass: withoutClass ?? 0 }
+}
+
+async function getTeachingStaff(client: SupabaseClient, schoolId: string): Promise<{ pendingApplications: number, withoutClass: number }> {
+  // Queries for counts
+  const schoolTeacherCountQs = client.from('schools_teachers')
+    .select('*', { count: 'exact', head: true })
+    .eq('school_id', schoolId)
+    .eq('status', 'accepted')
+
+  const pendingApplicationsQs = client.from('schools_teachers')
+    .select('*', { count: 'exact', head: true })
+    .eq('school_id', schoolId)
+    .eq('status', 'pending')
+
+  // Query for teacher assignments (need actual data for deduplication)
+  const withoutClassQs = client.from('teacher_class_assignments')
+    .select('teacher_id')
+    .eq('school_id', schoolId)
+
+  const [
+    { count: pendingApplications, error: pendingApplicationsError },
+    { count: schoolTeachers, error: schoolTeachersError },
+    { data: assignmentsData, error: withoutClassError },
+  ] = await Promise.all([
+    pendingApplicationsQs,
+    schoolTeacherCountQs,
+    withoutClassQs,
+  ])
+
+  // Handle errors first
+  if (pendingApplicationsError || withoutClassError || schoolTeachersError) {
+    console.error('Error fetching teaching staff:', pendingApplicationsError?.message, withoutClassError?.message, schoolTeachersError?.message,
+    )
+    return { pendingApplications: 0, withoutClass: 0 }
+  }
+
+  // Process teachers without classes
+  const teacherIds = assignmentsData?.map(a => a.teacher_id) ?? []
+  const uniqueTeacherIds = Array.from(new Set(teacherIds))
+  const withoutClassCount = (schoolTeachers ?? 0) - uniqueTeacherIds.length
+
+  return {
+    pendingApplications: pendingApplications ?? 0,
+    withoutClass: withoutClassCount,
+  }
+}
+
 export class DashboardService {
   static async getDashboardMetrics(): Promise<DashboardMetrics> {
-    await delay(800) // Simulate network delay
-    if (simulateError()) {
-      throw new Error('Failed to fetch dashboard metrics')
-    }
-    return metrics
+    const supabase = createClient()
+
+    const userId = await checkAuthUserId(supabase)
+    const schoolId = await getDirectorSchoolId(supabase, userId)
+
+    const studentPopulation = await getStudentPopulation(supabase, schoolId)
+    const studentFiles = await getStudentFiles(supabase, schoolId)
+    const teachingStaff = await getTeachingStaff(supabase, schoolId)
+
+    return { ...metrics, studentPopulation, studentFiles, teachingStaff }
   }
 
   static async getPonctualiteData(): Promise<IPonctualite[]> {
@@ -99,27 +217,8 @@ export class DashboardService {
       NOTE_TYPE.LEVEL_TEST,
     ]
 
-    const { data: user, error: userError } = await supabase.auth.getUser()
-    if (userError) {
-      console.error('Error fetching user:', userError)
-      throw new Error('Vous n\'êtes pas autorisé à accéder à cette page')
-    }
-
-    const { data: userSchool, error: userSchoolError } = await supabase
-      .from('users')
-      .select('school_id, user_roles(role_id)')
-      .eq('id', user.user.id)
-      .eq('user_roles.role_id', ERole.DIRECTOR)
-      .single()
-    if (userSchoolError) {
-      console.error('Error fetching user school:', userSchoolError)
-      throw new Error('Seul un directeur peut accéder à cette page')
-    }
-
-    if (!userSchool.school_id) {
-      throw new Error('Utilisateur non associé à un établissement scolaire')
-    }
-    const schoolId = userSchool.school_id
+    const userId = await checkAuthUserId(supabase)
+    const schoolId = await getDirectorSchoolId(supabase, userId)
 
     const { data, error } = await supabase
       .from('notes')
@@ -175,22 +274,9 @@ export class DashboardService {
 
   static async publishNote(noteId: string): Promise<void> {
     const supabase = createClient()
-    const { data: user, error: userError } = await supabase.auth.getUser()
-    if (userError) {
-      console.error('Error fetching user:', userError)
-      throw new Error('Vous n\'êtes pas autorisé à accéder à cette page')
-    }
 
-    const { error: userSchoolError } = await supabase
-      .from('users')
-      .select('user_roles(role_id)')
-      .eq('id', user.user.id)
-      .eq('user_roles.role_id', ERole.DIRECTOR)
-      .single()
-    if (userSchoolError) {
-      console.error('Error fetching user school:', userSchoolError)
-      throw new Error('Seul un directeur peut accéder à cette page')
-    }
+    const userId = await checkAuthUserId(supabase)
+    await getDirectorSchoolId(supabase, userId)
 
     const { error } = await supabase
       .from('notes')
