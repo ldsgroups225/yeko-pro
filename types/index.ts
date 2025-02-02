@@ -66,6 +66,8 @@ export interface ISchoolDTO {
   code: string
   cycleId: string
   imageUrl: string
+  address?: string | null
+  phone?: string
   createdAt: string
   createdBy: string
   updatedAt: string

@@ -1,6 +1,5 @@
 'use server'
 
-import type { SupabaseClient } from '@/lib/supabase/server'
 import type { IClassesGrouped, IStudentDTO, IStudentsQueryParams } from '@/types'
 import type { LinkStudentParentData, StudentFormValues } from '@/validations'
 import { createClient } from '@/lib/supabase/server'
