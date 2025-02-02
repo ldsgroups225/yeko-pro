@@ -1,64 +1,15 @@
 'use server'
 
+import type { SupabaseClient } from '@/lib/supabase/server'
 import type { IClassesGrouped, IStudentDTO, IStudentsQueryParams } from '@/types'
 import type { LinkStudentParentData, StudentFormValues } from '@/validations'
 import { createClient } from '@/lib/supabase/server'
 import { formatFullName } from '@/lib/utils'
-import { extractStoragePath } from '@/lib/utils/extractStoragePath'
 import { linkStudentParentSchema } from '@/validations'
 import { camelCase, snakeCase } from 'change-case'
 import { parseISO } from 'date-fns'
 import { nanoid } from 'nanoid'
-
-async function uploadImageToStorage(bucketName: string, studentId: string, avatarBase64: string): Promise<string> {
-  const client = createClient()
-
-  // Delete existing avatar if it exists
-  const { error: deleteError } = await client.storage
-    .from(bucketName)
-    .remove([studentId])
-
-  if (deleteError && deleteError.message !== 'Not Found') {
-    console.error('Error deleting old avatar:', deleteError)
-  }
-
-  // Extract MIME type from base64 string
-  const mimeTypeMatch = avatarBase64.match(/^data:(.*?);/)
-  if (!mimeTypeMatch) {
-    throw new Error('Invalid avatar base64 data')
-  }
-  const mimeType = mimeTypeMatch[1]
-  const base64Data = avatarBase64.split(',')[1]
-
-  // Convert base64 to Uint8Array
-  const byteString = atob(base64Data)
-  const arrayBuffer = new ArrayBuffer(byteString.length)
-  const uint8Array = new Uint8Array(arrayBuffer)
-  for (let i = 0; i < byteString.length; i++) {
-    uint8Array[i] = byteString.charCodeAt(i)
-  }
-
-  // Upload new avatar
-  const blob = new Blob([uint8Array], { type: mimeType })
-  const { data: uploadData, error: uploadError } = await client.storage
-    .from(bucketName)
-    .upload(studentId, blob, {
-      contentType: mimeType,
-      upsert: true,
-    })
-
-  if (uploadError) {
-    console.error('Error uploading new avatar:', uploadError)
-    throw new Error('Failed to upload new avatar')
-  }
-
-  // Retrieve public URL
-  const { data: { publicUrl } } = await client.storage
-    .from(bucketName)
-    .getPublicUrl(uploadData.path)
-
-  return extractStoragePath(publicUrl)
-}
+import { uploadImageToStorage } from './uploadImageService'
 
 export async function getStudents(query: IStudentsQueryParams): Promise<{ data: IStudentDTO[], totalCount: number | null }> {
   const { data, count } = await buildSupabaseQuery(query)
@@ -238,7 +189,7 @@ export async function createStudent(params: Omit<IStudentDTO, 'id' | 'createdAt'
       throw new Error('Incorrect avatar')
     }
     // Process avatar upload and update params with new URL
-    const newAvatarUrl = await uploadImageToStorage('student_avatar', data.id, params.avatarUrl)
+    const newAvatarUrl = await uploadImageToStorage(client, 'student_avatar', data.id, params.avatarUrl)
     params.avatarUrl = newAvatarUrl
   }
 
@@ -259,7 +210,7 @@ export async function updateStudent(params: Partial<IStudentDTO> & { id: string 
       throw new Error('Incorrect avatar')
     }
     // Process avatar upload and update params with new URL
-    const newAvatarUrl = await uploadImageToStorage('student_avatar', params.id, params.avatarUrl)
+    const newAvatarUrl = await uploadImageToStorage(client, 'student_avatar', params.id, params.avatarUrl)
     params.avatarUrl = newAvatarUrl
   }
 
