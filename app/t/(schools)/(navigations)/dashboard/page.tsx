@@ -1,10 +1,13 @@
 import { DashboardService } from '@/services/dashboardService'
 import { CreditCard, School, Users, UserX } from 'lucide-react'
 import { Applications, Chart, GradesTable, MetricCard } from './_components'
-import { candidatures, ponctualiteData } from './_components/data'
+import { candidatures } from './_components/data'
 
 export default async function DashboardPage() {
-  const metrics = await DashboardService.getDashboardMetrics()
+  const [metrics, ponctualite] = await Promise.all([
+    DashboardService.getDashboardMetrics(),
+    DashboardService.getPonctualiteData(),
+  ])
 
   return (
     <div className="py-4 px-6 space-y-4">
@@ -58,7 +61,7 @@ export default async function DashboardPage() {
 
       {/* Main Content Section */}
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
-        <Chart data={ponctualiteData} />
+        <Chart data={ponctualite} />
         <Applications applications={candidatures} />
       </div>
 

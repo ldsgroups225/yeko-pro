@@ -318,6 +318,51 @@ export interface Database {
           },
         ]
       }
+      invite_to_school: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          expired_at: string
+          id: string
+          is_used: boolean
+          otp: string
+          school_id: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          expired_at?: string
+          id?: string
+          is_used?: boolean
+          otp: string
+          school_id: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          expired_at?: string
+          id?: string
+          is_used?: boolean
+          otp?: string
+          school_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'link_teacher_school_created_by_fkey'
+            columns: ['created_by']
+            isOneToOne: false
+            referencedRelation: 'users'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'link_teacher_school_school_id_fkey'
+            columns: ['school_id']
+            isOneToOne: false
+            referencedRelation: 'schools'
+            referencedColumns: ['id']
+          },
+        ]
+      }
       link_student_parent: {
         Row: {
           created_at: string
@@ -410,11 +455,14 @@ export interface Database {
           created_at: string
           description: string | null
           due_date: string | null
+          grades_processed: boolean | null
           id: string
           is_active: boolean
           is_graded: boolean
           is_published: boolean
+          last_processed_at: string | null
           note_type: string
+          participation_processed: boolean | null
           published_at: string | null
           school_id: string
           school_year_id: number
@@ -430,11 +478,14 @@ export interface Database {
           created_at?: string
           description?: string | null
           due_date?: string | null
+          grades_processed?: boolean | null
           id?: string
           is_active?: boolean
           is_graded?: boolean
           is_published?: boolean
+          last_processed_at?: string | null
           note_type: string
+          participation_processed?: boolean | null
           published_at?: string | null
           school_id: string
           school_year_id: number
@@ -450,11 +501,14 @@ export interface Database {
           created_at?: string
           description?: string | null
           due_date?: string | null
+          grades_processed?: boolean | null
           id?: string
           is_active?: boolean
           is_graded?: boolean
           is_published?: boolean
+          last_processed_at?: string | null
           note_type?: string
+          participation_processed?: boolean | null
           published_at?: string | null
           school_id?: string
           school_year_id?: number
@@ -1230,7 +1284,31 @@ export interface Database {
       }
     }
     Views: {
-      [_ in never]: never
+      attendances_report_view: {
+        Row: {
+          absences: number | null
+          lates: number | null
+          month: string | null
+          school_years_id: number | null
+          student_id: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'attendances_school_years_foreign'
+            columns: ['school_years_id']
+            isOneToOne: false
+            referencedRelation: 'school_years'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'attendances_student_id_fkey'
+            columns: ['student_id']
+            isOneToOne: false
+            referencedRelation: 'students'
+            referencedColumns: ['id']
+          },
+        ]
+      }
     }
     Functions: {
       create_attendance_and_participator_and_homework: {
@@ -1349,6 +1427,14 @@ export interface Database {
           is_published: boolean
           publish_date: string
         }[]
+      }
+      process_grade_notifications: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
+      process_participation_notes: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
       }
       update_existing_class_slugs: {
         Args: Record<PropertyKey, never>

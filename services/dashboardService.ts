@@ -51,14 +51,6 @@ const metrics: DashboardMetrics = {
   },
 }
 
-const ponctualiteData: IPonctualite[] = [
-  { month: 'Sept', absences: 45, lates: 30 },
-  { month: 'Oct', absences: 52, lates: 35 },
-  { month: 'Nov', absences: 48, lates: 28 },
-  { month: 'Déc', absences: 70, lates: 45 },
-  { month: 'Jan', absences: 55, lates: 38 },
-]
-
 const candidatures: ICandidature[] = [
   { time: '2h', name: 'Marie Dupont', type: 'Professeur', status: 'En attente' },
   { time: '5h', name: 'Jean Martin', type: 'Élève', status: 'En attente' },
@@ -189,16 +181,34 @@ export class DashboardService {
     const studentPopulation = await getStudentPopulation(supabase, schoolId)
     const studentFiles = await getStudentFiles(supabase, schoolId)
     const teachingStaff = await getTeachingStaff(supabase, schoolId)
+    // TODO: get payments then remove hard coded values
 
     return { ...metrics, studentPopulation, studentFiles, teachingStaff }
   }
 
   static async getPonctualiteData(): Promise<IPonctualite[]> {
-    await delay(1000)
-    if (simulateError()) {
-      throw new Error('Failed to fetch ponctualite data')
+    const supabase = createClient()
+
+    const userId = await checkAuthUserId(supabase)
+    await getDirectorSchoolId(supabase, userId)
+
+    const { data, error } = await supabase
+      .from('attendances_report_view')
+      .select('month, absences, lates')
+      // TODO: .eq('student_id', 'student-uuid')
+      // TODO: .eq('school_years_id', 2023)  // Filter by school year
+      .order('month', { ascending: true })
+
+    if (error) {
+      console.error('Error fetching ponctualite data:', error.message)
+      return []
     }
-    return ponctualiteData
+
+    return data?.map(d => ({
+      month: d.month!,
+      absences: d.absences!,
+      lates: d.lates!,
+    } satisfies IPonctualite)) ?? []
   }
 
   static async getCandidatures(): Promise<ICandidature[]> {
