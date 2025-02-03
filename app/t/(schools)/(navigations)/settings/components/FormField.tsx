@@ -8,6 +8,7 @@ interface FormFieldProps {
   defaultValue?: string
   placeholder?: string
   type?: string
+  error?: string
 }
 
 const FormField: React.FC<FormFieldProps> = ({
@@ -16,6 +17,7 @@ const FormField: React.FC<FormFieldProps> = ({
   defaultValue,
   placeholder,
   type = 'text',
+  error,
 }) => {
   return (
     <div className="space-y-2">
@@ -26,6 +28,7 @@ const FormField: React.FC<FormFieldProps> = ({
         defaultValue={defaultValue}
         placeholder={placeholder}
       />
+      {error && <p className="text-sm text-destructive">{error}</p>}
     </div>
   )
 }

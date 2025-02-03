@@ -64,9 +64,10 @@ export interface ISchoolDTO {
   id: string
   name: string
   code: string
+  city?: string
+  email?: string
   cycleId: string
   imageUrl: string
-  address?: string | null
   phone?: string
   createdAt: string
   createdBy: string
@@ -74,6 +75,7 @@ export interface ISchoolDTO {
   updatedBy: string
   classCount?: number
   studentCount?: number
+  address?: string | null
 }
 
 export interface IUserProfileDTO {

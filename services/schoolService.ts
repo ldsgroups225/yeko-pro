@@ -1,6 +1,6 @@
-import type { SupabaseClient } from '@/lib/supabase/server'
+import type { SupabaseClient } from '@/lib/supabase/client'
 import type { ISchoolDTO } from '@/types'
-import { createClient } from '@/lib/supabase/server'
+import { createClient } from '@/lib/supabase/client'
 import { ERole } from '@/types'
 import { uploadImageToStorage } from './uploadImageService'
 
@@ -31,8 +31,8 @@ async function getDirectorSchoolId(client: SupabaseClient, userId: string): Prom
   return userSchool.school_id
 }
 
-export class DashboardService {
-  static async getDashboardMetrics(schoolId: string, params: Partial<ISchoolDTO>): Promise<void> {
+export class SchoolService {
+  static async updateSchool(schoolId: string, params: Partial<ISchoolDTO>): Promise<void> {
     const supabase = createClient()
 
     const userId = await checkAuthUserId(supabase)
@@ -55,7 +55,9 @@ export class DashboardService {
       .from('schools')
       .update({
         name: params.name,
+        city: params.city,
         phone: params.phone,
+        email: params.email,
         address: params.address,
         image_url: params.imageUrl,
       })

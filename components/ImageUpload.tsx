@@ -8,14 +8,15 @@ import { useRef, useState } from 'react'
 import { toast } from 'sonner'
 
 interface ImageUploadProps {
-  value?: string | null
-  onChange: (url: string | null) => void
   disabled?: boolean
+  value?: string | null
+  label?: string
+  onChange: (url: string | null) => void
 }
 
 const MAX_FILE_SIZE = 3 * 1024 * 1024 // 3MB in bytes
 
-export function ImageUpload({ value, onChange, disabled }: ImageUploadProps) {
+export function ImageUpload({ value, onChange, disabled, label = 'avatar' }: ImageUploadProps) {
   const [preview, setPreview] = useState<string | null>(value || null)
   const inputRef = useRef<HTMLInputElement>(null)
 
@@ -61,7 +62,7 @@ export function ImageUpload({ value, onChange, disabled }: ImageUploadProps) {
           ? (
               <Image
                 src={preview}
-                alt="Avatar preview"
+                alt={`${label} preview`}
                 fill
                 className="rounded-full object-cover"
               />
@@ -88,7 +89,9 @@ export function ImageUpload({ value, onChange, disabled }: ImageUploadProps) {
           onClick={() => inputRef.current?.click()}
           disabled={disabled}
         >
-          Changer l&apos;avatar
+          Changer l&apos;
+          {' '}
+          {label}
         </Button>
         {preview && (
           <Button

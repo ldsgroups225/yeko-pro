@@ -2,6 +2,7 @@
 
 import type { StudentFormValues } from '@/validations'
 import type { ChangeEvent, FocusEvent } from 'react'
+import { ImageUpload } from '@/components/ImageUpload'
 import { Button } from '@/components/ui/button'
 import { Calendar } from '@/components/ui/calendar'
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
@@ -20,7 +21,6 @@ import fr from 'date-fns/locale/fr'
 import { CalendarIcon, Loader2 } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
-import { ImageUpload } from './ImageUpload'
 
 const minAgeDate = subYears(new Date(), MIN_STUDENT_AGE)
 
@@ -72,8 +72,8 @@ export function EditStudentForm({ studentIdNumber, onSubmit, onCancel, isLoading
 
   if (!student) {
     return (
-      <div className="space-y-6 min-w-[600px] max-w-2xl mx-auto overflow-y-auto">
-        <div className="space-y-4">
+      <div className="space-y-6 min-w-[600px] max-w-2xl mx-auto">
+        <div className="space-y-4 max-h-[500px] overflow-y-auto">
           {/* Avatar skeleton */}
           <div className="space-y-2">
             <div className="h-4 w-24 bg-muted rounded" />

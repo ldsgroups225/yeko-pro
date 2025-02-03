@@ -789,6 +789,7 @@ export interface Database {
       schools: {
         Row: {
           address: string | null
+          city: string
           code: string
           created_at: string | null
           created_by: string | null
@@ -805,6 +806,7 @@ export interface Database {
         }
         Insert: {
           address?: string | null
+          city: string
           code: string
           created_at?: string | null
           created_by?: string | null
@@ -821,6 +823,7 @@ export interface Database {
         }
         Update: {
           address?: string | null
+          city?: string
           code?: string
           created_at?: string | null
           created_by?: string | null
