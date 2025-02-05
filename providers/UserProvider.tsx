@@ -1,6 +1,9 @@
+// providers/UserProvider.tsx
+
 import { useInitUsefulData } from '@/hooks/useInitUsefullData'
-import { useUser } from '@/hooks/useUser'
+import useUserStore from '@/store/userStore'
 import { type ReactNode, useCallback, useEffect, useReducer } from 'react'
+import { useShallow } from 'zustand/react/shallow'
 import { UserContext } from './UserContext'
 
 interface UserProviderProps {
@@ -43,13 +46,12 @@ function reducer(state: State, action: Action): State {
 
 export function UserProvider({ children }: UserProviderProps) {
   const [state, dispatch] = useReducer(reducer, initialState)
-  const { user } = useUser()
+  const user = useUserStore(useShallow(state => state.user))
   const { initialize } = useInitUsefulData()
 
   const initializeData = useCallback(async () => {
-    if (state.isInitialized) {
+    if (state.isInitialized)
       return
-    }
 
     dispatch({ type: 'START_LOADING' })
 

@@ -1,37 +1,32 @@
+// hooks/useInitUsefullData.ts
+
 import useGradeStore from '@/store/gradeStore'
 import useSchoolYearStore from '@/store/schoolYearStore'
 import useSubjectStore from '@/store/subjectStore'
 import useUserStore from '@/store/userStore'
 import { useCallback } from 'react'
+import { useShallow } from 'zustand/react/shallow'
 
-/**
- * Hook to initialize reusable data with memoization and better state management
- */
 export function useInitUsefulData() {
-  const { fetchGrades } = useGradeStore()
-  const { fetchSubjects } = useSubjectStore()
-  const { fetchSchoolYears } = useSchoolYearStore()
-  const { fetchUser, isAuthenticated } = useUserStore()
+  const fetchGrades = useGradeStore(state => state.fetchGrades)
+  const fetchSubjects = useSubjectStore(state => state.fetchSubjects)
+  const fetchSchoolYears = useSchoolYearStore(state => state.fetchSchoolYears)
 
-  // Memoize the initialize function to prevent unnecessary recreations
+  const { fetchUser } = useUserStore(useShallow(state => ({ fetchUser: state.fetchUser })))
+  const isAuthenticated = useUserStore(state => state.isAuthenticated)
+
   const initialize = useCallback(async (): Promise<void> => {
     try {
-      // Prevent duplicate initialization if already authenticated
-      if (isAuthenticated) {
+      if (isAuthenticated)
         return
-      }
 
-      // 1. Fetch user profile
       const user = await fetchUser()
 
-      // 2. Only proceed with additional data loading if we have a valid user
       if (user?.school?.cycleId) {
-        // Load grades in parallel with other potential data fetching
         await Promise.all([
           fetchSubjects(),
           fetchSchoolYears(),
           fetchGrades(user.school.cycleId),
-          // Add other parallel loading operations here
         ])
       }
       else {
@@ -42,7 +37,7 @@ export function useInitUsefulData() {
       console.error('Error initializing useful data:', error)
       throw error
     }
-  }, [])
+  }, [isAuthenticated, fetchUser, fetchSubjects, fetchSchoolYears, fetchGrades])
 
   return { initialize }
 }
