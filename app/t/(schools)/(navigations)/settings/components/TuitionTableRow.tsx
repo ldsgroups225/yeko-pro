@@ -25,15 +25,15 @@ export function TuitionTableRow({
   const [isEditing, setIsEditing] = useState(false)
   const [formData, setFormData] = useState({
     annualFee: tuition?.annualFee || 0,
-    stateDiscount: tuition?.stateDiscount || 0,
+    governmentDiscountPercentage: tuition?.governmentDiscountPercentage || 0,
   })
   const annualFeeInputRef = useRef<HTMLInputElement>(null) as RefObject<HTMLInputElement>
-  const stateDiscountInputRef = useRef<HTMLInputElement>(null) as RefObject<HTMLInputElement>
+  const governmentDiscountPercentageInputRef = useRef<HTMLInputElement>(null) as RefObject<HTMLInputElement>
 
   useEffect(() => {
     setFormData({
       annualFee: tuition?.annualFee || 0,
-      stateDiscount: tuition?.stateDiscount || 0,
+      governmentDiscountPercentage: tuition?.governmentDiscountPercentage || 0,
     })
   }, [tuition])
 
@@ -64,21 +64,21 @@ export function TuitionTableRow({
         {isEditing
           ? (
               <NumberInput
-                ref={stateDiscountInputRef}
+                ref={governmentDiscountPercentageInputRef}
                 min={0}
                 max={100}
                 suffix="%"
-                value={formData.stateDiscount}
+                value={formData.governmentDiscountPercentage}
                 onChange={e =>
                   setFormData(prev => ({
                     ...prev,
-                    stateDiscount: Number(e.target.value.replace(/.$/, '')),
+                    governmentDiscountPercentage: Number(e.target.value.replace(/.$/, '')),
                   }))}
                 className="max-w-[100px]"
               />
             )
           : (
-              `${formData.stateDiscount}%`
+              `${formData.governmentDiscountPercentage}%`
             )}
       </TableCell>
       <TableCell>
@@ -106,7 +106,7 @@ export function TuitionTableRow({
                     setIsEditing(false)
                     setFormData({
                       annualFee: tuition?.annualFee || 0,
-                      stateDiscount: tuition?.stateDiscount || 0,
+                      governmentDiscountPercentage: tuition?.governmentDiscountPercentage || 0,
                     })
                   }}
                 >

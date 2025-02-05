@@ -10,9 +10,9 @@ export interface PaymentPlan {
   studentName: string
   totalAmount: number
   amountPaid: number
-  paymentStatus: 'pending' | 'partial' | 'paid' | 'overdue'
   createdAt: string
   updatedAt: string
+  paymentStatus: 'pending' | 'partial' | 'paid' | 'overdue'
 }
 
 export interface TuitionSettings {
@@ -20,7 +20,7 @@ export interface TuitionSettings {
   schoolId: string
   gradeId: number
   annualFee: number
-  stateDiscount: number
+  governmentDiscountPercentage: number
   createdAt: string
   updatedAt: string
 }
@@ -39,7 +39,7 @@ export const dummyTuitionSettings: { [gradeId: number]: TuitionSettings } = {
     schoolId: 'school-1',
     gradeId: 1,
     annualFee: 75000,
-    stateDiscount: 10,
+    governmentDiscountPercentage: 10,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   },
@@ -48,7 +48,7 @@ export const dummyTuitionSettings: { [gradeId: number]: TuitionSettings } = {
     schoolId: 'school-1',
     gradeId: 2,
     annualFee: 80000,
-    stateDiscount: 5,
+    governmentDiscountPercentage: 5,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   },
@@ -57,7 +57,7 @@ export const dummyTuitionSettings: { [gradeId: number]: TuitionSettings } = {
     schoolId: 'school-1',
     gradeId: 3,
     annualFee: 85000,
-    stateDiscount: 0,
+    governmentDiscountPercentage: 0,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   },
@@ -66,7 +66,7 @@ export const dummyTuitionSettings: { [gradeId: number]: TuitionSettings } = {
     schoolId: 'school-1',
     gradeId: 4,
     annualFee: 90000,
-    stateDiscount: 15,
+    governmentDiscountPercentage: 15,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   },
@@ -75,7 +75,7 @@ export const dummyTuitionSettings: { [gradeId: number]: TuitionSettings } = {
     schoolId: 'school-1',
     gradeId: 5,
     annualFee: 95000,
-    stateDiscount: 20,
+    governmentDiscountPercentage: 20,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   },

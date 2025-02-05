@@ -5,7 +5,7 @@ const tuitionSettingsSchema = z.object({
   schoolId: z.string().uuid(),
   gradeId: z.number().int().positive(),
   annualFee: z.number().nonnegative(),
-  stateDiscount: z.number().min(0).max(100),
+  governmentDiscountPercentage: z.number().min(0).max(100),
   createdAt: z.string().datetime().optional(),
   updatedAt: z.string().datetime().optional(),
 })

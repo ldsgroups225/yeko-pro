@@ -1418,28 +1418,28 @@ export interface Database {
         Row: {
           annual_fee: number
           created_at: string | null
+          government_discount_percentage: number
           grade_id: number
           id: string
           school_id: string
-          state_discount: number
           updated_at: string | null
         }
         Insert: {
           annual_fee: number
           created_at?: string | null
+          government_discount_percentage?: number
           grade_id: number
           id?: string
           school_id: string
-          state_discount?: number
           updated_at?: string | null
         }
         Update: {
           annual_fee?: number
           created_at?: string | null
+          government_discount_percentage?: number
           grade_id?: number
           id?: string
           school_id?: string
-          state_discount?: number
           updated_at?: string | null
         }
         Relationships: [

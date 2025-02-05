@@ -21,7 +21,7 @@ function serializeTuition(data: Partial<TuitionSettings>): TuitionSettingsInsert
     grade_id: data.gradeId!,
     school_id: data.schoolId!,
     annual_fee: data.annualFee!,
-    state_discount: data.stateDiscount,
+    government_discount_percentage: data.governmentDiscountPercentage,
   }
 }
 
@@ -34,12 +34,12 @@ function serializeTuition(data: Partial<TuitionSettings>): TuitionSettingsInsert
 function deserializeTuition(data: TuitionSettingsRead): TuitionSettings {
   return {
     id: data.id,
-    schoolId: data.school_id,
     gradeId: data.grade_id,
+    schoolId: data.school_id,
     annualFee: data.annual_fee,
-    stateDiscount: data.state_discount,
     createdAt: data.created_at!,
     updatedAt: data.updated_at!,
+    governmentDiscountPercentage: data.government_discount_percentage,
   }
 }
 
