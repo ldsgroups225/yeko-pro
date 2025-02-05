@@ -17,12 +17,12 @@ import {
 } from 'lucide-react'
 import React, { useState } from 'react'
 
-import AcademicSettingsTab from './tabs/AcademicSettingsTab'
 import IntegrationsSettingsTab from './tabs/IntegrationsSettingsTab'
 import NotificationsSettingsTab from './tabs/NotificationsSettingsTab'
 import ProfileSettingsTab from './tabs/ProfileSettingsTab'
 import SchoolSettingsTab from './tabs/SchoolSettingsTab'
 import SecuritySettingsTab from './tabs/SecuritySettingsTab'
+import TuitionSettingsTab from './tabs/TuitionSettingsTab'
 
 export default function SettingsPage() {
   const { user } = useUser()
@@ -63,9 +63,9 @@ export default function SettingsPage() {
             <User className="h-4 w-4" />
             <span>Profil</span>
           </TabsTrigger>
-          <TabsTrigger value="academic" className="space-x-2">
+          <TabsTrigger value="tuition" className="space-x-2">
             <BookOpen className="h-4 w-4" />
-            <span>Académique</span>
+            <span>Scolarité</span>
           </TabsTrigger>
           <TabsTrigger value="notifications" className="space-x-2">
             <Bell className="h-4 w-4" />
@@ -89,8 +89,8 @@ export default function SettingsPage() {
           <ProfileSettingsTab />
         </TabsContent>
 
-        <TabsContent value="academic">
-          <AcademicSettingsTab />
+        <TabsContent value="tuition">
+          <TuitionSettingsTab />
         </TabsContent>
 
         <TabsContent value="notifications">

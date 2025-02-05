@@ -20,15 +20,23 @@ import * as React from 'react'
 import * as RPNInput from 'react-phone-number-input'
 import flags from 'react-phone-number-input/flags'
 
-type PhoneInputProps = Omit<
+type BaseInputProps = Omit<
   React.ComponentProps<'input'>,
-  'onChange' | 'value' | 'ref'
-> &
-Omit<RPNInput.Props<typeof RPNInput.default>, 'onChange'> & {
+  'onChange' | 'value' | 'autoComplete' | 'onBlur' | 'onFocus' | 'style'
+>
+
+type BasePhoneInputProps = Omit<
+  RPNInput.Props<typeof RPNInput.default>,
+  'onChange' | 'ref' | 'autoComplete' | 'onBlur' | 'onFocus' | 'style'
+>
+
+export interface PhoneInputProps extends BaseInputProps, BasePhoneInputProps {
   onChange?: (value: RPNInput.Value) => void
+  onFocus?: (event: React.FocusEvent<HTMLInputElement>) => void
+  style?: React.CSSProperties
 }
 
-function PhoneInput({ ref, className, onChange, ...props }: PhoneInputProps & { ref: React.RefObject<React.ElementRef<typeof RPNInput.default>> }) {
+export function PhoneInput({ ref, className, onChange, ...props }: PhoneInputProps & { ref: React.RefObject<React.ElementRef<typeof RPNInput.default>> }) {
   return (
     <RPNInput.default
       ref={ref}
@@ -42,20 +50,26 @@ function PhoneInput({ ref, className, onChange, ...props }: PhoneInputProps & { 
     />
   )
 }
+
 PhoneInput.displayName = 'PhoneInput'
 
-function InputComponent({ ref, className, ...props }: React.ComponentProps<'input'> & { ref: React.RefObject<HTMLInputElement> }) {
+function InputComponent(
+  { ref, className, ...props }: React.ComponentProps<'input'> & { ref: React.RefObject<HTMLInputElement> },
+) {
   return (
     <Input
+      ref={ref}
       className={cn('rounded-e-lg rounded-s-none', className)}
       {...props}
-      ref={ref}
     />
   )
 }
 InputComponent.displayName = 'InputComponent'
 
-interface CountryEntry { label: string, value: RPNInput.Country | undefined }
+interface CountryEntry {
+  label: string
+  value: RPNInput.Country | undefined
+}
 
 interface CountrySelectProps {
   disabled?: boolean
@@ -79,10 +93,7 @@ function CountrySelect({
           className="flex gap-1 rounded-e-none rounded-s-lg border-r-0 px-3 focus:z-10"
           disabled={disabled}
         >
-          <FlagComponent
-            country={selectedCountry}
-            countryName={selectedCountry}
-          />
+          <FlagComponent country={selectedCountry} countryName={selectedCountry} />
           <ChevronsUpDown
             className={cn(
               '-mr-2 w-4 h-4 opacity-50',
@@ -93,10 +104,10 @@ function CountrySelect({
       </PopoverTrigger>
       <PopoverContent className="w-[300px] p-0">
         <Command>
-          <CommandInput placeholder="Rechercher un pays..." />
+          <CommandInput placeholder="Search country..." />
           <CommandList>
             <ScrollArea className="h-72">
-              <CommandEmpty>Aucun pays trouvé</CommandEmpty>
+              <CommandEmpty>No country found.</CommandEmpty>
               <CommandGroup>
                 {countryList.map(({ value, label }) =>
                   value
@@ -135,9 +146,13 @@ function CountrySelectOption({
     <CommandItem className="gap-2" onSelect={() => onChange(country)}>
       <FlagComponent country={country} countryName={countryName} />
       <span className="flex-1 text-sm">{countryName}</span>
-      <span className="text-sm text-foreground/50">{`+${RPNInput.getCountryCallingCode(country)}`}</span>
+      <span className="text-sm text-foreground/50">
+        {`+${RPNInput.getCountryCallingCode(country)}`}
+      </span>
       <CheckIcon
-        className={`ml-auto size-4 ${country === selectedCountry ? 'opacity-100' : 'opacity-0'}`}
+        className={`ml-auto size-4 ${
+          country === selectedCountry ? 'opacity-100' : 'opacity-0'
+        }`}
       />
     </CommandItem>
   )
@@ -145,7 +160,6 @@ function CountrySelectOption({
 
 function FlagComponent({ country, countryName }: RPNInput.FlagProps) {
   const Flag = flags[country]
-
   return (
     <span className="flex h-4 w-6 overflow-hidden rounded-sm bg-foreground/20 [&_svg]:size-full">
       {Flag && <Flag title={countryName} />}
@@ -153,4 +167,4 @@ function FlagComponent({ country, countryName }: RPNInput.FlagProps) {
   )
 }
 
-export { PhoneInput }
+export default PhoneInput

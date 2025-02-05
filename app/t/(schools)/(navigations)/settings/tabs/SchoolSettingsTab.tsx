@@ -82,9 +82,9 @@ function SchoolSettingsTab() {
       return '+225'
 
     if (phone.startsWith('+') || phone.startsWith('00')) {
-      return phone
+      return phone.replaceAll(' ', '')
     }
-    return `+225${phone}`
+    return `+225${phone.replaceAll(' ', '')}`
   }
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -251,13 +251,9 @@ function SchoolSettingsTab() {
                       <FormLabel>Téléphone</FormLabel>
                       <FormControl>
                         <PhoneInput
-                          ref={field.ref as any}
+                          {...field}
                           placeholder="27 27 27 2727"
-                          value={formatPhone(field.value ?? '')}
-                          onChange={field.onChange}
-                          onBlur={field.onBlur}
-                          name={field.name}
-                          disabled={field.disabled}
+                          ref={field.ref as any}
                         />
                       </FormControl>
                       {fieldState.error && (
