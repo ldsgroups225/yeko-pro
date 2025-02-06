@@ -200,7 +200,7 @@ export async function getInstallmentTemplates(gradeId: number): Promise<Installm
       .select('*')
       .eq('grade_id', gradeId)
       .eq('school_id', schoolId)
-      .order('installment_number', { ascending: false })
+      .order('installment_number', { ascending: true })
       .throwOnError()
 
     if (error) {
