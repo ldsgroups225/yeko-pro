@@ -318,6 +318,51 @@ export interface Database {
           },
         ]
       }
+      installment_templates: {
+        Row: {
+          day_before_notification: number | null
+          due_date: string
+          fixed_amount: number | null
+          grade_id: number
+          id: string
+          installment_number: number
+          school_id: string
+        }
+        Insert: {
+          day_before_notification?: number | null
+          due_date: string
+          fixed_amount?: number | null
+          grade_id: number
+          id?: string
+          installment_number: number
+          school_id: string
+        }
+        Update: {
+          day_before_notification?: number | null
+          due_date?: string
+          fixed_amount?: number | null
+          grade_id?: number
+          id?: string
+          installment_number?: number
+          school_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'fk_template_grade'
+            columns: ['grade_id']
+            isOneToOne: false
+            referencedRelation: 'grades'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'fk_template_school'
+            columns: ['school_id']
+            isOneToOne: false
+            referencedRelation: 'schools'
+            referencedColumns: ['id']
+          },
+        ]
+      }
       invite_to_school: {
         Row: {
           created_at: string

@@ -2,53 +2,19 @@
 'use server'
 
 import type { SupabaseClient } from '@/lib/supabase/server'
-import type { Database } from '@/lib/supabase/types'
-import type { TuitionSettings } from '@/validations'
+import type { InstallmentTemplate, TuitionSettings } from '@/validations'
 import { createClient } from '@/lib/supabase/server'
 import { ERole } from '@/types'
-
-type TuitionSettingsRead = Database['public']['Tables']['tuition_settings']['Row']
-type TuitionSettingsInsert = Database['public']['Tables']['tuition_settings']['Insert']
-
-/**
- * Serializes a partial TuitionSettings object into a format suitable for insertion into the database.
- *
- * @param {Partial<TuitionSettings>} data - Partial tuition settings data.
- * @returns {TuitionSettingsInsert} Serialized tuition settings ready for database insertion.
- */
-function serializeTuition(data: Partial<TuitionSettings>): TuitionSettingsInsert {
-  return {
-    grade_id: data.gradeId!,
-    school_id: data.schoolId!,
-    annual_fee: data.annualFee!,
-    government_discount_percentage: data.governmentDiscountPercentage,
-  }
-}
-
-/**
- * Deserializes a TuitionSettingsRead object from the database into a TuitionSettings object.
- *
- * @param {TuitionSettingsRead} data - Tuition settings data fetched from the database.
- * @returns {TuitionSettings} Deserialized tuition settings object.
- */
-function deserializeTuition(data: TuitionSettingsRead): TuitionSettings {
-  return {
-    id: data.id,
-    gradeId: data.grade_id,
-    schoolId: data.school_id,
-    annualFee: data.annual_fee,
-    createdAt: data.created_at!,
-    updatedAt: data.updated_at!,
-    governmentDiscountPercentage: data.government_discount_percentage,
-  }
-}
+import { deserializeInstallmentTemplate, deserializeTuition, serializeInstallmentTemplate, serializeTuition } from '@/validations'
 
 /**
  * Retrieves the authenticated user's ID using the provided Supabase client.
+ * This function verifies user authentication and is used as a prerequisite for other operations.
  *
- * @param {SupabaseClient} client - The Supabase client instance.
+ * @async
+ * @param {SupabaseClient} client - The Supabase client instance configured for server-side operations.
  * @returns {Promise<string>} A promise that resolves to the authenticated user's ID.
- * @throws Will throw an error if fetching the user fails.
+ * @throws {Error} Will throw an error if fetching the user fails, indicating an authentication issue.
  */
 async function checkAuthUserId(client: SupabaseClient): Promise<string> {
   const { data: user, error: userError } = await client.auth.getUser()
@@ -61,11 +27,17 @@ async function checkAuthUserId(client: SupabaseClient): Promise<string> {
 
 /**
  * Retrieves the school ID associated with the director user.
+ * This function assumes the user is a director and fetches their associated school ID from the database.
+ * It also verifies that the user has the DIRECTOR role.
  *
- * @param {SupabaseClient} client - The Supabase client instance.
+ * @async
+ * @param {SupabaseClient} client - The Supabase client instance configured for server-side operations.
  * @param {string} userId - The authenticated user's ID.
  * @returns {Promise<string>} A promise that resolves to the director's school ID.
- * @throws Will throw an error if the user is not a director or if there is an issue fetching the school ID.
+ * @throws {Error}
+ *  - Will throw an error if the user is not a director.
+ *  - Will throw an error if there is an issue fetching the school ID from the database.
+ *  - Will throw an error if the user is not associated with any school.
  */
 async function getDirectorSchoolId(client: SupabaseClient, userId: string): Promise<string> {
   const { data: userSchool, error: userSchoolError } = await client
@@ -87,40 +59,54 @@ async function getDirectorSchoolId(client: SupabaseClient, userId: string): Prom
 
 /**
  * Retrieves tuition settings for the school associated with the authenticated director.
+ * This function fetches all tuition settings records associated with the school of the currently logged-in director.
  *
- * @returns {Promise<TuitionSettings[]>} A promise that resolves to an array of tuition settings.
- * @throws Will throw an error if there is an issue fetching the tuition settings.
+ * @async
+ * @returns {Promise<TuitionSettings[]>} A promise that resolves to an array of tuition settings for the director's school.
+ * @throws {Error}
+ *  - Will throw an error if user authentication fails.
+ *  - Will throw an error if the authenticated user is not a director or their school ID cannot be retrieved.
+ *  - Will throw an error if there is an issue fetching the tuition settings from the database.
  */
 export async function getTuitions(): Promise<TuitionSettings[]> {
   const supabase = createClient()
 
-  const userId = await checkAuthUserId(supabase)
-  const schoolId = await getDirectorSchoolId(supabase, userId)
+  try {
+    const userId = await checkAuthUserId(supabase)
+    const schoolId = await getDirectorSchoolId(supabase, userId)
 
-  const { data, error } = await supabase
-    .from('tuition_settings')
-    .select('*')
-    .eq('school_id', schoolId)
-    .throwOnError()
+    const { data, error } = await supabase
+      .from('tuition_settings')
+      .select('*')
+      .eq('school_id', schoolId)
+      .throwOnError()
 
-  if (error) {
-    console.error('Error fetching tuitions:', error)
-    throw new Error('Erreur lors de la récupération des frais scolaires')
+    if (error) {
+      console.error('Error fetching tuitions:', error)
+      throw new Error('Erreur lors de la récupération des frais scolaires')
+    }
+
+    return data.map(deserializeTuition)
   }
-
-  return data.map(deserializeTuition)
+  catch (error: any) {
+    console.error('Unexpected error in getTuitions:', error)
+    throw new Error(error.message)
+  }
 }
 
 /**
  * Updates or creates tuition settings for a specific grade.
- *
  * If no tuition record exists for the provided grade and school, a new record is inserted.
- * Otherwise, the existing record is updated.
+ * Otherwise, the existing record is updated with the provided data.
  *
- * @param {Partial<TuitionSettings>} data - Partial tuition settings data to update.
+ * @async
+ * @param {Partial<TuitionSettings>} data - Partial tuition settings data to update. Fields like `id`, `schoolId`, `createdAt`, and `updatedAt` will be ignored for updates.
  * @param {number} gradeId - The grade identifier for which the tuition settings should be updated.
  * @returns {Promise<TuitionSettings>} A promise that resolves to the updated or newly created tuition settings.
- * @throws Will throw an error if there is an issue updating or creating the tuition settings.
+ * @throws {Error}
+ *  - Will throw an error if user authentication fails.
+ *  - Will throw an error if the authenticated user is not a director or their school ID cannot be retrieved.
+ *  - Will throw an error if there is an issue fetching, creating, or updating the tuition settings in the database.
  */
 export async function updateTuition(
   data: Partial<TuitionSettings>,
@@ -187,6 +173,106 @@ export async function updateTuition(
   }
   catch (error: any) {
     console.error('Unexpected error in updateTuition:', error)
+    throw new Error(error.message)
+  }
+}
+
+/**
+ * Retrieves installment templates for a specific grade within the director's school.
+ *
+ * @async
+ * @param {number} gradeId - The grade identifier for which to retrieve installment templates.
+ * @returns {Promise<InstallmentTemplate[]>} A promise that resolves to an array of installment templates for the specified grade.
+ * @throws {Error}
+ *  - Will throw an error if user authentication fails.
+ *  - Will throw an error if the authenticated user is not a director or their school ID cannot be retrieved.
+ *  - Will throw an error if there is an issue fetching the installment templates from the database.
+ */
+export async function getInstallmentTemplates(gradeId: number): Promise<InstallmentTemplate[]> {
+  const supabase = createClient()
+
+  try {
+    const userId = await checkAuthUserId(supabase)
+    const schoolId = await getDirectorSchoolId(supabase, userId)
+
+    const { data, error } = await supabase
+      .from('installment_templates')
+      .select('*')
+      .eq('grade_id', gradeId)
+      .eq('school_id', schoolId)
+      .order('installment_number', { ascending: false })
+      .throwOnError()
+
+    if (error) {
+      console.error('Error fetching installment templates:', error)
+      throw new Error('Erreur lors de la récupération des plans de paiement')
+    }
+
+    return data.map(deserializeInstallmentTemplate)
+  }
+  catch (error: any) {
+    console.error('Unexpected error in getInstallmentTemplates:', error)
+    throw new Error(error.message)
+  }
+}
+
+/**
+ * Updates or creates an installment template for a specific grade.
+ * If no installment template record exists for the provided grade and school, a new record is inserted.
+ * Otherwise, the existing record is updated with the provided data.
+ *
+ * @async
+ * @param {Partial<InstallmentTemplate>} data - Partial installment template data to update. Fields like `id` and `schoolId` will be ignored for updates.
+ * @param {string?} id - The identifier for which the installment template should be updated.
+ * @returns {Promise<InstallmentTemplate>} A promise that resolves to the updated or newly created installment template.
+ * @throws {Error}
+ *  - Will throw an error if user authentication fails.
+ *  - Will throw an error if the authenticated user is not a director or their school ID cannot be retrieved.
+ *  - Will throw an error if there is an issue fetching, creating, or updating the installment template in the database.
+ */
+export async function updateInstallmentTemplate(data: Partial<InstallmentTemplate>, id?: string): Promise<InstallmentTemplate> {
+  const supabase = createClient()
+
+  try {
+    const userId = await checkAuthUserId(supabase)
+    const schoolId = await getDirectorSchoolId(supabase, userId)
+
+    if (!id) {
+      // No record exists: insert a new installment template record.
+      const { data: newInstallmentTemplate, error } = await supabase
+        .from('installment_templates')
+        .insert({ ...serializeInstallmentTemplate(data), school_id: schoolId })
+        .select('*')
+        .single()
+        .throwOnError()
+
+      if (error) {
+        console.error('Error creating installment template:', error)
+        throw new Error('Erreur lors de la création du plan de paiement')
+      }
+
+      return deserializeInstallmentTemplate(newInstallmentTemplate)
+    }
+    else {
+      // Record exists: update the existing record.
+      const { data: updatedInstallmentTemplate, error } = await supabase
+        .from('installment_templates')
+        .update({ ...serializeInstallmentTemplate(data), school_id: schoolId })
+        .eq('id', id)
+        .select('*')
+        .single()
+        .throwOnError()
+
+      if (error) {
+        console.error('Error updating installment template:', error)
+        throw new Error('Erreur lors de la mise à jour du plan de paiement')
+      }
+
+      return deserializeInstallmentTemplate(updatedInstallmentTemplate)
+    }
+  }
+  catch (error: any) {
+    console.error('Unexpected error in updateInstallmentTemplate:', error)
     throw new Error(error.message)
   }
 }

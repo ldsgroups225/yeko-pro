@@ -12,7 +12,7 @@ const UUID = z.string().uuid()
  */
 export const installmentTemplateSchema = z.object({
   id: UUID.optional(),
-  schoolId: UUID,
+  schoolId: UUID.optional(),
   gradeId: z.number().int().positive(),
   installmentNumber: z.number().int().positive(),
   dueDate: z.date(),

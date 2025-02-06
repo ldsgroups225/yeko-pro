@@ -1,7 +1,7 @@
 'use client'
 
 import type { TuitionSettings } from '@/validations'
-import type { PaymentPlan } from '../dummyData'
+import { Button } from '@/components/ui/button'
 import {
   Table,
   TableBody,
@@ -9,29 +9,41 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { saveRecordIfDirty } from '@/lib/utils'
 import useGradeStore from '@/store/gradeStore'
 import useTuitionStore from '@/store/tuitionStore'
-import { startTransition, useEffect, useOptimistic, useState } from 'react'
+import { PlusCircle } from 'lucide-react'
+import { startTransition, useCallback, useEffect, useOptimistic, useState } from 'react'
 import { toast } from 'sonner'
 import { PaymentPlanSection } from '../components/PaymentPlanSection'
 import SettingsSection from '../components/SettingsSection'
 import { TuitionTableRow } from '../components/TuitionTableRow'
-import { generateDummyPaymentPlans } from '../dummyData'
 
 export default function TuitionSettingsPage() {
-  const { fetchTuitions, updateTuitionSettings, tuitions } = useTuitionStore()
+  const {
+    tuitions,
+    fetchTuitions,
+    updateTuitionSettings,
+    setShowAddTemplateModal,
+    fetchInstallmentTemplates,
+    installmentTemplates: paymentPlans,
+  } = useTuitionStore()
   const { grades } = useGradeStore()
 
   const [showPaymentPlan, setShowPaymentPlan] = useState(false)
   const [selectedGradeId, setSelectedGradeId] = useState<number | null>(null)
-  const [paymentPlans, setPaymentPlans] = useState<PaymentPlan[]>([])
-  const [showAddInstallment, setShowAddInstallment] = useState(false)
 
-  const totalAmount = paymentPlans.reduce((sum, plan) => sum + plan.totalAmount, 0)
-  const amountPaid = paymentPlans.reduce((sum, plan) => sum + plan.amountPaid, 0)
   const selectedGrade = grades.find(grade => grade.id === selectedGradeId)
-  const dummyStatus: 'pending' | 'partial' | 'paid' | 'overdue' = 'pending'
+
+  const fetchInstallmentTemplatesMemoized = useCallback(async () => {
+    try {
+      await fetchInstallmentTemplates(selectedGradeId!)
+    }
+    catch (error: any) {
+      toast.error(error.message)
+    }
+  }, [selectedGradeId])
 
   const [optimisticTuition, setOptimisticTuition] = useOptimistic<Record<number, TuitionSettings>>(
     tuitions.reduce((acc, tuition) => {
@@ -56,20 +68,9 @@ export default function TuitionSettingsPage() {
 
   useEffect(() => {
     if (selectedGradeId) {
-      fetchPaymentPlans(selectedGradeId)
+      fetchInstallmentTemplatesMemoized()
     }
   }, [selectedGradeId])
-
-  async function fetchPaymentPlans(gradeId: number) {
-    try {
-      await new Promise(resolve => setTimeout(resolve, 500))
-      setPaymentPlans(generateDummyPaymentPlans(gradeId))
-    }
-    catch (error: any) {
-      console.error('Error fetching payment plans:', error)
-      toast.error(error.message)
-    }
-  }
 
   const handleTogglePaymentPlan = (show: boolean, gradeId: number | null = null) => {
     setShowPaymentPlan(show)
@@ -135,15 +136,33 @@ export default function TuitionSettingsPage() {
       <SettingsSection
         title="Plan de paiement"
         description={`Configuration des tranches de paiement pour ${selectedGrade?.name || 'ce niveau'}`}
+        actions={
+          showPaymentPlan
+            ? (
+                <Tooltip delayDuration={500}>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={() => setShowAddTemplateModal(true)}
+                    >
+                      <PlusCircle className="h-4 w-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    Ajouter une tranche de paiement
+                  </TooltipContent>
+                </Tooltip>
+              )
+            : <div className="w-9 h-9" />
+        }
       >
         {showPaymentPlan
           ? (
               <PaymentPlanSection
-                totalAmount={totalAmount}
-                amountPaid={amountPaid}
-                dummyStatus={dummyStatus}
-                showAddInstallment={showAddInstallment}
-                setShowAddInstallment={setShowAddInstallment}
+                gradeId={selectedGradeId!}
+                paymentPlans={paymentPlans}
+                totalAmount={optimisticTuition[selectedGradeId!]?.annualFee || 0}
               />
             )
           : (
