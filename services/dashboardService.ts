@@ -364,8 +364,6 @@ export async function publishNote(noteId: string): Promise<void> {
 export async function handleCandidature(candidateId: string, candidateType: 'student' | 'teacher', action: 'accept' | 'reject'): Promise<void> {
   const supabase = createClient()
 
-  throw new Error('Not implemented')
-
   if (candidateType === 'student') {
     const { error } = await supabase
       .from('student_school_class')
