@@ -162,11 +162,11 @@ export function isToday(date: Date): boolean {
 }
 
 /**
- *
- * @param date
- * @returns
+ * Formats a date for display
+ * @param date - Date to format
+ * @returns {string} - Formatted date string
  */
-export function formatTimePassed(date: Date | number) {
+export function formatTimePassed(date: Date | number): string {
   const now = new Date()
   const diffDays = differenceInDays(now, date)
 

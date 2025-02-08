@@ -9,11 +9,11 @@ export const ponctualiteData: IPonctualite[] = [
 ]
 
 export const candidatures: ICandidature[] = [
-  { time: '2h', name: 'Marie Dupont', type: 'Professeur', status: 'En attente' },
-  { time: '5h', name: 'Jean Martin', type: 'Élève', status: 'En attente' },
-  { time: '1j', name: 'Sophie Bernard', type: 'Professeur', status: 'En attente' },
-  { time: '2j', name: 'Lucas Petit', type: 'Élève', status: 'En attente' },
-  { time: '2j', name: 'Emma Dubois', type: 'Élève', status: 'En attente' },
+  { candidateId: '1', time: '2h', name: 'Marie Dupont', type: 'Professeur', status: 'En attente' },
+  { candidateId: '2', time: '5h', name: 'Jean Martin', type: 'Élève', status: 'En attente' },
+  { candidateId: '3', time: '1j', name: 'Sophie Bernard', type: 'Professeur', status: 'En attente' },
+  { candidateId: '4', time: '2j', name: 'Lucas Petit', type: 'Élève', status: 'En attente' },
+  { candidateId: '5', time: '2j', name: 'Emma Dubois', type: 'Élève', status: 'En attente' },
 ]
 
 export const notes: IGradeNote[] = [
