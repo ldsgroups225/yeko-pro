@@ -336,6 +336,7 @@ export interface IPonctualite {
 }
 
 export interface ICandidature {
+  candidateId: string
   time: string
   name: string
   type: string
