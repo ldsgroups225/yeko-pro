@@ -20,33 +20,53 @@ import { Input } from '@/components/ui/input'
 import { useClasses, useUser } from '@/hooks'
 import {
   Edit,
+  Loader2,
   MoreHorizontal,
+  ToggleLeftIcon,
   Trash,
   UserPlus2,
 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
-import { useState } from 'react'
+import { useState, useTransition } from 'react'
 import { toast } from 'sonner'
 import { SearchStudentToAdd } from '../SearchStudentToAdd'
 
 interface ClassActionsProps {
   classId: string
   studentCount: number
+  classStatus: boolean
   onOpenClassEditionModal: () => void
 }
 
 export function ClassActions({
   classId,
-  onOpenClassEditionModal,
+  classStatus,
   studentCount,
+  onOpenClassEditionModal,
 }: ClassActionsProps) {
   const router = useRouter()
   const { user } = useUser()
-  const { deleteClass } = useClasses()
+  const { deleteClass, activateDeactivateClass } = useClasses()
+
+  const [isPending, startTransition] = useTransition()
+
   const [isAddStudentOpen, setIsAddStudentOpen] = useState(false)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const [deleteConfirmationText, setDeleteConfirmationText] = useState('')
   const [isDeleting, setIsDeleting] = useState(false)
+
+  async function handleActivateDeactivateClass() {
+    startTransition(async () => {
+      try {
+        await activateDeactivateClass(classId, !classStatus)
+        toast.success(`La classe a été ${!classStatus ? 'activée' : 'desactivée'} avec succès.`)
+      }
+      catch (error) {
+        console.error('Error activating/deactivating class:', error)
+        toast.error(`Une erreur est survenue lors de ${!classStatus ? 'l\'activation' : 'la desactivation'} de la classe.`)
+      }
+    })
+  }
 
   async function handleDeleteClass() {
     if (deleteConfirmationText !== 'supprimer cette classe') {
@@ -96,6 +116,29 @@ export function ClassActions({
           <DropdownMenuItem onClick={onOpenClassEditionModal}>
             <Edit className="h-4 w-4 mr-2" />
             Modifier la classe
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={handleActivateDeactivateClass}>
+            <>
+              {
+                isPending
+                  ? (
+                      <div className="flex items-center">
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        <span>En cours...</span>
+                      </div>
+                    )
+                  : (
+                      <div className="flex items-center">
+                        <ToggleLeftIcon className="h-4 w-4 mr-2" />
+                        <span>
+                          {classStatus ? 'Desactiver ' : 'Activer '}
+                          {' '}
+                          la classe
+                        </span>
+                      </div>
+                    )
+              }
+            </>
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem

@@ -1,5 +1,6 @@
 import type { ClassDetailsStudent, FilterStudentWhereNotInTheClass, IClass, IClassDetailsStats } from '@/types'
 import {
+  activateDeactivateClass,
   createClass,
   deleteClass,
   fetchClasses,
@@ -48,6 +49,7 @@ interface ClassActions {
   addClass: (params: { name: string, schoolId: string, gradeId: number }) => Promise<void>
   updateClass: (params: { classId: string, name: string, gradeId: number }) => Promise<IClass>
   deleteClass: (schoolId: string, classId: string) => Promise<void>
+  activateDeactivateClass: (classId: string, isActive: boolean) => Promise<void>
   filterStudentWhereNotInTheClass: (schoolId: string, classId: string, search?: string) => Promise<FilterStudentWhereNotInTheClass[]>
   getClassDetailsStats: (
     params: { schoolId: string, classId: string, schoolYearId: number, semesterId: number }
@@ -201,6 +203,19 @@ const useClassStore = create<ClassState & ClassActions>((set, get) => ({
     }
     catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to delete class'
+      set({ error: errorMessage, isLoading: false })
+      throw error
+    }
+  },
+
+  activateDeactivateClass: async (classId: string, isActive: boolean) => {
+    set({ isLoading: true, error: null })
+    try {
+      await activateDeactivateClass(classId, isActive)
+      await get().fetchClasses(get().currentSchoolId!)
+    }
+    catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to activate/deactivate class'
       set({ error: errorMessage, isLoading: false })
       throw error
     }

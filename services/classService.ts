@@ -267,6 +267,21 @@ export async function updateClass({
   }
 }
 
+export async function activateDeactivateClass(classId: string, isActive: boolean) {
+  const supabase = createClient()
+
+  const { error } = await supabase
+    .from('classes')
+    .update({ is_active: isActive })
+    .eq('id', classId)
+    .throwOnError()
+
+  if (error) {
+    console.error('Error updating class:', error)
+    throw new Error('Échec de la modification de la classe')
+  }
+}
+
 export async function deleteClass(schoolId: string, classId: string): Promise<void> {
   const supabase = createClient()
 

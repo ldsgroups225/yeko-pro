@@ -25,6 +25,7 @@ export function StudentTableHeader({ classData, onOpenClassEditionModal }: Stude
 
       <ClassActions
         classId={classData!.id}
+        classStatus={classData!.isActive}
         onOpenClassEditionModal={onOpenClassEditionModal}
         studentCount={classData?.studentCount ?? 0}
       />

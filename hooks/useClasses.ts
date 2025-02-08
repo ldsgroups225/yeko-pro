@@ -51,6 +51,7 @@ interface UseClassesResult {
     classId: string
   }) => Promise<IClassDetailsStats>
   clearClasses: () => void
+  activateDeactivateClass: (classId: string, isActive: boolean) => Promise<void>
 }
 
 /**
@@ -86,6 +87,7 @@ export function useClasses(): UseClassesResult {
     totalStudentsCount,
     currentStudentPage,
     getClassDetailsStats,
+    activateDeactivateClass,
     filterStudentWhereNotInTheClass,
   } = useClassStore()
 
@@ -224,6 +226,7 @@ export function useClasses(): UseClassesResult {
     loadMoreStudents,
     clearClasses,
     getClassBySlug,
+    activateDeactivateClass,
     filterStudentWhereNotInTheClass,
     getClassDetailsStats: fetchClassDetailsStats,
   }
