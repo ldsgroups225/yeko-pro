@@ -134,7 +134,7 @@ export default function TuitionSettingsPage() {
       </SettingsSection>
 
       <SettingsSection
-        title="Plan de paiement"
+        title={`Plan de paiement ${selectedGrade?.name || ''}`}
         description={`Configuration des tranches de paiement pour ${selectedGrade?.name || 'ce niveau'}`}
         actions={
           showPaymentPlan
