@@ -8,11 +8,11 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { formatDate } from '@/lib/utils'
-import { DashboardService } from '@/services/dashboardService'
+import { getNotes } from '@/services/dashboardService'
 import { PublishNotesButton } from './PublishNotesButton'
 
 export async function GradesTable() {
-  const notes = await DashboardService.getNotes()
+  const notes = await getNotes()
 
   return (
     <Card>

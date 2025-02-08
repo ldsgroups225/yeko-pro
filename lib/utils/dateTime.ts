@@ -1,5 +1,8 @@
 import { DATE_FORMAT_SHORT, TIME_FORMAT_24H } from '@/constants'
 import {
+  differenceInDays,
+  differenceInMonths,
+  differenceInWeeks,
   differenceInYears,
   format,
   isValid,
@@ -156,6 +159,44 @@ export function getWeekDays(currentDate: Date, weekStart: number = 1): Date[] {
 export function isToday(date: Date): boolean {
   const today = new Date()
   return date.toDateString() === today.toDateString()
+}
+
+/**
+ *
+ * @param date
+ * @returns
+ */
+export function formatTimePassed(date: Date | number) {
+  const now = new Date()
+  const diffDays = differenceInDays(now, date)
+
+  if (diffDays === 0) {
+    return 'Aujourd\'hui'
+  }
+  else if (diffDays === 1) {
+    return 'Hier'
+  }
+  else if (diffDays < 7) {
+    return `Il y a ${diffDays} jour${diffDays > 1 ? 's' : ''}`
+  }
+  else if (diffDays < 14) {
+    return 'La semaine dernière'
+  }
+  else if (diffDays < 30) {
+    const diffWeeks = differenceInWeeks(now, date)
+    return `Il y a ${diffWeeks} semaine${diffWeeks > 1 ? 's' : ''}`
+  }
+  else if (diffDays < 60) {
+    return 'Le mois dernier'
+  }
+  else if (diffDays < 365) {
+    const diffMonths = differenceInMonths(now, date)
+    return `Il y a ${diffMonths} mois`
+  }
+  else {
+    const diffYears = differenceInYears(now, date)
+    return `Il y a ${diffYears} ans`
+  }
 }
 
 /**

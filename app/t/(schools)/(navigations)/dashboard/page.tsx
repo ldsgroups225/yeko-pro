@@ -1,12 +1,12 @@
-import { DashboardService } from '@/services/dashboardService'
+import { getCandidatures, getDashboardMetrics, getPonctualiteData } from '@/services/dashboardService'
 import { CreditCard, School, Users, UserX } from 'lucide-react'
 import { Applications, Chart, GradesTable, MetricCard } from './_components'
-import { candidatures } from './_components/data'
 
 export default async function DashboardPage() {
-  const [metrics, ponctualite] = await Promise.all([
-    DashboardService.getDashboardMetrics(),
-    DashboardService.getPonctualiteData(),
+  const [metrics, ponctualite, candidatures] = await Promise.all([
+    getDashboardMetrics(),
+    getPonctualiteData(),
+    getCandidatures(),
   ])
 
   return (

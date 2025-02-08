@@ -1,3 +1,5 @@
+'use server'
+
 import type { SupabaseClient } from '@/lib/supabase/server'
 import { NOTE_TYPE } from '@/constants'
 import { createClient } from '@/lib/supabase/server'
@@ -24,12 +26,6 @@ interface DashboardMetrics {
   }
 }
 
-// Simulate network delay
-const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
-
-// Random error simulation (20% chance)
-const simulateError = () => Math.random() < 0.05
-
 // Mock data
 const metrics: DashboardMetrics = {
   studentPopulation: {
@@ -51,12 +47,13 @@ const metrics: DashboardMetrics = {
   },
 }
 
-const candidatures: ICandidature[] = [
-  { time: '2h', name: 'Marie Dupont', type: 'Professeur', status: 'En attente' },
-  { time: '5h', name: 'Jean Martin', type: 'Élève', status: 'En attente' },
-  { time: '1j', name: 'Sophie Bernard', type: 'Professeur', status: 'En attente' },
-  { time: '2j', name: 'Lucas Petit', type: 'Élève', status: 'En attente' },
-  { time: '2j', name: 'Emma Dubois', type: 'Élève', status: 'En attente' },
+// TODO: remove
+const _candidatures: ICandidature[] = [
+  { candidateId: '1', time: '2h', name: 'Marie Dupont', type: 'Professeur', status: 'En attente' },
+  { candidateId: '2', time: '5h', name: 'Jean Martin', type: 'Élève', status: 'En attente' },
+  { candidateId: '3', time: '1j', name: 'Sophie Bernard', type: 'Professeur', status: 'En attente' },
+  { candidateId: '4', time: '2j', name: 'Lucas Petit', type: 'Élève', status: 'En attente' },
+  { candidateId: '5', time: '2j', name: 'Emma Dubois', type: 'Élève', status: 'En attente' },
 ]
 
 async function checkAuthUserId(client: SupabaseClient): Promise<string> {
@@ -171,68 +168,132 @@ async function getTeachingStaff(client: SupabaseClient, schoolId: string): Promi
   }
 }
 
-export class DashboardService {
-  static async getDashboardMetrics(): Promise<DashboardMetrics> {
-    const supabase = createClient()
+export async function getDashboardMetrics(): Promise<DashboardMetrics> {
+  const supabase = createClient()
 
-    const userId = await checkAuthUserId(supabase)
-    const schoolId = await getDirectorSchoolId(supabase, userId)
+  const userId = await checkAuthUserId(supabase)
+  const schoolId = await getDirectorSchoolId(supabase, userId)
 
-    const studentPopulation = await getStudentPopulation(supabase, schoolId)
-    const studentFiles = await getStudentFiles(supabase, schoolId)
-    const teachingStaff = await getTeachingStaff(supabase, schoolId)
-    // TODO: get payments then remove hard coded values
+  const studentPopulation = await getStudentPopulation(supabase, schoolId)
+  const studentFiles = await getStudentFiles(supabase, schoolId)
+  const teachingStaff = await getTeachingStaff(supabase, schoolId)
+  // TODO: get payments then remove hard coded values
 
-    return { ...metrics, studentPopulation, studentFiles, teachingStaff }
+  return { ...metrics, studentPopulation, studentFiles, teachingStaff }
+}
+
+export async function getPonctualiteData(): Promise<IPonctualite[]> {
+  const supabase = createClient()
+
+  const userId = await checkAuthUserId(supabase)
+  await getDirectorSchoolId(supabase, userId)
+
+  const { data, error } = await supabase
+    .from('attendances_report_view')
+    .select('month, absences, lates')
+  // TODO: .eq('student_id', 'student-uuid')
+  // TODO: .eq('school_years_id', 2023)  // Filter by school year
+    .order('month', { ascending: true })
+
+  if (error) {
+    console.error('Error fetching ponctualite data:', error.message)
+    return []
   }
 
-  static async getPonctualiteData(): Promise<IPonctualite[]> {
-    const supabase = createClient()
+  return data?.map(d => ({
+    month: d.month!,
+    absences: d.absences!,
+    lates: d.lates!,
+  } satisfies IPonctualite)) ?? []
+}
 
-    const userId = await checkAuthUserId(supabase)
-    await getDirectorSchoolId(supabase, userId)
+export async function getCandidatures(): Promise<ICandidature[]> {
+  const supabase = createClient()
 
-    const { data, error } = await supabase
-      .from('attendances_report_view')
-      .select('month, absences, lates')
-      // TODO: .eq('student_id', 'student-uuid')
-      // TODO: .eq('school_years_id', 2023)  // Filter by school year
-      .order('month', { ascending: true })
+  const userId = await checkAuthUserId(supabase)
+  await getDirectorSchoolId(supabase, userId)
 
-    if (error) {
-      console.error('Error fetching ponctualite data:', error.message)
-      return []
-    }
+  // get teacher candidatures
+  const teachersQs = supabase
+    .from('schools_teachers')
+    .select('status, created_at, teacher:users(id, first_name, last_name, email)')
+    .eq('status', 'pending')
+    .order('created_at', { ascending: true })
 
-    return data?.map(d => ({
-      month: d.month!,
-      absences: d.absences!,
-      lates: d.lates!,
-    } satisfies IPonctualite)) ?? []
+  // get student candidatures
+  const studentsQs = supabase
+    .from('student_school_class')
+    .select('enrollment_status, created_at, student:students(id, first_name, last_name)')
+    .eq('enrollment_status', 'pending')
+    .order('created_at', { ascending: true })
+
+  // promise all
+  const [
+    { data: teachers, error: teachersError },
+    { data: students, error: studentsError },
+  ] = await Promise.all([
+    teachersQs,
+    studentsQs,
+  ])
+
+  if (teachersError || studentsError) {
+    console.error('Error fetching candidatures:', teachersError?.message || studentsError?.message)
+    return []
   }
 
-  static async getCandidatures(): Promise<ICandidature[]> {
-    await delay(600)
-    if (simulateError()) {
-      throw new Error('Failed to fetch candidatures')
-    }
-    return candidatures
-  }
+  const deserializeTeachers: ICandidature[] = teachers.map(
+    teacher => ({
+      candidateId: teacher.teacher.id,
+      time: teacher.created_at!,
+      name: formatFullName(
+        teacher.teacher.first_name!,
+        teacher.teacher.last_name!,
+        teacher.teacher.email,
+      ),
+      type: 'teacher',
+      status: teacher.status,
+    }),
+  )
 
-  static async getNotes(): Promise<IGradeNote[]> {
-    const supabase = createClient()
-    const ALLOWED_NOTE_TYPES = [
-      NOTE_TYPE.WRITING_QUESTION,
-      NOTE_TYPE.CLASS_TEST,
-      NOTE_TYPE.LEVEL_TEST,
-    ]
+  const deserializeStudents: ICandidature[] = students.map(
+    student => ({
+      candidateId: student.student.id,
+      time: student.created_at!,
+      name: formatFullName(
+        student.student.first_name!,
+        student.student.last_name!,
+      ),
+      type: 'student',
+      status: student.enrollment_status,
+    }),
+  )
 
-    const userId = await checkAuthUserId(supabase)
-    const schoolId = await getDirectorSchoolId(supabase, userId)
+  const mergedData = [...deserializeTeachers, ...deserializeStudents]
 
-    const { data, error } = await supabase
-      .from('notes')
-      .select(`
+  // return sorted mergedData
+  return mergedData.sort((a, b) => {
+    if (a.time > b.time)
+      return -1
+    if (a.time < b.time)
+      return 1
+    return 0
+  })
+}
+
+export async function getNotes(): Promise<IGradeNote[]> {
+  const supabase = createClient()
+  const ALLOWED_NOTE_TYPES = [
+    NOTE_TYPE.WRITING_QUESTION,
+    NOTE_TYPE.CLASS_TEST,
+    NOTE_TYPE.LEVEL_TEST,
+  ]
+
+  const userId = await checkAuthUserId(supabase)
+  const schoolId = await getDirectorSchoolId(supabase, userId)
+
+  const { data, error } = await supabase
+    .from('notes')
+    .select(`
         id,
         classroom: classes(name),
         due_date,
@@ -242,69 +303,92 @@ export class DashboardService {
         is_published,
         created_at
       `)
-      .eq('school_id', schoolId)
-      .eq('is_published', false)
-      .in('note_type', ALLOWED_NOTE_TYPES)
-      .throwOnError()
+    .eq('school_id', schoolId)
+    .eq('is_published', false)
+    .in('note_type', ALLOWED_NOTE_TYPES)
+    .throwOnError()
 
-    if (error) {
-      console.error('Error fetching notes:', error)
-      throw new Error('Échec de la récupération des notes')
-    }
-
-    // Helper functions for note calculations
-    const calculateMinNote = (notes: Array<{ note?: number | null }>) => {
-      if (!notes?.length)
-        return 0
-      return notes.reduce((min, { note }) => Math.min(min, note ?? 0), Infinity)
-    }
-
-    const calculateMaxNote = (notes: Array<{ note?: number | null }>) => {
-      if (!notes?.length)
-        return 0
-      return notes.reduce((max, { note }) => Math.max(max, note ?? 0), -Infinity)
-    }
-
-    return data.map(note => ({
-      id: note.id,
-      classroom: note.classroom?.name || 'Classe inconnue',
-      studentCount: note.notes?.length || 0,
-      minNote: calculateMinNote(note.notes),
-      maxNote: calculateMaxNote(note.notes),
-      createdAt: note.due_date ?? note.created_at,
-      teacher: formatFullName(
-        note.teacher?.first_name,
-        note.teacher?.last_name,
-        note.teacher?.email,
-      ),
-      subject: note.subject?.name || 'Matière inconnue',
-      status: note.is_published ? 'Publié' : 'À publier',
-    } satisfies IGradeNote))
+  if (error) {
+    console.error('Error fetching notes:', error)
+    throw new Error('Échec de la récupération des notes')
   }
 
-  static async publishNote(noteId: string): Promise<void> {
-    const supabase = createClient()
+  // Helper functions for note calculations
+  const calculateMinNote = (notes: Array<{ note?: number | null }>) => {
+    if (!notes?.length)
+      return 0
+    return notes.reduce((min, { note }) => Math.min(min, note ?? 0), Infinity)
+  }
 
-    const userId = await checkAuthUserId(supabase)
-    await getDirectorSchoolId(supabase, userId)
+  const calculateMaxNote = (notes: Array<{ note?: number | null }>) => {
+    if (!notes?.length)
+      return 0
+    return notes.reduce((max, { note }) => Math.max(max, note ?? 0), -Infinity)
+  }
 
+  return data.map(note => ({
+    id: note.id,
+    classroom: note.classroom?.name || 'Classe inconnue',
+    studentCount: note.notes?.length || 0,
+    minNote: calculateMinNote(note.notes),
+    maxNote: calculateMaxNote(note.notes),
+    createdAt: note.due_date ?? note.created_at,
+    teacher: formatFullName(
+      note.teacher?.first_name,
+      note.teacher?.last_name,
+      note.teacher?.email,
+    ),
+    subject: note.subject?.name || 'Matière inconnue',
+    status: note.is_published ? 'Publié' : 'À publier',
+  } satisfies IGradeNote))
+}
+
+export async function publishNote(noteId: string): Promise<void> {
+  const supabase = createClient()
+
+  const userId = await checkAuthUserId(supabase)
+  await getDirectorSchoolId(supabase, userId)
+
+  const { error } = await supabase
+    .from('notes')
+    .update({ is_published: true })
+    .eq('id', noteId)
+    .throwOnError()
+
+  if (error) {
+    console.error('Error publishing notes:', error)
+    throw new Error('Échec de la publication des notes')
+  }
+}
+
+export async function handleCandidature(candidateId: string, candidateType: 'student' | 'teacher', action: 'accept' | 'reject'): Promise<void> {
+  const supabase = createClient()
+
+  throw new Error('Not implemented')
+
+  if (candidateType === 'student') {
     const { error } = await supabase
-      .from('notes')
-      .update({ is_published: true })
-      .eq('id', noteId)
+      .from('student_school_class')
+      .update({
+        enrollment_status: action === 'accept' ? 'accepted' : 'refused',
+        is_active: action === 'accept',
+      })
+
+    if (error) {
+      console.error('Error handling student candidature:', error)
+      throw new Error('Échec de la gestion de la candidature')
+    }
+  }
+  else {
+    const { error } = await supabase
+      .from('schools_teachers')
+      .update({ status: action === 'accept' ? 'accepted' : 'rejected' })
+      .eq('teacher_id', candidateId)
       .throwOnError()
 
     if (error) {
-      console.error('Error publishing notes:', error)
-      throw new Error('Échec de la publication des notes')
+      console.error('Error handling teacher candidature:', error)
+      throw new Error('Échec de la gestion de la candidature')
     }
-  }
-
-  static async handleCandidature(action: 'accept' | 'reject'): Promise<void> {
-    await delay(500)
-    if (simulateError()) {
-      throw new Error(`Failed to ${action} candidature`)
-    }
-    // Simulated success (in real app, this would make an API call)
   }
 }
