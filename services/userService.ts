@@ -45,7 +45,6 @@ export async function fetchUserProfile(): Promise<IUserProfileDTO> {
       first_name,
       last_name,
       phone,
-      students(count),
       user_roles(role_id),
       school_id
     `)
@@ -55,6 +54,18 @@ export async function fetchUserProfile(): Promise<IUserProfileDTO> {
 
   if (profileError) {
     throw new Error('Profile not found')
+  }
+
+  const { count: studentCount, error: studentCountError } = await supabase
+    .from('student_school_class')
+    .select('*', { count: 'estimated' })
+    .eq('school_id', profile.school_id!)
+    .eq('enrollment_status', 'accepted')
+    .is('is_active', true)
+    // TODO: .eq('school_years_id', 2023)  // Filter by school year
+
+  if (studentCountError) {
+    throw new Error('Failed to fetch student count')
   }
 
   const {
@@ -85,7 +96,7 @@ export async function fetchUserProfile(): Promise<IUserProfileDTO> {
       cycleId: school.cycle_id,
       imageUrl: school.image_url ?? '',
       classCount: (school.classes[0] as any)?.count ?? 0,
-      studentCount: (profile.students[0] as any)?.count ?? 0,
+      studentCount: studentCount ?? 0,
       createdAt: school.created_at ?? '',
       createdBy: school.created_by ?? '',
       updatedAt: school.updated_at ?? '',
