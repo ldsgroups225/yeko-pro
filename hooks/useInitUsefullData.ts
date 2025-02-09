@@ -8,9 +8,9 @@ import { useCallback } from 'react'
 import { useShallow } from 'zustand/react/shallow'
 
 export function useInitUsefulData() {
-  const fetchGrades = useGradeStore(state => state.fetchGrades)
-  const fetchSubjects = useSubjectStore(state => state.fetchSubjects)
-  const fetchSchoolYears = useSchoolYearStore(state => state.fetchSchoolYears)
+  const { fetchGrades } = useGradeStore(useShallow(state => ({ fetchGrades: state.fetchGrades })))
+  const { fetchSubjects } = useSubjectStore(useShallow(state => ({ fetchSubjects: state.fetchSubjects })))
+  const { fetchSchoolYears } = useSchoolYearStore(useShallow(state => ({ fetchSchoolYears: state.fetchSchoolYears })))
 
   const { fetchUser } = useUserStore(useShallow(state => ({ fetchUser: state.fetchUser })))
   const isAuthenticated = useUserStore(state => state.isAuthenticated)
