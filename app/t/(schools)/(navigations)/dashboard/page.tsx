@@ -14,7 +14,7 @@ export default async function DashboardPage() {
       {/* Top Metrics Row */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <MetricCard title="Nombre d'élèves" icon={<Users className="h-6 w-6" />} variant="primary">
-          <div className="text-3xl font-bold text-primary">{metrics?.studentPopulation.total || 'N/A'}</div>
+          <div className="text-3xl font-bold text-primary">{metrics?.studentPopulation.total || '-'}</div>
           <div className="text-sm text-emerald-600 font-medium mt-2">▲ 15% vs année précédente</div>
         </MetricCard>
 
@@ -22,15 +22,15 @@ export default async function DashboardPage() {
           <div className="space-y-2 text-destructive/80">
             <div className="flex justify-between items-center">
               <span className="text-sm">Candidatures en attente:</span>
-              <span className="font-bold">{metrics?.studentFiles.pendingApplications || 'N/A'}</span>
+              <span className="font-bold">{metrics?.studentFiles.pendingApplications || '-'}</span>
             </div>
             <div className="flex justify-between items-center">
               <span className="text-sm">Sans parent lié:</span>
-              <span className="font-bold">{metrics?.studentFiles.withoutParent || 'N/A'}</span>
+              <span className="font-bold">{metrics?.studentFiles.withoutParent || '-'}</span>
             </div>
             <div className="flex justify-between items-center">
               <span className="text-sm">Sans classe:</span>
-              <span className="font-bold">{metrics?.studentFiles.withoutClass || 'N/A'}</span>
+              <span className="font-bold">{metrics?.studentFiles.withoutClass || '-'}</span>
             </div>
           </div>
         </MetricCard>
@@ -39,18 +39,18 @@ export default async function DashboardPage() {
           <div className="space-y-2 text-input/80">
             <div className="flex justify-between items-center">
               <span className="text-sm">Candidatures en attente:</span>
-              <span className="font-bold">{metrics?.teachingStaff.pendingApplications || 'N/A'}</span>
+              <span className="font-bold">{metrics?.teachingStaff.pendingApplications || '-'}</span>
             </div>
             <div className="flex justify-between items-center">
               <span className="text-sm">Sans classe assignée:</span>
-              <span className="font-bold">{metrics?.teachingStaff.withoutClass || 'N/A'}</span>
+              <span className="font-bold">{metrics?.teachingStaff.withoutClass || '-'}</span>
             </div>
           </div>
         </MetricCard>
 
         <MetricCard title="Paiements Scolarité" icon={<CreditCard className="h-6 w-6" />} variant="success">
           <div className="text-3xl font-bold text-emerald-600 dark:text-white">
-            {metrics?.payments.onTimeRate || 'N/A'}
+            {metrics?.payments.onTimeRate || '-'}
             %
           </div>
           <div className="text-sm text-emerald-600 font-medium mt-2">
