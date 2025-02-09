@@ -47,15 +47,6 @@ const metrics: DashboardMetrics = {
   },
 }
 
-// TODO: remove
-const _candidatures: ICandidature[] = [
-  { candidateId: '1', time: '2h', name: 'Marie Dupont', type: 'Professeur', status: 'En attente' },
-  { candidateId: '2', time: '5h', name: 'Jean Martin', type: 'Élève', status: 'En attente' },
-  { candidateId: '3', time: '1j', name: 'Sophie Bernard', type: 'Professeur', status: 'En attente' },
-  { candidateId: '4', time: '2j', name: 'Lucas Petit', type: 'Élève', status: 'En attente' },
-  { candidateId: '5', time: '2j', name: 'Emma Dubois', type: 'Élève', status: 'En attente' },
-]
-
 async function checkAuthUserId(client: SupabaseClient): Promise<string> {
   const { data: user, error: userError } = await client.auth.getUser()
   if (userError) {
@@ -85,10 +76,12 @@ async function getDirectorSchoolId(client: SupabaseClient, userId: string): Prom
 
 async function getStudentPopulation(client: SupabaseClient, schoolId: string): Promise<{ total: number, yearOverYearGrowth: number }> {
   const { error, count } = await client
-    .from('students') // TODO: use 'student_school_class' table in future
+    .from('student_school_class')
     .select('*', { count: 'estimated' })
     .eq('school_id', schoolId)
-    // TODO: Use this ==> .eq('status', 'active') and filter by school_year_id too
+    .eq('enrollment_status', 'accepted')
+    .is('is_active', true)
+    // TODO: .eq('school_years_id', 2023)  // Filter by school year
 
   if (error) {
     console.error('Error fetching student population:', error.message)
@@ -99,28 +92,27 @@ async function getStudentPopulation(client: SupabaseClient, schoolId: string): P
 }
 
 async function getStudentFiles(client: SupabaseClient, schoolId: string): Promise<{ pendingApplications: number, withoutParent: number, withoutClass: number }> {
-  const pendingApplicationsQs = 0 // TODO: Implement this after your will create 'student_school_class' table
-  const withoutParentQs = client.from('students').select('id', { count: 'estimated' }).eq('school_id', schoolId).is('parent_id', null)
-  const withoutClassQs = client.from('students').select('id', { count: 'estimated' }).eq('school_id', schoolId).is('class_id', null)
+  const pendingApplicationsQs = client.from('student_school_class').select('student_id', { count: 'estimated' }).eq('school_id', schoolId)
+  const withoutParentQs = client.from('student_school_class').select('students(parent_id)').eq('school_id', schoolId).is('students.parent_id', null)
+  const withoutClassQs = client.from('student_school_class').select('id', { count: 'estimated' }).eq('school_id', schoolId).is('class_id', null)
 
   const [
-    // { count: pendingApplications, error: pendingApplicationsError },
+    { count: pendingApplications, error: pendingApplicationsError },
     { count: withoutParent, error: withoutParentError },
     { count: withoutClass, error: withoutClassError },
   ] = await Promise.all([
-    // pendingApplicationsQs,
+    pendingApplicationsQs,
     withoutParentQs,
     withoutClassQs,
   ])
 
-  // if (pendingApplicationsError || withoutParentError || withoutClassError) {
-  if (withoutParentError || withoutClassError) {
-    // console.error('Error fetching student files:', pendingApplicationsError?.message, withoutParentError?.message, withoutClassError?.message)
+  if (pendingApplicationsError || withoutParentError || withoutClassError) {
+    console.error('Error fetching student files:', pendingApplicationsError?.message, withoutParentError?.message, withoutClassError?.message)
     console.error('Error fetching student files:', withoutParentError?.message, withoutClassError?.message)
     return { pendingApplications: 0, withoutParent: 0, withoutClass: 0 }
   }
 
-  return { pendingApplications: pendingApplicationsQs, withoutParent: withoutParent ?? 0, withoutClass: withoutClass ?? 0 }
+  return { pendingApplications: pendingApplications ?? 0, withoutParent: withoutParent ?? 0, withoutClass: withoutClass ?? 0 }
 }
 
 async function getTeachingStaff(client: SupabaseClient, schoolId: string): Promise<{ pendingApplications: number, withoutClass: number }> {
@@ -135,10 +127,10 @@ async function getTeachingStaff(client: SupabaseClient, schoolId: string): Promi
     .eq('school_id', schoolId)
     .eq('status', 'pending')
 
-  // Query for teacher assignments (need actual data for deduplication)
-  const withoutClassQs = client.from('teacher_class_assignments')
+  const withClassQs = client.from('teacher_class_assignments')
     .select('teacher_id')
     .eq('school_id', schoolId)
+    .is('is_main_teacher', false)
 
   const [
     { count: pendingApplications, error: pendingApplicationsError },
@@ -147,7 +139,7 @@ async function getTeachingStaff(client: SupabaseClient, schoolId: string): Promi
   ] = await Promise.all([
     pendingApplicationsQs,
     schoolTeacherCountQs,
-    withoutClassQs,
+    withClassQs,
   ])
 
   // Handle errors first
