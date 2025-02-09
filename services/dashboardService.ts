@@ -26,27 +26,6 @@ interface DashboardMetrics {
   }
 }
 
-// Mock data
-const metrics: DashboardMetrics = {
-  studentPopulation: {
-    total: 3469,
-    yearOverYearGrowth: 15,
-  },
-  studentFiles: {
-    pendingApplications: 24,
-    withoutParent: 45,
-    withoutClass: 12,
-  },
-  teachingStaff: {
-    pendingApplications: 8,
-    withoutClass: 5,
-  },
-  payments: {
-    onTimeRate: 92,
-    improvement: 8,
-  },
-}
-
 async function checkAuthUserId(client: SupabaseClient): Promise<string> {
   const { data: user, error: userError } = await client.auth.getUser()
   if (userError) {
@@ -160,6 +139,27 @@ async function getTeachingStaff(client: SupabaseClient, schoolId: string): Promi
   }
 }
 
+async function getPayments(client: SupabaseClient, schoolId: string): Promise<{ onTimeRate: number, improvement: number }> {
+  const { data, error } = await client
+    .from('payment_plans')
+    .select('total_amount, amount_paid, student: student_school_class(school_id)')
+    .eq('student.school_id', schoolId)
+    .throwOnError()
+
+  if (error) {
+    console.error('Error fetching payments:', error)
+    throw new Error('Failed to fetch payments')
+  }
+
+  const totalPayment = data?.reduce((acc, p) => acc + p.total_amount, 0) ?? 0
+  const totalPaid = data?.reduce((acc, p) => acc + p.amount_paid, 0) ?? 0
+
+  const onTimeRate = totalPaid / totalPayment
+  const improvement = (totalPayment - totalPaid) / totalPayment // TODO: implement yearOverYearGrowth calculation
+
+  return { onTimeRate, improvement }
+}
+
 export async function getDashboardMetrics(): Promise<DashboardMetrics> {
   const supabase = createClient()
 
@@ -169,9 +169,9 @@ export async function getDashboardMetrics(): Promise<DashboardMetrics> {
   const studentPopulation = await getStudentPopulation(supabase, schoolId)
   const studentFiles = await getStudentFiles(supabase, schoolId)
   const teachingStaff = await getTeachingStaff(supabase, schoolId)
-  // TODO: get payments then remove hard coded values
+  const payments = await getPayments(supabase, schoolId)
 
-  return { ...metrics, studentPopulation, studentFiles, teachingStaff }
+  return { payments, studentPopulation, studentFiles, teachingStaff }
 }
 
 export async function getPonctualiteData(): Promise<IPonctualite[]> {
