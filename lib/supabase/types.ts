@@ -1159,11 +1159,12 @@ export interface Database {
           grade_id: number
           id: string
           is_active: boolean
-          is_state_affected: boolean
+          is_government_affected: boolean
           school_id: string
           school_year_id: number
           student_id: string
           updated_at: string | null
+          updated_by: string | null
         }
         Insert: {
           class_id?: string | null
@@ -1172,11 +1173,12 @@ export interface Database {
           grade_id: number
           id?: string
           is_active?: boolean
-          is_state_affected?: boolean
+          is_government_affected?: boolean
           school_id: string
           school_year_id: number
           student_id: string
           updated_at?: string | null
+          updated_by?: string | null
         }
         Update: {
           class_id?: string | null
@@ -1185,11 +1187,12 @@ export interface Database {
           grade_id?: number
           id?: string
           is_active?: boolean
-          is_state_affected?: boolean
+          is_government_affected?: boolean
           school_id?: string
           school_year_id?: number
           student_id?: string
           updated_at?: string | null
+          updated_by?: string | null
         }
         Relationships: [
           {
@@ -1626,6 +1629,13 @@ export interface Database {
       }
     }
     Functions: {
+      calculate_tuition_fees: {
+        Args: {
+          p_grade_id: number
+          p_is_government_affected: boolean
+        }
+        Returns: number
+      }
       create_attendance_and_participator_and_homework: {
         Args: {
           attendances: Json
@@ -1684,6 +1694,12 @@ export interface Database {
           email: string
           phone: string
         }[]
+      }
+      get_locked_payment_details: {
+        Args: {
+          _enrollment_id: string
+        }
+        Returns: Json
       }
       get_monthly_attendance_summary: {
         Args: {
@@ -1751,6 +1767,24 @@ export interface Database {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
+      process_payment:
+        | {
+          Args: {
+            _student_id: string
+            _amount: number
+            _payment_method: string
+          }
+          Returns: Json
+        }
+        | {
+          Args: {
+            _student_id: string
+            _school_id: string
+            _amount: number
+            _payment_method: string
+          }
+          Returns: Json
+        }
       update_existing_class_slugs: {
         Args: Record<PropertyKey, never>
         Returns: undefined

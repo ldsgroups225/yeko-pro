@@ -16,6 +16,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { PAYMENT_METHOD, PAYMENT_METHOD_OPTIONS } from '@/constants'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import * as z from 'zod'
@@ -24,7 +25,7 @@ const paymentFormSchema = z.object({
   amount: z.string().refine(val => !Number.isNaN(Number(val)) && Number(val) > 0, {
     message: 'Le montant doit être un nombre positif',
   }),
-  paymentMethod: z.enum(['CASH', 'BANK_TRANSFER', 'MOBILE_MONEY', 'CHECK']),
+  paymentMethod: z.nativeEnum(PAYMENT_METHOD),
   reference: z.string().optional(),
 })
 
@@ -40,7 +41,7 @@ export function PaymentForm({ defaultAmount, onSubmit }: PaymentFormProps) {
     resolver: zodResolver(paymentFormSchema),
     defaultValues: {
       amount: defaultAmount?.toString() || '',
-      paymentMethod: 'CASH',
+      paymentMethod: PAYMENT_METHOD.CASH,
       reference: '',
     },
   })
@@ -85,10 +86,9 @@ export function PaymentForm({ defaultAmount, onSubmit }: PaymentFormProps) {
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  <SelectItem value="CASH">Espèces</SelectItem>
-                  <SelectItem value="BANK_TRANSFER">Virement bancaire</SelectItem>
-                  <SelectItem value="MOBILE_MONEY">Mobile Money</SelectItem>
-                  <SelectItem value="CHECK">Check</SelectItem>
+                  { PAYMENT_METHOD_OPTIONS.map(method => (
+                    <SelectItem key={method.value} value={method.value}>{method.label}</SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
               <FormMessage />

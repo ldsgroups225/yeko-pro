@@ -1,4 +1,5 @@
 export * from './noteTypes'
+export * from './paymentMethod'
 // Date formats
 export const DATE_FORMAT_SHORT = 'P'
 export const TIME_FORMAT_24H = 'HH:mm'

@@ -1,4 +1,5 @@
 // services/tuitionService.ts
+
 'use server'
 
 import type { SupabaseClient } from '@/lib/supabase/server'
