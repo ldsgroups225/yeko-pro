@@ -5,7 +5,6 @@ import {
   Document,
   Image,
   Page,
-  renderToStream,
   StyleSheet,
   Text,
   View,
@@ -181,7 +180,7 @@ export function PaymentInvoiceDocument({ invoice }: { invoice: IPaymentInvoice }
             </View>
             {invoice.history?.map((payment, index) => (
               <View
-                key={index}
+                key={payment.reference}
                 style={[
                   styles.tableRow,
                   { backgroundColor: index % 2 === 0 ? '#fff' : '#fafafa' },
@@ -240,8 +239,4 @@ export function PaymentInvoiceDocument({ invoice }: { invoice: IPaymentInvoice }
       </Page>
     </Document>
   )
-}
-
-export async function pdfStream(invoice: IPaymentInvoice) {
-  return await renderToStream(<PaymentInvoiceDocument invoice={invoice} />)
 }

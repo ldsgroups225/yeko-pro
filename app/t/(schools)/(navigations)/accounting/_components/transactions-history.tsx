@@ -17,7 +17,7 @@ import { getPaymentHistory } from '@/services/paymentService'
 import { useTransactionsStore } from '@/store/transactionStore'
 import { format } from 'date-fns'
 import { CalendarIcon, Loader2, Printer, Search, X } from 'lucide-react'
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { toast } from 'sonner'
 
 interface Transaction {

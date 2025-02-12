@@ -2,12 +2,11 @@
 
 import type { SupabaseClient } from '@/lib/supabase/server'
 import type { IInvoicePaymentHistory, IInvoicePaymentPlan, IInvoiceSchool, IInvoiceStudent, IPaymentInvoice } from '@/types/invoice'
-import { PaymentInvoiceDocument, pdfStream } from '@/components/PaymentInvoiceDocument'
+import { pdfStream } from '@/components/PdfStream'
 import { PAYMENT_METHOD_FROM_STRING_OPTIONS_MAP } from '@/constants'
 import { createClient } from '@/lib/supabase/server'
 import { formatFullName } from '@/lib/utils'
 import { ERole } from '@/types'
-import { renderToStream } from '@react-pdf/renderer'
 import { NextResponse } from 'next/server'
 
 export async function GET(request: Request, { params }: { params: { idNumber: string } }) {
