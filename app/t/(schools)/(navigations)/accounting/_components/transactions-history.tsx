@@ -18,6 +18,7 @@ import { useTransactionsStore } from '@/store/transactionStore'
 import { format } from 'date-fns'
 import { CalendarIcon, Loader2, Printer, Search, X } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import { toast } from 'sonner'
 
 interface Transaction {
   id: string
@@ -32,6 +33,7 @@ export function TransactionsHistory() {
 
   const [transactions, setTransactions] = useState<Transaction[]>([])
   const [isLoading, setIsLoading] = useState(false)
+  const [isPrinting, setIsPrinting] = useState('')
 
   const [searchMatricule, setSearchMatricule] = useState('')
   const [filterDate, setFilterDate] = useState<Date | undefined>(undefined)
@@ -70,8 +72,26 @@ export function TransactionsHistory() {
     }).slice(0, 10)
   }, [transactions, searchMatricule, filterDate])
 
-  const handlePrintReceipt = async (_transactionId: string) => {
-    // TODO: Implement receipt printing logic
+  const handlePrintReceipt = async (studentIdNumber: string, id: string) => {
+    try {
+      setIsPrinting(id)
+      const receipt = await fetch(`/t/accounting/${studentIdNumber}/receipt`)
+
+      // download the receipt
+      const blob = await receipt.blob()
+      const url = URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      link.download = `receipt_${studentIdNumber}.pdf`
+      link.click()
+      URL.revokeObjectURL(url)
+    }
+    catch (error) {
+      toast.error((error as Error).message)
+    }
+    finally {
+      setIsPrinting('')
+    }
   }
 
   const clearFilters = () => {
@@ -175,9 +195,17 @@ export function TransactionsHistory() {
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => handlePrintReceipt(transaction.id)}
+                          onClick={() => handlePrintReceipt(transaction.matriculation, transaction.id)}
                         >
-                          <Printer className="h-4 w-4" />
+                          {
+                            isPrinting === transaction.id
+                              ? (
+                                  <Loader2 className="animate-spin" />
+                                )
+                              : (
+                                  <Printer className="h-4 w-4" />
+                                )
+                          }
                         </Button>
                       </TableCell>
                     </TableRow>
