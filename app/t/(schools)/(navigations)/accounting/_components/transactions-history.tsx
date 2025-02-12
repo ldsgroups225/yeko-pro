@@ -12,8 +12,8 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import { mockTransactions } from '@/constants/mocks'
 import { cn, formatCurrency, formatDate } from '@/lib/utils'
+import { getPaymentHistory } from '@/services/paymentService'
 import { useTransactionsStore } from '@/store/transactionStore'
 import { format } from 'date-fns'
 import { CalendarIcon, Loader2, Printer, Search, X } from 'lucide-react'
@@ -25,7 +25,6 @@ interface Transaction {
   matriculation: string
   paymentDate: Date
   amount: number
-  remainingBalance: number
 }
 
 export function TransactionsHistory() {
@@ -37,24 +36,23 @@ export function TransactionsHistory() {
   const [searchMatricule, setSearchMatricule] = useState('')
   const [filterDate, setFilterDate] = useState<Date | undefined>(undefined)
 
-  const fetchTransactions = useCallback(async () => {
+  const fetchTransactions = async () => {
     if (!isHistoricOpen)
       return
 
     setIsLoading(true)
-    await new Promise(resolve => setTimeout(resolve, 2000))
-
-    const shuffledTransactions = [...mockTransactions]
-    shuffledTransactions.sort(() => Math.random() - 0.5)
-    const fetchedTransactions = shuffledTransactions
+    const fetchedTransactions = await getPaymentHistory()
 
     setTransactions(fetchedTransactions)
     setIsLoading(false)
-  }, [setHistoricTransactionsOpen])
+  }
 
   useEffect(() => {
+    if (!isHistoricOpen)
+      return
+
     fetchTransactions()
-  }, [fetchTransactions])
+  }, [isHistoricOpen])
 
   const filteredTransactions = useMemo(() => {
     return transactions.filter((transaction) => {
@@ -157,12 +155,11 @@ export function TransactionsHistory() {
                     <TableHead>Matricule</TableHead>
                     <TableHead>Date</TableHead>
                     <TableHead className="text-right">Montant payé</TableHead>
-                    <TableHead className="text-right">Solde restant</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredTransactions.map(transaction => (
+                  {transactions.map(transaction => (
                     <TableRow key={transaction.id}>
                       <TableCell className="font-medium">
                         {transaction.studentName}
@@ -173,9 +170,6 @@ export function TransactionsHistory() {
                       </TableCell>
                       <TableCell className="text-right">
                         {formatCurrency(transaction.amount)}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        {formatCurrency(transaction.remainingBalance)}
                       </TableCell>
                       <TableCell className="text-right">
                         <Button

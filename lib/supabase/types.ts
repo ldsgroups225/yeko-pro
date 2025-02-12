@@ -90,6 +90,20 @@ export interface Database {
             foreignKeyName: 'attendances_student_id_fkey'
             columns: ['student_id']
             isOneToOne: false
+            referencedRelation: 'payment_details_view'
+            referencedColumns: ['student_id']
+          },
+          {
+            foreignKeyName: 'attendances_student_id_fkey'
+            columns: ['student_id']
+            isOneToOne: false
+            referencedRelation: 'payment_view'
+            referencedColumns: ['student_id']
+          },
+          {
+            foreignKeyName: 'attendances_student_id_fkey'
+            columns: ['student_id']
+            isOneToOne: false
             referencedRelation: 'students'
             referencedColumns: ['id']
           },
@@ -444,6 +458,20 @@ export interface Database {
             foreignKeyName: 'link_student_parent_student_id_fkey'
             columns: ['student_id']
             isOneToOne: false
+            referencedRelation: 'payment_details_view'
+            referencedColumns: ['student_id']
+          },
+          {
+            foreignKeyName: 'link_student_parent_student_id_fkey'
+            columns: ['student_id']
+            isOneToOne: false
+            referencedRelation: 'payment_view'
+            referencedColumns: ['student_id']
+          },
+          {
+            foreignKeyName: 'link_student_parent_student_id_fkey'
+            columns: ['student_id']
+            isOneToOne: false
             referencedRelation: 'students'
             referencedColumns: ['id']
           },
@@ -484,6 +512,20 @@ export interface Database {
             isOneToOne: false
             referencedRelation: 'notes'
             referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'note_details_student_id_foreign'
+            columns: ['student_id']
+            isOneToOne: false
+            referencedRelation: 'payment_details_view'
+            referencedColumns: ['student_id']
+          },
+          {
+            foreignKeyName: 'note_details_student_id_foreign'
+            columns: ['student_id']
+            isOneToOne: false
+            referencedRelation: 'payment_view'
+            referencedColumns: ['student_id']
           },
           {
             foreignKeyName: 'note_details_student_id_foreign'
@@ -704,6 +746,20 @@ export interface Database {
             foreignKeyName: 'participations_student_id_fkey'
             columns: ['student_id']
             isOneToOne: false
+            referencedRelation: 'payment_details_view'
+            referencedColumns: ['student_id']
+          },
+          {
+            foreignKeyName: 'participations_student_id_fkey'
+            columns: ['student_id']
+            isOneToOne: false
+            referencedRelation: 'payment_view'
+            referencedColumns: ['student_id']
+          },
+          {
+            foreignKeyName: 'participations_student_id_fkey'
+            columns: ['student_id']
+            isOneToOne: false
             referencedRelation: 'students'
             referencedColumns: ['id']
           },
@@ -746,6 +802,13 @@ export interface Database {
             referencedRelation: 'payment_plans'
             referencedColumns: ['id']
           },
+          {
+            foreignKeyName: 'fk_payment_plan'
+            columns: ['payment_plan_id']
+            isOneToOne: false
+            referencedRelation: 'payment_view'
+            referencedColumns: ['payment_plan_id']
+          },
         ]
       }
       payment_plans: {
@@ -777,6 +840,20 @@ export interface Database {
           updated_at?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: 'fk_enrollment'
+            columns: ['enrollment_id']
+            isOneToOne: false
+            referencedRelation: 'payment_details_view'
+            referencedColumns: ['enrollment_id']
+          },
+          {
+            foreignKeyName: 'fk_enrollment'
+            columns: ['enrollment_id']
+            isOneToOne: false
+            referencedRelation: 'payment_view'
+            referencedColumns: ['enrollment_id']
+          },
           {
             foreignKeyName: 'fk_enrollment'
             columns: ['enrollment_id']
@@ -821,6 +898,13 @@ export interface Database {
             isOneToOne: false
             referencedRelation: 'payment_installments'
             referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'fk_installment'
+            columns: ['installment_id']
+            isOneToOne: false
+            referencedRelation: 'payment_view'
+            referencedColumns: ['payment_installment_id']
           },
           {
             foreignKeyName: 'fk_parent'
@@ -1227,6 +1311,20 @@ export interface Database {
             foreignKeyName: 'fk_student'
             columns: ['student_id']
             isOneToOne: false
+            referencedRelation: 'payment_details_view'
+            referencedColumns: ['student_id']
+          },
+          {
+            foreignKeyName: 'fk_student'
+            columns: ['student_id']
+            isOneToOne: false
+            referencedRelation: 'payment_view'
+            referencedColumns: ['student_id']
+          },
+          {
+            foreignKeyName: 'fk_student'
+            columns: ['student_id']
+            isOneToOne: false
             referencedRelation: 'students'
             referencedColumns: ['id']
           },
@@ -1450,6 +1548,20 @@ export interface Database {
             foreignKeyName: 'transactions_student_id_foreign'
             columns: ['student_id']
             isOneToOne: false
+            referencedRelation: 'payment_details_view'
+            referencedColumns: ['student_id']
+          },
+          {
+            foreignKeyName: 'transactions_student_id_foreign'
+            columns: ['student_id']
+            isOneToOne: false
+            referencedRelation: 'payment_view'
+            referencedColumns: ['student_id']
+          },
+          {
+            foreignKeyName: 'transactions_student_id_foreign'
+            columns: ['student_id']
+            isOneToOne: false
             referencedRelation: 'students'
             referencedColumns: ['id']
           },
@@ -1622,7 +1734,97 @@ export interface Database {
             foreignKeyName: 'attendances_student_id_fkey'
             columns: ['student_id']
             isOneToOne: false
+            referencedRelation: 'payment_details_view'
+            referencedColumns: ['student_id']
+          },
+          {
+            foreignKeyName: 'attendances_student_id_fkey'
+            columns: ['student_id']
+            isOneToOne: false
+            referencedRelation: 'payment_view'
+            referencedColumns: ['student_id']
+          },
+          {
+            foreignKeyName: 'attendances_student_id_fkey'
+            columns: ['student_id']
+            isOneToOne: false
             referencedRelation: 'students'
+            referencedColumns: ['id']
+          },
+        ]
+      }
+      payment_details_view: {
+        Row: {
+          class_id: string | null
+          enrollment_id: string | null
+          first_name: string | null
+          id_number: string | null
+          last_name: string | null
+          payment_amount: number | null
+          payment_date: string | null
+          payment_method: string | null
+          remaining_amount: number | null
+          school_id: string | null
+          school_year: number | null
+          student_id: string | null
+          total_amount: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'fk_class'
+            columns: ['class_id']
+            isOneToOne: false
+            referencedRelation: 'classes'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'fk_school'
+            columns: ['school_id']
+            isOneToOne: false
+            referencedRelation: 'schools'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'fk_school_year'
+            columns: ['school_year']
+            isOneToOne: false
+            referencedRelation: 'school_years'
+            referencedColumns: ['id']
+          },
+        ]
+      }
+      payment_view: {
+        Row: {
+          enrollment_id: string | null
+          is_government_affected: boolean | null
+          parent_id: string | null
+          payment_installment_id: string | null
+          payment_plan_id: string | null
+          school_id: string | null
+          school_year_id: number | null
+          student_id: string | null
+          student_id_number: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'fk_school'
+            columns: ['school_id']
+            isOneToOne: false
+            referencedRelation: 'schools'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'fk_school_year'
+            columns: ['school_year_id']
+            isOneToOne: false
+            referencedRelation: 'school_years'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'students_parent_id_fkey'
+            columns: ['parent_id']
+            isOneToOne: false
+            referencedRelation: 'users'
             referencedColumns: ['id']
           },
         ]

@@ -3,7 +3,17 @@
 
 import type { SupabaseClient } from '@/lib/supabase/server'
 import { createClient } from '@/lib/supabase/server'
+import { formatFullName } from '@/lib/utils'
 import { ERole } from '@/types'
+import { nanoid } from 'nanoid'
+
+interface Transaction {
+  id: string
+  studentName: string
+  matriculation: string
+  paymentDate: Date
+  amount: number
+}
 
 /**
  * Retrieves the authenticated user's ID using the provided Supabase client.
@@ -52,22 +62,39 @@ async function getDirectorSchoolId(client: SupabaseClient, userId: string): Prom
 }
 
 /**
- * Creates a payment transaction for a student.
- * This function creates a payment transaction in the database using the Supabase RPC function 'process_payment'.
- * The function atomically processes the payment, ensuring the student's tuition is paid and the payment record is created.
+ * Creates a payment record for a student.  This function is intended to be
+ * called *only* by a logged-in user with the 'DIRECTOR' role.  It performs
+ * authentication and authorization checks before creating the payment. The
+ * payment processing itself is handled by the `process_payment` Supabase
+ * function (RPC) to ensure atomicity.
  *
  * @async
- * @param {string} studentId - The ID of the student whose tuition is being paid.
- * @param {number} amount - The amount of the payment.
- * @param {string} paymentMethod - The method of payment (e.g., 'card', 'cash', 'cheque', 'transfer').
- * @returns {Promise<any>} A promise that resolves to the result of the Supabase RPC function 'process_payment'.
- * @throws {Error} Will throw an error if the payment fails.
+ * @param {string} studentId - The ID of the student for whom the payment is being made.
+ * @param {number} amount - The amount of the payment. Must be a positive number.
+ * @param {string} paymentMethod - The payment method used (e.g., 'credit_card', 'bank_transfer', 'cash').
+ * @returns {Promise<any>} A promise that resolves to the data returned by the `process_payment` RPC.
+ *   The exact structure of the returned data depends on the `process_payment` function's implementation.
+ *   Typically, this would include information about the created payment record.
+ * @throws {Error}
+ *  - If the user is not authenticated.
+ *  - If the user is not a director.
+ *  - If the user is not associated with a school.
+ *  - If there is an error during the payment processing (handled by the `process_payment` RPC).
+ * @example
+ * ```typescript
+ * try {
+ *    const paymentData = await createPayment('student-123', 100, 'credit_card');
+ *    console.log('Payment created:', paymentData);
+ * } catch (error) {
+ *    console.error('Payment failed:', error);
+ * }
+ * ```
  */
 export async function createPayment(
   studentId: string,
   amount: number,
   paymentMethod: string,
-) {
+): Promise<any> {
   const client = createClient()
 
   // Verify the authenticated director and retrieve their school
@@ -87,4 +114,33 @@ export async function createPayment(
   }
 
   return data
+}
+
+export async function getPaymentHistory(): Promise<any> {
+  const client = createClient()
+
+  // Verify the authenticated director and retrieve their school
+  const userId = await checkAuthUserId(client)
+  const schoolId = await getDirectorSchoolId(client, userId)
+
+  const { data, error } = await client.from('payment_details_view')
+    .select(`
+      first_name, last_name, id_number,
+      payment_date, payment_amount
+    `)
+    .eq('school_id', schoolId)
+    .order('payment_date', { ascending: false })
+
+  if (error) {
+    console.error('Error fetching payment history:', error)
+    throw new Error('Erreur lors de la récupération de l\'historique des paiements')
+  }
+
+  return data.map(payment => ({
+    id: nanoid(),
+    studentName: formatFullName(payment.first_name, payment.last_name),
+    matriculation: payment.id_number!,
+    paymentDate: new Date(payment.payment_date!),
+    amount: payment.payment_amount!,
+  } satisfies Transaction))
 }
