@@ -11,7 +11,7 @@ import { NextResponse } from 'next/server'
 
 export async function GET(
   request: Request,
-  { params }: { params: Promise<{ idNumber: string }> }
+  { params }: { params: Promise<{ idNumber: string }> },
 ) {
   const { idNumber } = await params
   try {
@@ -35,17 +35,18 @@ export async function GET(
     response.headers.set('Content-Type', 'application/pdf')
     response.headers.set(
       'Content-Disposition',
-      `attachment; filename="invoice_${idNumber}.pdf"`
+      `attachment; filename="invoice_${idNumber}.pdf"`,
     )
     return response
-  } catch (error) {
+  }
+  catch (error) {
     console.error('Invoice generation error:', error)
     return NextResponse.json(
       {
         error: error instanceof Error ? error.message : 'Invoice generation failed',
         details: error instanceof Error ? error.stack : null,
       },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }
