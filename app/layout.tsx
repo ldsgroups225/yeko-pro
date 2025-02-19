@@ -14,6 +14,9 @@ const poppins = Poppins({
 export const metadata: Metadata = {
   title: 'Yeko',
   description: 'Yeko est une plateforme éducative le suivie de la vie scolaire des élèves par leur parent',
+  icons: {
+    icon: '/logo2.png',
+  },
 }
 
 export default function RootLayout({
