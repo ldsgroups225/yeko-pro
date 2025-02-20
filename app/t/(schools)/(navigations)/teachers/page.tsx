@@ -39,7 +39,6 @@ export default function TeachersPage() {
     pagination,
     currentPage,
     setCurrentPage,
-    updateTeacherStatus,
   } = useTeachersData({
     initialItemsPerPage: ITEMS_PER_PAGE,
     filters: {
@@ -58,16 +57,6 @@ export default function TeachersPage() {
   const handleSort = (field: string) => {
     consola.log(field)
     // Implement sorting logic
-  }
-
-  const handleStatusChange = async (teacherId: string, status: 'pending' | 'accepted' | 'rejected') => {
-    try {
-      await updateTeacherStatus(teacherId, status)
-      toast.success('Statut mis à jour avec succès')
-    }
-    catch {
-      toast.error('Erreur lors de la mise à jour du statut')
-    }
   }
 
   const handleOpenInviteModal = () => {
@@ -139,7 +128,6 @@ export default function TeachersPage() {
                   teachers={teachers}
                   isLoading={status === 'idle' || status === 'loading'}
                   onSort={handleSort}
-                  onStatusChange={handleStatusChange}
                 />
               )
             : (

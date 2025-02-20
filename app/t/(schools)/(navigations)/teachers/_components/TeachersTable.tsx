@@ -22,28 +22,13 @@ interface TeachersTableProps {
   teachers: ITeacherDTO[]
   isLoading: boolean
   onSort: (field: string, direction: 'asc' | 'desc') => void
-  onStatusChange: (teacherId: string, status: 'pending' | 'accepted' | 'rejected') => void
 }
 
 export function TeachersTable({
   teachers,
   isLoading,
   onSort,
-  onStatusChange,
 }: TeachersTableProps) {
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'accepted':
-        return 'bg-green-100 text-green-800'
-      case 'pending':
-        return 'bg-yellow-100 text-yellow-800'
-      case 'rejected':
-        return 'bg-red-100 text-red-800'
-      default:
-        return 'bg-gray-100 text-gray-800'
-    }
-  }
-
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-8">
@@ -76,7 +61,6 @@ export function TeachersTable({
           </TableHead>
           <TableHead>Enseigne dans</TableHead>
           <TableHead>Prof principal de</TableHead>
-          <TableHead>Status</TableHead>
           <TableHead>Actions</TableHead>
         </TableRow>
       </TableHeader>
@@ -110,34 +94,6 @@ export function TeachersTable({
                 {(teacher.assignments ?? []).length}
                 {(teacher.assignments ?? []).length > 1 ? ' classes' : ' classe'}
               </div>
-            </TableCell>
-            <TableCell>
-              <Badge variant="secondary">
-                {(teacher.assignments ?? []).filter(assignment => assignment.isMainTeacher).length}
-                {(teacher.assignments ?? []).filter(assignment => assignment.isMainTeacher).length > 1 ? ' classes' : ' classe'}
-              </Badge>
-            </TableCell>
-            <TableCell>
-              <Select
-                value={teacher.status}
-                onValueChange={value =>
-                  onStatusChange(teacher.id, value as 'pending' | 'accepted' | 'rejected')}
-              >
-                <SelectTrigger className="w-32">
-                  <SelectValue>
-                    <Badge className={getStatusColor(teacher.status)}>
-                      {teacher.status === 'accepted' && 'Accepté'}
-                      {teacher.status === 'pending' && 'En attente'}
-                      {teacher.status === 'rejected' && 'Rejeté'}
-                    </Badge>
-                  </SelectValue>
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="accepted">Accepté</SelectItem>
-                  <SelectItem value="pending">En attente</SelectItem>
-                  <SelectItem value="rejected">Rejeté</SelectItem>
-                </SelectContent>
-              </Select>
             </TableCell>
             <TableCell>
               {/* Add action buttons here */}
