@@ -323,7 +323,7 @@ interface GetClassStatsProps {
   schoolId: string
   classId: string
   schoolYearId: number
-  semesterId: number
+  semesterId?: number
 }
 
 /**
@@ -348,9 +348,9 @@ export async function getClassDetailsStats({ schoolId, classId, schoolYearId, se
   // Get basic student counts
   const { data: studentCounts } = await supabase
     .from('students')
-    .select('id, gender')
-    .eq('class_id', classId)
-    .eq('school_id', schoolId)
+    .select('id, gender, student_enrollment_view!inner(school_id, class_id, enrollment_status)')
+    .eq('student_enrollment_view.class_id', classId)
+    .eq('student_enrollment_view.school_id', schoolId)
 
   if (!studentCounts) {
     throw new Error('Failed to fetch student data')
@@ -363,12 +363,17 @@ export async function getClassDetailsStats({ schoolId, classId, schoolYearId, se
   const inactiveStudents = 0 // Same as above
 
   // Get attendance statistics
-  const { data: attendanceData } = await supabase
+  let attendanceQs = supabase
     .from('attendances')
     .select('status, created_date')
     .eq('class_id', classId)
     .eq('school_years_id', schoolYearId)
-    .eq('semesters_id', semesterId)
+
+  if (semesterId) {
+    attendanceQs = attendanceQs.eq('semesters_id', semesterId)
+  }
+
+  const { data: attendanceData } = await attendanceQs
 
   if (!attendanceData) {
     throw new Error('Failed to fetch attendance data')
@@ -382,20 +387,25 @@ export async function getClassDetailsStats({ schoolId, classId, schoolYearId, se
   const lateRate = totalAttendances ? (lateCount / totalAttendances) * 100 : 0
 
   // Get grades and calculate average
-  const { data: gradeData } = await supabase
+  let gradeQs = supabase
     .from('note_details')
     .select(`
-      note,
-      notes!inner (
-        subject_id,
-        created_at,
-        total_points
+    note,
+    notes!inner (
+      subject_id,
+      created_at,
+      total_points
       )
     `)
     .eq('notes.class_id', classId)
     .eq('notes.school_year_id', schoolYearId)
-    .eq('notes.semester_id', semesterId)
     .eq('notes.is_graded', true)
+
+  if (semesterId) {
+    gradeQs = gradeQs.eq('notes.semester_id', semesterId)
+  }
+
+  const { data: gradeData } = await gradeQs
 
   if (!gradeData) {
     throw new Error('Failed to fetch grade data')

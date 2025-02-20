@@ -52,7 +52,7 @@ interface ClassActions {
   activateDeactivateClass: (classId: string, isActive: boolean) => Promise<void>
   filterStudentWhereNotInTheClass: (schoolId: string, classId: string, search?: string) => Promise<FilterStudentWhereNotInTheClass[]>
   getClassDetailsStats: (
-    params: { schoolId: string, classId: string, schoolYearId: number, semesterId: number }
+    params: { schoolId: string, classId: string, schoolYearId: number, semesterId?: number }
   ) => Promise<IClassDetailsStats>
   getClassStudents: (params: { schoolId: string, classId: string, schoolYearId: number, semesterId: number }) => Promise<void>
   clearClasses: () => void

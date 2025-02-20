@@ -144,7 +144,7 @@ export function useClasses(): UseClassesResult {
         schoolId: params.schoolId,
         classId: params.classId,
         schoolYearId: selectedSchoolYearId,
-        semesterId: activeSemester!.id,
+        semesterId: activeSemester?.id,
       })
     }
     catch (error) {
@@ -155,6 +155,9 @@ export function useClasses(): UseClassesResult {
 
   const _debouncedLoadClassStudents = useDebouncedCallback(
     async (schoolId: string, classId: string) => {
+      if (activeSemester === null)
+        return
+
       if (shouldReloadStudents(schoolId, classId)) {
         await getClassStudents({ schoolId, classId, schoolYearId: selectedSchoolYearId, semesterId: activeSemester!.id })
       }
