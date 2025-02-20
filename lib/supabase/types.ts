@@ -116,6 +116,148 @@ export interface Database {
           },
         ]
       }
+      chat_topics: {
+        Row: {
+          created_at: string | null
+          default_message: string
+          id: number
+          is_active: boolean | null
+          title: string
+          topic_key: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          default_message: string
+          id?: number
+          is_active?: boolean | null
+          title: string
+          topic_key: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          default_message?: string
+          id?: number
+          is_active?: boolean | null
+          title?: string
+          topic_key?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      chats: {
+        Row: {
+          class_id: string
+          created_at: string | null
+          ended_at: string | null
+          id: string
+          initiated_by: string | null
+          message_count: number | null
+          parent_id: string
+          school_id: string
+          status: string | null
+          student_id: string
+          teacher_id: string
+          topic_id: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          class_id: string
+          created_at?: string | null
+          ended_at?: string | null
+          id?: string
+          initiated_by?: string | null
+          message_count?: number | null
+          parent_id: string
+          school_id: string
+          status?: string | null
+          student_id: string
+          teacher_id: string
+          topic_id?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          class_id?: string
+          created_at?: string | null
+          ended_at?: string | null
+          id?: string
+          initiated_by?: string | null
+          message_count?: number | null
+          parent_id?: string
+          school_id?: string
+          status?: string | null
+          student_id?: string
+          teacher_id?: string
+          topic_id?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'chats_class_id_fkey'
+            columns: ['class_id']
+            isOneToOne: false
+            referencedRelation: 'classes'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'chats_initiated_by_fkey'
+            columns: ['initiated_by']
+            isOneToOne: false
+            referencedRelation: 'users'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'chats_parent_id_fkey'
+            columns: ['parent_id']
+            isOneToOne: false
+            referencedRelation: 'users'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'chats_school_id_fkey'
+            columns: ['school_id']
+            isOneToOne: false
+            referencedRelation: 'schools'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'chats_student_id_fkey'
+            columns: ['student_id']
+            isOneToOne: false
+            referencedRelation: 'payment_details_view'
+            referencedColumns: ['student_id']
+          },
+          {
+            foreignKeyName: 'chats_student_id_fkey'
+            columns: ['student_id']
+            isOneToOne: false
+            referencedRelation: 'payment_view'
+            referencedColumns: ['student_id']
+          },
+          {
+            foreignKeyName: 'chats_student_id_fkey'
+            columns: ['student_id']
+            isOneToOne: false
+            referencedRelation: 'students'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'chats_teacher_id_fkey'
+            columns: ['teacher_id']
+            isOneToOne: false
+            referencedRelation: 'users'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'chats_topic_id_fkey'
+            columns: ['topic_id']
+            isOneToOne: false
+            referencedRelation: 'chat_topics'
+            referencedColumns: ['id']
+          },
+        ]
+      }
       classes: {
         Row: {
           created_at: string | null
@@ -201,6 +343,30 @@ export interface Database {
           id?: string
           name?: string
           updated_at?: string | null
+        }
+        Relationships: []
+      }
+      feedback: {
+        Row: {
+          created_at: string
+          feedback_type: string
+          id: string
+          message: string
+          user_email: string | null
+        }
+        Insert: {
+          created_at?: string
+          feedback_type: string
+          id?: string
+          message: string
+          user_email?: string | null
+        }
+        Update: {
+          created_at?: string
+          feedback_type?: string
+          id?: string
+          message?: string
+          user_email?: string | null
         }
         Relationships: []
       }
@@ -477,6 +643,51 @@ export interface Database {
           },
         ]
       }
+      messages: {
+        Row: {
+          chat_id: string
+          content: string
+          created_at: string | null
+          id: string
+          is_system_message: boolean | null
+          read_by: string[] | null
+          sender_id: string
+        }
+        Insert: {
+          chat_id: string
+          content: string
+          created_at?: string | null
+          id?: string
+          is_system_message?: boolean | null
+          read_by?: string[] | null
+          sender_id: string
+        }
+        Update: {
+          chat_id?: string
+          content?: string
+          created_at?: string | null
+          id?: string
+          is_system_message?: boolean | null
+          read_by?: string[] | null
+          sender_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'messages_chat_id_fkey'
+            columns: ['chat_id']
+            isOneToOne: false
+            referencedRelation: 'chats'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'messages_sender_id_fkey'
+            columns: ['sender_id']
+            isOneToOne: false
+            referencedRelation: 'users'
+            referencedColumns: ['id']
+          },
+        ]
+      }
       note_details: {
         Row: {
           created_at: string | null
@@ -683,6 +894,32 @@ export interface Database {
           },
         ]
       }
+      parent_chat_limits: {
+        Row: {
+          chat_count: number | null
+          parent_id: string
+          week_start: string
+        }
+        Insert: {
+          chat_count?: number | null
+          parent_id: string
+          week_start: string
+        }
+        Update: {
+          chat_count?: number | null
+          parent_id?: string
+          week_start?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'parent_chat_limits_parent_id_fkey'
+            columns: ['parent_id']
+            isOneToOne: false
+            referencedRelation: 'users'
+            referencedColumns: ['id']
+          },
+        ]
+      }
       participations: {
         Row: {
           class_id: string
@@ -852,6 +1089,13 @@ export interface Database {
             columns: ['enrollment_id']
             isOneToOne: false
             referencedRelation: 'payment_view'
+            referencedColumns: ['enrollment_id']
+          },
+          {
+            foreignKeyName: 'fk_enrollment'
+            columns: ['enrollment_id']
+            isOneToOne: false
+            referencedRelation: 'student_enrollment_view'
             referencedColumns: ['enrollment_id']
           },
           {
@@ -1829,8 +2073,78 @@ export interface Database {
           },
         ]
       }
+      student_enrollment_view: {
+        Row: {
+          class_id: string | null
+          class_name: string | null
+          enrollment_id: string | null
+          enrollment_status: string | null
+          first_name: string | null
+          id_number: string | null
+          last_name: string | null
+          parent_id: string | null
+          school_id: string | null
+          school_year_id: number | null
+          student_id: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'fk_class'
+            columns: ['class_id']
+            isOneToOne: false
+            referencedRelation: 'classes'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'fk_school'
+            columns: ['school_id']
+            isOneToOne: false
+            referencedRelation: 'schools'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'fk_school_year'
+            columns: ['school_year_id']
+            isOneToOne: false
+            referencedRelation: 'school_years'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'fk_student'
+            columns: ['student_id']
+            isOneToOne: false
+            referencedRelation: 'payment_details_view'
+            referencedColumns: ['student_id']
+          },
+          {
+            foreignKeyName: 'fk_student'
+            columns: ['student_id']
+            isOneToOne: false
+            referencedRelation: 'payment_view'
+            referencedColumns: ['student_id']
+          },
+          {
+            foreignKeyName: 'fk_student'
+            columns: ['student_id']
+            isOneToOne: false
+            referencedRelation: 'students'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'students_parent_id_fkey'
+            columns: ['parent_id']
+            isOneToOne: false
+            referencedRelation: 'users'
+            referencedColumns: ['id']
+          },
+        ]
+      }
     }
     Functions: {
+      auto_archive_chats: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
       calculate_tuition_fees: {
         Args: {
           p_grade_id: number
@@ -1942,6 +2256,12 @@ export interface Database {
           school_name: string
           school_image_url: string
         }[]
+      }
+      get_student_main_teacher: {
+        Args: {
+          student_uuid: string
+        }
+        Returns: string
       }
       get_teacher_data: {
         Args: {

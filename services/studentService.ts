@@ -11,31 +11,38 @@ import { nanoid } from 'nanoid'
 import { uploadImageToStorage } from './uploadImageService'
 
 export async function getStudents(query: IStudentsQueryParams): Promise<{ data: IStudentDTO[], totalCount: number | null }> {
-  const { data, count } = await buildSupabaseQuery(query)
+  const { data, count, error } = await buildSupabaseQuery(query)
+
+  if (error)
+    throw error
 
   return {
     data: data?.map((student) => {
-      const _class = student.class as any
-      const _parent = student.parent as any
+      const _class = student.classes
+      const _parent = student.parent
 
       return {
-        id: student.id,
-        idNumber: student.id_number,
-        firstName: student.first_name,
-        lastName: student.last_name,
-        dateOfBirth: student.date_of_birth,
-        gender: (student as { gender: 'M' | 'F' | null }).gender,
-        parent: _parent && {
-          id: _parent.id!,
-          fullName: formatFullName(_parent.first_name, _parent.last_name, _parent.email),
-          email: _parent.email!,
-          phoneNumber: _parent.phone!,
-          avatarUrl: _parent.avatar_url,
-        },
-        classroom: _class && {
-          id: _class.id,
-          name: _class.name,
-        },
+        id: student.student_id!,
+        idNumber: student.id_number!,
+        firstName: student.first_name!,
+        lastName: student.last_name!,
+        dateOfBirth: student.students!.date_of_birth,
+        gender: (student.students as { gender: 'M' | 'F' | null }).gender,
+        parent: _parent
+          ? {
+              id: student.parent_id!,
+              fullName: formatFullName(_parent.first_name, _parent.last_name, _parent.email),
+              email: _parent.email!,
+              phoneNumber: _parent.phone!,
+              avatarUrl: _parent.avatar_url,
+            }
+          : undefined,
+        classroom: _class
+          ? {
+              id: _class.id,
+              name: _class.name,
+            }
+          : undefined,
       } satisfies IStudentDTO
     }) ?? [],
     totalCount: count,
@@ -295,21 +302,22 @@ function buildSupabaseQuery(query: IStudentsQueryParams) {
   const to = from + _limit - 1
 
   let supabaseQuery = client
-    .from('students')
+    .from('student_enrollment_view')
     .select(`
-      id, id_number, first_name, last_name, date_of_birth, gender,
+      student_id, enrollment_status, id_number, first_name, last_name, parent_id, class_id,
+      students(date_of_birth, gender),
       parent:users(first_name, last_name, phone, email, avatar_url),
-      class:classes(id, name, slug)
-    `, { count: 'exact' })
+      classes!inner(id, name, slug)
+      `, { count: 'exact' })
     .eq('school_id', query.schoolId!)
+    .eq('enrollment_status', 'accepted')
 
   if (query.searchTerm) {
     supabaseQuery = supabaseQuery.or(`first_name.ilike.%${query.searchTerm}%,last_name.ilike.%${query.searchTerm}%,id_number.ilike.%${query.searchTerm}%`)
   }
 
-  // Fixed: Filter by class slug using a proper join condition
   if (query.selectedClasses?.length) {
-    supabaseQuery = supabaseQuery.in('class.slug', query.selectedClasses)
+    supabaseQuery = supabaseQuery.in('classes.slug', query.selectedClasses)
   }
 
   if (query.hasNotClassFilter) {

@@ -67,10 +67,11 @@ export function useStudentsData({
 
     if (hasFiltersChanged) {
       setFilters({
-        hasNotClassFilter: properQsParamsOrUndefined(filters.hasNotClassFilter),
-        hasNotParentFilter: properQsParamsOrUndefined(filters.hasNotParentFilter),
         searchTerm: properQsParamsOrUndefined(filters.searchTerm),
         selectedClasses: properQsParamsOrUndefined(filters.selectedClasses),
+        hasNotClassFilter: properQsParamsOrUndefined(filters.hasNotClassFilter),
+        hasNotParentFilter: properQsParamsOrUndefined(filters.hasNotParentFilter),
+        refusedStudentsFilter: properQsParamsOrUndefined(filters.refusedStudentsFilter),
       })
       prevFiltersRef.current = filters
 

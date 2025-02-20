@@ -28,8 +28,9 @@ interface UseStudentsResult {
   setFilters: (filters: {
     searchTerm?: string
     selectedClasses?: string[]
-    hasNotParentFilter?: boolean
     hasNotClassFilter?: boolean
+    hasNotParentFilter?: boolean
+    refusedStudentsFilter?: boolean
   }) => void
   addStudent: (params: Omit<IStudentDTO, 'id' | 'createdAt' | 'updatedAt'>) => Promise<void>
   updateStudent: (params: Partial<IStudentDTO> & { id: string }) => Promise<void>

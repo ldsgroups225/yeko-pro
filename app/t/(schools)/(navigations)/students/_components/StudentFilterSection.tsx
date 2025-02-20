@@ -6,21 +6,25 @@ import { StudentClassFilters } from './StudentClassFilters'
 interface StudentFilterSectionProps {
   groupedClasses: IClassesGrouped[]
   selectedClasses?: string[]
-  hasNotParentFilter?: boolean
   hasNotClassFilter?: boolean
-  onClassChange: (classId: string, checked: boolean) => void
-  onHasNotParentFilterChange: (checked: boolean) => void
+  hasNotParentFilter?: boolean
+  refusedStudentsFilter?: boolean
   onHasNotClassFilterChange: (checked: boolean) => void
+  onHasNotParentFilterChange: (checked: boolean) => void
+  onRefusedStudentsFilterChange: (checked: boolean) => void
+  onClassChange: (classId: string, checked: boolean) => void
 }
 
 export function StudentFilterSection({
+  onClassChange,
   groupedClasses,
   selectedClasses,
-  hasNotParentFilter,
   hasNotClassFilter,
-  onClassChange,
-  onHasNotParentFilterChange,
+  hasNotParentFilter,
+  refusedStudentsFilter,
   onHasNotClassFilterChange,
+  onHasNotParentFilterChange,
+  onRefusedStudentsFilterChange,
 }: StudentFilterSectionProps) {
   return (
     <div className="grid gap-4">
@@ -42,6 +46,12 @@ export function StudentFilterSection({
           label="Sans classe"
           checked={!!hasNotClassFilter}
           onChange={onHasNotClassFilterChange}
+        />
+        <FilterCheckbox
+          id="refused-student"
+          label="Élèves refusés"
+          checked={!!refusedStudentsFilter}
+          onChange={onRefusedStudentsFilterChange}
         />
 
         <Separator />

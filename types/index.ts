@@ -209,17 +209,18 @@ export interface ClassDetailsStudent {
 }
 
 export interface IStudentsQueryParams {
-  schoolId?: string
   page?: number
   limit?: number
+  schoolId?: string
+  isAdmin?: boolean
   searchTerm?: string
   isStudent?: boolean
   isTeacher?: boolean
-  isAdmin?: boolean
   selectedClasses?: string[]
-  sort?: { column: string, direction: 'asc' | 'desc' }
-  hasNotParentFilter?: boolean
   hasNotClassFilter?: boolean
+  hasNotParentFilter?: boolean
+  refusedStudentsFilter?: boolean
+  sort?: { column: string, direction: 'asc' | 'desc' }
 }
 
 export interface IClassesGrouped {

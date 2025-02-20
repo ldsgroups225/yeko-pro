@@ -16,14 +16,15 @@ import { ParentLinkModal, StudentFilterSection, StudentsFilters, StudentsGrid, S
 const ITEMS_PER_PAGE = 12
 
 const defaultQueryParams: IStudentsQueryParams = {
-  searchTerm: undefined,
-  selectedClasses: undefined,
-  schoolId: undefined,
-  hasNotParentFilter: undefined,
-  hasNotClassFilter: undefined,
   page: 1,
   isStudent: true,
   sort: undefined,
+  schoolId: undefined,
+  searchTerm: undefined,
+  selectedClasses: undefined,
+  hasNotClassFilter: undefined,
+  hasNotParentFilter: undefined,
+  refusedStudentsFilter: undefined,
 }
 
 export default function StudentsPage() {
@@ -68,6 +69,10 @@ export default function StudentsPage() {
 
   const handleHasNotClassFilterChange = (hasNotClassFilter: boolean) => {
     updateState({ hasNotClassFilter })
+  }
+
+  const handleRefusedStudentsFilterChange = (refusedStudentsFilter: boolean) => {
+    updateState({ refusedStudentsFilter })
   }
 
   const handlePageChange = (newPage: number) => {
@@ -165,12 +170,14 @@ export default function StudentsPage() {
               <PopoverContent className="w-auto">
                 <StudentFilterSection
                   groupedClasses={groupedClasses}
-                  selectedClasses={state.selectedClasses}
-                  hasNotParentFilter={state.hasNotParentFilter}
-                  hasNotClassFilter={state.hasNotClassFilter}
                   onClassChange={handleClassChange}
-                  onHasNotParentFilterChange={handleHasNotParentFilterChange}
+                  selectedClasses={state.selectedClasses}
+                  hasNotClassFilter={state.hasNotClassFilter}
+                  hasNotParentFilter={state.hasNotParentFilter}
+                  refusedStudentsFilter={state.refusedStudentsFilter}
                   onHasNotClassFilterChange={handleHasNotClassFilterChange}
+                  onHasNotParentFilterChange={handleHasNotParentFilterChange}
+                  onRefusedStudentsFilterChange={handleRefusedStudentsFilterChange}
                 />
               </PopoverContent>
             </Popover>

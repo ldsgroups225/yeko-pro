@@ -92,7 +92,7 @@ export async function fetchClasses({
 
   let query = supabase
     .from('classes')
-    .select('*, students(count), teacher:users(id, first_name, last_name, email)', { count: 'exact' })
+    .select('*, student_enrollment_view(count), teacher:users(id, first_name, last_name, email)', { count: 'exact' })
     .eq('school_id', schoolId)
 
   // Apply optional filters
@@ -132,7 +132,7 @@ export async function fetchClasses({
       slug: c.slug!,
       gradeId: c.grade_id,
       isActive: c.is_active,
-      studentCount: (c.students[0] as any)?.count ?? 0,
+      studentCount: (c.student_enrollment_view[0] as any)?.count ?? 0,
       teacher: c.teacher
         ? {
             id: c.teacher.id,
@@ -492,7 +492,14 @@ interface GetClassStudentsProps {
  * @returns {Promise<ClassDetailsStudent[]>} A promise that resolves to an array of class student data.
  * @throws {Error} If the user is unauthorized or if there is an error fetching data.
  */
-export async function getClassStudents({ schoolId, classId, page, limit, schoolYearId, semesterId }: GetClassStudentsProps): Promise<{ students: ClassDetailsStudent[], totalCount: number }> {
+export async function getClassStudents({
+  schoolId,
+  classId,
+  page,
+  limit,
+  schoolYearId,
+  semesterId,
+}: GetClassStudentsProps): Promise<{ students: ClassDetailsStudent[], totalCount: number }> {
   const supabase = createClient()
 
   const from = (page - 1) * limit
@@ -511,6 +518,7 @@ export async function getClassStudents({ schoolId, classId, page, limit, schoolY
       id_number,
       first_name,
       last_name,
+      student_enrollment_view!inner(school_id, class_id, enrollment_status),
       note_details(
         note,
         notes!inner (
@@ -527,8 +535,8 @@ export async function getClassStudents({ schoolId, classId, page, limit, schoolY
         semesters_id
       )
     `, { count: 'exact' })
-    .eq('class_id', classId)
-    .eq('school_id', schoolId)
+    .eq('student_enrollment_view.class_id', classId)
+    .eq('student_enrollment_view.school_id', schoolId)
     .range(from, to)
     .order('last_name', { ascending: true })
     .order('first_name', { ascending: true })
