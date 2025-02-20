@@ -310,7 +310,13 @@ function buildSupabaseQuery(query: IStudentsQueryParams) {
       classes!inner(id, name, slug)
       `, { count: 'exact' })
     .eq('school_id', query.schoolId!)
-    .eq('enrollment_status', 'accepted')
+
+  if (query.refusedStudentsFilter) {
+    supabaseQuery = supabaseQuery.eq('enrollment_status', 'refused')
+  }
+  else {
+    supabaseQuery = supabaseQuery.eq('enrollment_status', 'accepted')
+  }
 
   if (query.searchTerm) {
     supabaseQuery = supabaseQuery.or(`first_name.ilike.%${query.searchTerm}%,last_name.ilike.%${query.searchTerm}%,id_number.ilike.%${query.searchTerm}%`)
