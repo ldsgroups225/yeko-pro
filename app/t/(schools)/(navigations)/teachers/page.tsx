@@ -10,7 +10,6 @@ import { useTeachersData } from '@/hooks/useTeachersData'
 import { Link1Icon, MixerVerticalIcon } from '@radix-ui/react-icons'
 import consola from 'consola'
 import { useState } from 'react'
-import { toast } from 'sonner'
 import { InviteTeacherModal, TeacherFilterSection, TeachersFilters, TeachersTable } from './_components'
 
 const ITEMS_PER_PAGE = 12

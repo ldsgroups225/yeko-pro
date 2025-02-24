@@ -1,8 +1,5 @@
-import type { Database } from '@/lib/supabase/types'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
-import { createClient } from '@/lib/supabase/server'
 import { cn } from '@/lib/utils'
-import { toast } from 'sonner'
 import { PaymentStepper } from './components/PaymentStepper'
 
 interface IStudent {

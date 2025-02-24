@@ -2,7 +2,6 @@
 
 import type { InputHTMLAttributes, RefCallback } from 'react'
 import type { FieldError } from 'react-hook-form'
-import { forwardRef } from 'react'
 import { FormField, InputWrapper } from './FormField'
 
 interface FormInputProps extends InputHTMLAttributes<HTMLInputElement> {

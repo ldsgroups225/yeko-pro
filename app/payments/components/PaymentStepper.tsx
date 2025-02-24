@@ -4,6 +4,7 @@ import type { ISchool, IStudent } from '../page'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { useState } from 'react'
+import { toast } from 'sonner'
 import { ClassSelectionStep } from './steps/ClassSelectionStep'
 import { ConfirmationStep } from './steps/ConfirmationStep'
 import { PaymentStep } from './steps/PaymentStep'
@@ -167,20 +168,22 @@ export function PaymentStepper({ steps }: PaymentStepperProps) {
           />
         )
       case 4:
-        return confirmation ? (
-          <ConfirmationStep
-            payment={confirmation}
-            onDownloadReceipt={() => {
-              // Implement download logic
-              console.log('Downloading receipt...')
-            }}
-            onPrintReceipt={() => {
-              // Implement print logic
-              console.log('Printing receipt...')
-            }}
-            isLoading={isLoading}
-          />
-        ) : null
+        return confirmation
+          ? (
+              <ConfirmationStep
+                payment={confirmation}
+                onDownloadReceipt={() => {
+                // Implement download logic
+                  toast.warning('Downloading receipt is not implemented yet')
+                }}
+                onPrintReceipt={() => {
+                // Implement print logic
+                  toast.warning('Printing receipt is not implemented yet')
+                }}
+                isLoading={isLoading}
+              />
+            )
+          : null
       default:
         return null
     }

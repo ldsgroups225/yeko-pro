@@ -2,7 +2,6 @@
 
 import type { InputHTMLAttributes } from 'react'
 import type { FieldError } from 'react-hook-form'
-import { forwardRef } from 'react'
 import { FormField } from './FormField'
 
 export interface RadioOption {

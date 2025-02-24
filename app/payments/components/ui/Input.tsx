@@ -1,8 +1,7 @@
 'use client'
 
-import type { ForwardedRef, InputHTMLAttributes } from 'react'
+import type { InputHTMLAttributes } from 'react'
 import type { FieldError } from 'react-hook-form'
-import { forwardRef } from 'react'
 import { FormField, InputWrapper } from './FormField'
 
 interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
