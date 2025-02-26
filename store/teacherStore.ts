@@ -24,7 +24,7 @@ interface TeacherStore {
   setItemsPerPage: (count: number) => void
   setIsLoading: (isLoading: boolean) => void
   setTeachers: (teachers: ITeacherDTO[]) => void
-  inviteTeacher: (schoolId: string) => Promise<string>
+  inviteTeacher: () => Promise<string>
   setFilters: (newFilters: Partial<TeacherFilters>) => void
   fetchTeachers: (query: ITeacherQueryParams) => Promise<void>
   getTeacherToSetToCourse: (schoolId: string, search?: string) => Promise<ITeacherOptions[]>
@@ -90,10 +90,10 @@ export const useTeacherStore = create<TeacherStore>((set, get) => ({
     }
   },
 
-  inviteTeacher: async (schoolId: string) => {
+  inviteTeacher: async () => {
     set({ isLoading: true, error: null })
     try {
-      return await createInviteTeacher(schoolId)
+      return await createInviteTeacher()
     }
     catch (error: any) {
       set({ error })

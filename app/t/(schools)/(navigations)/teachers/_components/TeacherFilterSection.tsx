@@ -1,22 +1,29 @@
+'use client'
+
 import { Label } from '@/components/ui/label'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
+import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 
-interface TeacherFilterSectionProps {
-  onStatusChange: (status: 'pending' | 'accepted' | 'rejected' | undefined) => void
-  selectedStatus?: string
-}
+export function TeacherFilterSection() {
+  const searchParams = useSearchParams()
+  const pathname = usePathname()
+  const { replace } = useRouter()
 
-export function TeacherFilterSection({
-  onStatusChange,
-  selectedStatus,
-}: TeacherFilterSectionProps) {
+  const selectedStatus = searchParams.get('status') ?? 'accepted'
+
+  function handleStatusChange(value: string) {
+    const params = new URLSearchParams(searchParams)
+    params.set('status', value)
+    replace(`${pathname}?${params.toString()}`)
+  }
+
   return (
     <div className="p-4 space-y-4">
       <div>
         <h4 className="font-medium mb-3">Status</h4>
         <RadioGroup
           value={selectedStatus}
-          onValueChange={value => onStatusChange(value as any)}
+          onValueChange={handleStatusChange}
         >
           <div className="flex items-center space-x-2">
             <RadioGroupItem value="accepted" id="accepted" />

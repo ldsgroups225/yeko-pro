@@ -1,27 +1,46 @@
+'use client'
+
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { LayoutGridIcon, TableIcon } from 'lucide-react'
+import { usePathname, useRouter, useSearchParams } from 'next/navigation'
+import { useDebouncedCallback } from 'use-debounce'
 
-interface TeachersFiltersProps {
-  searchTerm: string
-  onSearchTermChange: (value: string) => void
-  isTableViewMode: boolean
-  onToggleViewMode: () => void
-}
+export function TeachersFilters() {
+  const searchParams = useSearchParams()
+  const pathname = usePathname()
+  const { replace } = useRouter()
 
-export function TeachersFilters({
-  searchTerm,
-  onSearchTermChange,
-  isTableViewMode,
-  onToggleViewMode,
-}: TeachersFiltersProps) {
+  const isGridViewMode = searchParams.get('mode') === 'grid-view'
+
+  const handleSearchTermChange = useDebouncedCallback((term: string) => {
+    const params = new URLSearchParams(searchParams)
+
+    if (term) {
+      params.set('searchTerm', term)
+    }
+    else {
+      params.delete('searchTerm')
+    }
+
+    replace(`${pathname}?${params.toString()}`)
+  }, 300)
+
+  const onToggleViewMode = () => {
+    const params = new URLSearchParams(searchParams)
+
+    params.set('mode', isGridViewMode ? 'table-view' : 'grid-view')
+
+    replace(`${pathname}?${params.toString()}`)
+  }
+
   return (
     <div className="flex flex-col space-y-4 md:flex-row md:space-x-4 md:space-y-0">
       <div className="flex-1">
         <Input
+          defaultValue={searchParams.get('query')?.toString()}
           placeholder="Rechercher un enseignant..."
-          value={searchTerm}
-          onChange={e => onSearchTermChange(e.target.value)}
+          onChange={e => handleSearchTermChange(e.target.value)}
           className="max-w-sm"
         />
       </div>
@@ -30,9 +49,9 @@ export function TeachersFilters({
           variant="outline"
           size="icon"
           onClick={onToggleViewMode}
-          title={isTableViewMode ? 'Vue grille' : 'Vue tableau'}
+          title={!isGridViewMode ? 'Vue grille' : 'Vue tableau'}
         >
-          {isTableViewMode
+          {!isGridViewMode
             ? (
                 <LayoutGridIcon className="h-4 w-4" />
               )

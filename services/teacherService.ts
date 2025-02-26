@@ -1,19 +1,50 @@
 'use server'
 
-import type { ITeacherDTO, ITeacherOptions, ITeacherQueryParams } from '@/types'
+import type { SupabaseClient } from '@/lib/supabase/server'
 import { createClient } from '@/lib/supabase/server'
 import { formatFullName } from '@/lib/utils'
+import { ERole, type ITeacherDTO, type ITeacherOptions, type ITeacherQueryParams } from '@/types'
+
+async function checkAuthUserId(client: SupabaseClient): Promise<string> {
+  const { data: user, error: userError } = await client.auth.getUser()
+  if (userError) {
+    console.error('Error fetching user:', userError)
+    throw new Error('Vous n\'êtes pas autorisé à accéder à cette page')
+  }
+  return user.user.id
+}
+
+async function getDirectorSchoolId(client: SupabaseClient, userId: string): Promise<string> {
+  const { data: userSchool, error: userSchoolError } = await client
+    .from('users')
+    .select('school_id, user_roles(role_id)')
+    .eq('id', userId)
+    .eq('user_roles.role_id', ERole.DIRECTOR)
+    .single()
+  if (userSchoolError) {
+    console.error('Error fetching user school:', userSchoolError)
+    throw new Error('Seul un directeur peut accéder à cette page')
+  }
+
+  if (!userSchool.school_id) {
+    throw new Error('Utilisateur non associé à un établissement scolaire')
+  }
+  return userSchool.school_id
+}
 
 export async function getTeachers(query: ITeacherQueryParams): Promise<{ data: ITeacherDTO[], totalCount: number | null }> {
-  const client = createClient()
+  const supabase = createClient()
   const _page = query.page ?? 1
   const _limit = query.limit ?? 10
+
+  const userId = await checkAuthUserId(supabase)
+  const schoolId = await getDirectorSchoolId(supabase, userId)
 
   const from = (_page - 1) * _limit
   const to = from + _limit - 1
 
   // Base query
-  let supabaseQuery = client
+  let supabaseQuery = supabase
     .from('schools_teachers')
     .select(`
       teacher_id,
@@ -33,7 +64,7 @@ export async function getTeachers(query: ITeacherQueryParams): Promise<{ data: I
         )
       )
     `, { count: 'exact' })
-    .eq('school_id', query.schoolId!)
+    .eq('school_id', schoolId)
 
   // Search term filtering
   if (query.searchTerm) {
@@ -116,8 +147,11 @@ export async function updateTeacherStatus(
     throw error
 }
 
-export async function createInviteTeacher(schoolId: string): Promise<string> {
+export async function createInviteTeacher(): Promise<string> {
   const supabase = createClient()
+
+  const userId = await checkAuthUserId(supabase)
+  const schoolId = await getDirectorSchoolId(supabase, userId)
 
   const { data, error } = await supabase
     .rpc('generate_invite_teacher_otp', { p_school_id: schoolId })

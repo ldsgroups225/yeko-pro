@@ -1,3 +1,5 @@
+'use client'
+
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -13,12 +15,11 @@ import { useTeacherStore } from '@/store'
 import { useState } from 'react'
 
 interface InviteTeacherModalProps {
-  schoolId: string
   isOpen: boolean
   onClose: () => void
 }
 
-export function InviteTeacherModal({ schoolId, isOpen, onClose }: InviteTeacherModalProps) {
+export function InviteTeacherModal({ isOpen, onClose }: InviteTeacherModalProps) {
   const [otp, setOtp] = useState<string>('')
   const [isGenerating, setIsGenerating] = useState<boolean>(false)
   const { toast } = useToast()
@@ -28,7 +29,7 @@ export function InviteTeacherModal({ schoolId, isOpen, onClose }: InviteTeacherM
   const handleGenerateInvite = async () => {
     setIsGenerating(true)
     try {
-      const generatedOtp = await inviteTeacher(schoolId)
+      const generatedOtp = await inviteTeacher()
       setOtp(generatedOtp)
       toast({
         title: 'Invitation créée',
@@ -56,14 +57,17 @@ export function InviteTeacherModal({ schoolId, isOpen, onClose }: InviteTeacherM
             Générez un code OTP pour inviter un enseignant à rejoindre votre école.
           </DialogDescription>
         </DialogHeader>
-        <div className="w-full text-center py-4">
-          <Label htmlFor="otp" className="text-right font-mono text-3xl tracking-widest">
-            {otp}
-          </Label>
-          <p className="text-muted-foreground text-xs">
-            Valable jusqu'à demain
-          </p>
-        </div>
+        {otp.length > 0 && (
+          <div className="w-full text-center py-4">
+            <Label htmlFor="otp" className="text-right font-mono text-3xl tracking-widest">
+              {otp}
+            </Label>
+            <p className="text-muted-foreground text-xs">
+              Valable jusqu'à demain
+            </p>
+          </div>
+        )}
+
         <DialogFooter>
           <Button type="button" onClick={handleGenerateInvite} disabled={isGenerating}>
             {isGenerating ? 'Génération...' : 'Générer'}
