@@ -58,7 +58,7 @@ interface StudentStore {
   getStudentByIdNumberForEdit: (idNumber: string) => Promise<StudentFormValues>
   updateStudent: (student: Partial<IStudentDTO> & { id: string }) => Promise<void>
   bulkAddStudentsToClass: (classId: string, studentIdNumber: string[]) => Promise<void>
-  createStudent: (student: Omit<IStudentDTO, 'id' | 'createdAt' | 'updatedAt' | 'createdBy' | 'updatedBy' >) => Promise<string>
+  createStudent: (student: Omit<IStudentDTO, 'id' | 'createdAt' | 'updatedAt' | 'createdBy' | 'updatedBy'>) => Promise<string>
 }
 
 export const useStudentStore = create<StudentStore>((set, get) => {

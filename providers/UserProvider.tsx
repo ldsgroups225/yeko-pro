@@ -1,8 +1,9 @@
 // providers/UserProvider.tsx
 
+import type { ReactNode } from 'react'
 import { useInitUsefulData } from '@/hooks/useInitUsefullData'
 import useUserStore from '@/store/userStore'
-import { type ReactNode, useCallback, useEffect, useReducer } from 'react'
+import { useCallback, useEffect, useMemo, useReducer } from 'react'
 import { useShallow } from 'zustand/react/shallow'
 import { UserContext } from './UserContext'
 
@@ -71,11 +72,17 @@ export function UserProvider({ children }: UserProviderProps) {
     initializeData()
   }, [initializeData])
 
+  // Memoize the context value to prevent unnecessary re-renders
+  const contextValue = useMemo(() => ({
+    ...state,
+    user,
+  }), [state, user])
+
   if (state.isLoading)
     return null
 
   return (
-    <UserContext value={{ ...state, user }}>
+    <UserContext value={contextValue}>
       {children}
     </UserContext>
   )

@@ -1,9 +1,8 @@
 import type { ClassValue } from 'clsx'
+import type { ElementType, HTMLAttributes, ReactNode } from 'react'
 import {
   createElement,
-  type ElementType,
-  type HTMLAttributes,
-  type ReactNode,
+
 } from 'react'
 import { cn } from './cn'
 

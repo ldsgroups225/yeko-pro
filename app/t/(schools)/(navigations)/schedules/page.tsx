@@ -7,6 +7,7 @@ import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMe
 import { useScheduleOptimistic, useSchedules, useStudents, useUser } from '@/hooks'
 import { calculatePosition } from '@/lib/utils'
 import { ChevronDownIcon, EyeOpenIcon } from '@radix-ui/react-icons'
+import Link from 'next/link'
 import { useEffect, useMemo, useState } from 'react'
 import { toast } from 'sonner'
 import { AddCourseDialog, CurrentTimeLine, EventCell, TimelineIndicator } from './_components'
@@ -169,19 +170,27 @@ export default function SchedulePage() {
     <Card className="p-4 space-y-6 overflow-hidden">
       <div className="flex justify-between items-center">
         <h2 className="text-xl font-semibold">Emploi du temps</h2>
-        {selectedClassId && schedules.length > 0 && (
-          <AddCourseDialog
-            classId={selectedClassId}
-            mergedClasses={groupedClasses.flatMap(cls => cls.subclasses)}
-            onAddSuccess={() => {
-              toast('Le cours a bien été ajouté à votre emploi du temps')
-            }}
-            onError={(error) => {
-              console.error('Failed to add schedule:', error)
-              toast('Nous n\'avons pas pu ajouter le cours à votre emploi du temps')
-            }}
-          />
-        )}
+        <div className="flex items-center gap-2">
+          <Button size="sm" asChild>
+            <Link href="/t/schedules/import">
+              Import d'emploi du temps
+            </Link>
+          </Button>
+
+          {selectedClassId && schedules.length > 0 && (
+            <AddCourseDialog
+              classId={selectedClassId}
+              mergedClasses={groupedClasses.flatMap(cls => cls.subclasses)}
+              onAddSuccess={() => {
+                toast('Le cours a bien été ajouté à votre emploi du temps')
+              }}
+              onError={(error) => {
+                console.error('Failed to add schedule:', error)
+                toast('Nous n\'avons pas pu ajouter le cours à votre emploi du temps')
+              }}
+            />
+          )}
+        </div>
       </div>
 
       <div className="flex flex-wrap gap-2">

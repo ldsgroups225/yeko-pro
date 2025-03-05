@@ -1,8 +1,9 @@
 // components/DatePicker.tsx
 'use client'
 
+import type { Locale } from 'date-fns'
 import { cn } from '@/lib/utils'
-import { format, type Locale } from 'date-fns'
+import { format } from 'date-fns'
 import fr from 'date-fns/locale/fr'
 
 import { CalendarIcon } from 'lucide-react'

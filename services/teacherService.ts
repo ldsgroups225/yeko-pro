@@ -1,9 +1,10 @@
 'use server'
 
 import type { SupabaseClient } from '@/lib/supabase/server'
+import type { ITeacherDTO, ITeacherOptions, ITeacherQueryParams } from '@/types'
 import { createClient } from '@/lib/supabase/server'
 import { formatFullName } from '@/lib/utils'
-import { ERole, type ITeacherDTO, type ITeacherOptions, type ITeacherQueryParams } from '@/types'
+import { ERole } from '@/types'
 
 async function checkAuthUserId(client: SupabaseClient): Promise<string> {
   const { data: user, error: userError } = await client.auth.getUser()

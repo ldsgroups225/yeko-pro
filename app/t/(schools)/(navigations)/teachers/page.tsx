@@ -11,10 +11,10 @@ export const metadata: Metadata = {
   description: 'Gestion des professeurs de votre école',
 }
 
-export default async function TeachersPage(props: {
+export default async function TeachersPage({ searchParams: rawSearchParams }: {
   searchParams?: Promise<ITeacherQueryParams>
 }) {
-  const searchParams = await props.searchParams
+  const searchParams = await rawSearchParams
 
   const sort = searchParams?.sort || {
     column: 'last_name',

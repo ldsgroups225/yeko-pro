@@ -172,7 +172,7 @@ export async function getStudentByIdNumber(idNumber: string): Promise<IStudentDT
   } satisfies IStudentDTO
 }
 
-export async function createStudent(params: Omit<IStudentDTO, 'id' | 'createdAt' | 'updatedAt' | 'createdBy' | 'updatedBy' >): Promise<string> {
+export async function createStudent(params: Omit<IStudentDTO, 'id' | 'createdAt' | 'updatedAt' | 'createdBy' | 'updatedBy'>): Promise<string> {
   const client = createClient()
 
   const isBase64 = params.avatarUrl?.startsWith('data:image')

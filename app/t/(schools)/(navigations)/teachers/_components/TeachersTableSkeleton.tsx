@@ -16,18 +16,18 @@ export function TeachersTableSkeleton() {
     <Table>
       <TableHeader>
         <TableRow>
-          {headers.map((_, i) => (
-            <TableHead key={i}>
+          {headers.map(idx => (
+            <TableHead key={idx}>
               <Skeleton className="h-4 w-24" />
             </TableHead>
           ))}
         </TableRow>
       </TableHeader>
       <TableBody>
-        {Array.from({ length: 3 }).map((_, i) => (
-          <TableRow key={i}>
-            {headers.map((_, j) => (
-              <TableCell key={j}>
+        {Array.from({ length: 3 }).map(idx => (
+          <TableRow key={JSON.stringify(idx)}>
+            {headers.map(idx => (
+              <TableCell key={idx}>
                 <Skeleton className="h-4 w-full" />
               </TableCell>
             ))}

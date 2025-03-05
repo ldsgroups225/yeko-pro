@@ -1219,7 +1219,6 @@ export interface Database {
           room: string | null
           start_time: string
           subject_id: string
-          teacher_id: string
           updated_at: string | null
         }
         Insert: {
@@ -1231,7 +1230,6 @@ export interface Database {
           room?: string | null
           start_time: string
           subject_id: string
-          teacher_id: string
           updated_at?: string | null
         }
         Update: {
@@ -1243,7 +1241,6 @@ export interface Database {
           room?: string | null
           start_time?: string
           subject_id?: string
-          teacher_id?: string
           updated_at?: string | null
         }
         Relationships: [
@@ -1259,13 +1256,6 @@ export interface Database {
             columns: ['subject_id']
             isOneToOne: false
             referencedRelation: 'subjects'
-            referencedColumns: ['id']
-          },
-          {
-            foreignKeyName: 'schedules_teacher_id_fkey'
-            columns: ['teacher_id']
-            isOneToOne: false
-            referencedRelation: 'users'
             referencedColumns: ['id']
           },
         ]
@@ -2280,14 +2270,6 @@ export interface Database {
           is_published: boolean
           publish_date: string
         }[]
-      }
-      process_grade_notifications: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
-      process_participation_notes: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
       }
       process_payment:
         | {

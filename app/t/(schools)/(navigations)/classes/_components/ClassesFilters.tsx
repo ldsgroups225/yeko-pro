@@ -66,14 +66,14 @@ export const ClassesFilters: React.FC<ClassesFiltersProps> = ({
             <SelectContent>
               <SelectItem value="all">Tous les niveaux</SelectItem>
               {grades
-              && grades.map(grade => (
-                <SelectItem
-                  key={grade?.id}
-                  value={(grade?.id ?? '').toString()}
-                >
-                  {`Niveau ${grade?.name}`}
-                </SelectItem>
-              ))}
+                && grades.map(grade => (
+                  <SelectItem
+                    key={grade?.id}
+                    value={(grade?.id ?? '').toString()}
+                  >
+                    {`Niveau ${grade?.name}`}
+                  </SelectItem>
+                ))}
             </SelectContent>
           </Select>
         </div>

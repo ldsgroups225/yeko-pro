@@ -1,8 +1,11 @@
 'use server'
 
+import type { SupabaseClient } from '@/lib/supabase/server'
+import type { Database } from '@/lib/supabase/types'
 import type { IClassesGrouped, IScheduleCalendarDTO } from '@/types'
 import { createClient } from '@/lib/supabase/server'
 import { formatFullName } from '@/lib/utils'
+import { ERole } from '@/types'
 
 interface ClassroomResponse {
   id: string
@@ -22,6 +25,52 @@ interface ScheduleResponse {
   end_time: string
   subject_id: string
   teacher_id: string
+}
+
+/**
+ * Retrieves the authenticated user's ID using the provided Supabase client.
+ * This function verifies user authentication and is used as a prerequisite for other operations.
+ *
+ * @async
+ * @param {SupabaseClient} client - The Supabase client instance configured for server-side operations.
+ * @returns {Promise<string>} A promise that resolves to the authenticated user's ID.
+ * @throws {Error} Will throw an error if fetching the user fails, indicating an authentication issue.
+ */
+async function checkAuthUserId(client: SupabaseClient): Promise<string> {
+  const { data: user, error } = await client.auth.getUser()
+  if (error) {
+    console.error('Error fetching user:', error)
+    throw new Error('Vous n\'êtes pas autorisé à accéder à cette page')
+  }
+  return user.user.id
+}
+
+/**
+ * Retrieves the school ID associated with the director user.
+ * This function assumes the user is a director and fetches their associated school ID from the database.
+ * It also verifies that the user has the DIRECTOR role.
+ *
+ * @async
+ * @param {SupabaseClient} client - The Supabase client instance configured for server-side operations.
+ * @param {string} userId - The authenticated user's ID.
+ * @returns {Promise<string>} A promise that resolves to the director's school ID.
+ * @throws {Error}
+ *  - Will throw an error if the user is not a director.
+ *  - Will throw an error if there is an issue fetching the school ID from the database.
+ *  - Will throw an error if the user is not associated with any school.
+ */
+async function getDirectorSchoolId(client: SupabaseClient, userId: string): Promise<string> {
+  const { data: userSchool, error } = await client
+    .from('users')
+    .select('school_id, user_roles(role_id)')
+    .eq('id', userId)
+    .eq('user_roles.role_id', ERole.DIRECTOR)
+    .single()
+  if (error || !userSchool?.school_id) {
+    console.error('Error fetching user school:', error)
+    throw new Error('Seul un directeur peut accéder à cette page')
+  }
+  return userSchool.school_id
 }
 
 /**
@@ -106,19 +155,35 @@ export async function fetchClassSchedule(
   const supabase = createClient()
 
   try {
+    const userId = await checkAuthUserId(supabase)
+    const schoolId = await getDirectorSchoolId(supabase, userId)
     const classId = await getClassId(classSlug)
 
-    const { data: schedules, error } = await supabase
+    const schedulesQs = supabase
       .from('schedules')
-      .select('*, subject:subjects(name), teacher:users(first_name, last_name)')
+      .select('*, subject:subjects(name)')
       .eq('class_id', classId)
       .order('day_of_week')
       .order('start_time')
       .order('end_time')
       .throwOnError()
 
-    if (error) {
-      console.error('Error fetching class schedule:', error)
+    const teacherPerSubjectQs = supabase
+      .from('teacher_class_assignments')
+      .select('subject_id, teacher_id, teacher:users(first_name, last_name)')
+      .eq('school_id', schoolId)
+      .throwOnError()
+
+    const [
+      { data: schedules, error: scheduleError },
+      { data: teacherPerSubject, error: teacherPerSubjectError },
+    ] = await Promise.all([
+      schedulesQs,
+      teacherPerSubjectQs,
+    ])
+
+    if (scheduleError || teacherPerSubjectError) {
+      console.error('Error fetching class schedule:', scheduleError || teacherPerSubjectError)
       throw new Error('Failed to fetch class schedule')
     }
 
@@ -126,7 +191,19 @@ export async function fetchClassSchedule(
       return []
     }
 
-    return schedules.map(schedule =>
+    const _schedules = schedules.map((s) => {
+      const teacher = teacherPerSubject.find(t => t.subject_id === s.subject_id)
+      return {
+        ...s,
+        teacher_id: teacher?.teacher_id ?? '',
+        teacher: {
+          last_name: teacher?.teacher.last_name,
+          first_name: teacher?.teacher.first_name,
+        },
+      }
+    })
+
+    return _schedules.map(schedule =>
       mapScheduleToDTO(schedule as ScheduleResponse, classSlug, mergedClasses),
     )
   }
@@ -153,15 +230,6 @@ class ScheduleUpdateError extends Error {
   }
 }
 
-/**
- * Updates an existing schedule entry with provided data.
- * Supports partial updates of schedule fields.
- *
- * @param {string} scheduleId - ID of the schedule to update
- * @param {UpdateScheduleInput} updateData - Data to update the schedule with
- * @returns {Promise<void>} Updated schedule data
- * @throws {ScheduleUpdateError} If update fails or validation errors occur
- */
 /**
  * Creates a new schedule entry.
  *
@@ -218,6 +286,15 @@ export async function createSchedule(
   }
 }
 
+/**
+ * Updates an existing schedule entry with provided data.
+ * Supports partial updates of schedule fields.
+ *
+ * @param {string} scheduleId - ID of the schedule to update
+ * @param {UpdateScheduleInput} updateData - Data to update the schedule with
+ * @returns {Promise<void>} Updated schedule data
+ * @throws {ScheduleUpdateError} If update fails or validation errors occur
+ */
 export async function updateSchedule(
   scheduleId: string,
   updateData: Partial<IScheduleCalendarDTO>,
@@ -266,5 +343,36 @@ export async function updateSchedule(
     const message = error instanceof Error ? error.message : 'Unknown error occurred while updating schedule'
     console.error('updateSchedule error:', message)
     throw new ScheduleUpdateError(message, 'UNKNOWN_ERROR')
+  }
+}
+
+export async function importSchedule({
+  data,
+}: {
+  data: Database['public']['Tables']['schedules']['Insert'][]
+}): Promise<void> {
+  const supabase = createClient()
+
+  // Verify the authenticated director and retrieve their school
+  const userId = await checkAuthUserId(supabase)
+  await getDirectorSchoolId(supabase, userId)
+
+  const { error } = await supabase
+    .from('schedules')
+    .insert(data)
+
+  if (error) {
+    if (error.message.includes('Time slot already exists')) {
+      throw new ScheduleUpdateError(
+        'Une ou plusieurs horaires sont déjà assignés à un autre cours',
+        'TIME_SLOT_CONFLICT',
+      )
+    }
+
+    console.error('Error importing schedule:', error)
+    throw new ScheduleUpdateError(
+      'Erreur lors de l\'importation du planning',
+      'UNKNOWN_ERROR',
+    )
   }
 }

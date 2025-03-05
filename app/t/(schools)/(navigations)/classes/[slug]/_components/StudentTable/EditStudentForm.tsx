@@ -56,7 +56,7 @@ export function EditStudentForm({ studentIdNumber, onSubmit, onCancel, isLoading
   const { getStudentByIdNumberForEdit } = useStudentStore()
 
   const [student, setStudent] = useState<StudentFormValues>()
-  const [dateInputValue, setDateInputValue] = useState<string | null >('')
+  const [dateInputValue, setDateInputValue] = useState<string | null>('')
   const form = useForm<StudentFormValues>({
     resolver: zodResolver(studentFormSchema),
     defaultValues: student,

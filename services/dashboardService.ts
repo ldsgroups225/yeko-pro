@@ -1,10 +1,11 @@
 'use server'
 
 import type { SupabaseClient } from '@/lib/supabase/server'
+import type { ICandidature, IGradeNote, IPonctualite } from '@/types'
 import { NOTE_TYPE } from '@/constants'
 import { createClient } from '@/lib/supabase/server'
 import { formatFullName } from '@/lib/utils'
-import { ERole, type ICandidature, type IGradeNote, type IPonctualite } from '@/types'
+import { ERole } from '@/types'
 
 interface DashboardMetrics {
   studentPopulation: {
