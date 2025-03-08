@@ -106,12 +106,23 @@ export async function getStudentByIdNumberForEdit(idNumber: string): Promise<Stu
     .eq('id_number', idNumber)
     .single()
 
-  if (error) {
-    console.error('student to edit error fetch error', error)
+  const {
+    data: gradeData,
+    error: gradeError,
+  } = await client
+    .from('student_school_class')
+    .select('grade_id, grade:grades(name)')
+    .eq('student_id', data!.id)
+    .eq('enrollment_status', 'accepted')
+    .is('is_active', true)
+    .single()
+
+  if (error || gradeError) {
+    console.error('student to edit error fetch error', error || gradeError)
     throw new Error('student to edit error fetch error')
   }
 
-  const _grade = data.grade ? { name: data.grade.name } : undefined
+  const _grade = gradeData.grade ? { name: gradeData.grade.name } : undefined
 
   return {
     id: data.id,
@@ -421,10 +432,24 @@ export async function linkStudentAndParent({ studentIdNumber, otp }: { studentId
 
 export async function bulkAddStudentsToClass(classId: string, studentIdNumber: string[]): Promise<void> {
   const client = createClient()
-  const { error } = await client
+
+  const {
+    data: studentIDs,
+    error: studentIDsError,
+  } = await client
     .from('students')
-    .update({ class_id: classId })
+    .select('id')
     .in('id_number', studentIdNumber)
+
+  if (studentIDsError)
+    throw studentIDsError
+
+  const _studentIDs = studentIDs.map(s => s.id)
+
+  const { error } = await client
+    .from('student_school_class')
+    .update({ class_id: classId })
+    .in('student_id', _studentIDs)
 
   if (error)
     throw error

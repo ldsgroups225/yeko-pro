@@ -322,6 +322,61 @@ export interface Database {
           },
         ]
       }
+      coefficients: {
+        Row: {
+          coefficient: number
+          created_at: string | null
+          grade_id: number
+          id: string
+          school_year_id: number
+          series: string | null
+          subject_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          coefficient: number
+          created_at?: string | null
+          grade_id: number
+          id?: string
+          school_year_id: number
+          series?: string | null
+          subject_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          coefficient?: number
+          created_at?: string | null
+          grade_id?: number
+          id?: string
+          school_year_id?: number
+          series?: string | null
+          subject_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'coefficients_grade_id_fkey'
+            columns: ['grade_id']
+            isOneToOne: false
+            referencedRelation: 'grades'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'coefficients_school_year_id_fkey'
+            columns: ['school_year_id']
+            isOneToOne: false
+            referencedRelation: 'school_years'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'coefficients_subject_id_fkey'
+            columns: ['subject_id']
+            isOneToOne: false
+            referencedRelation: 'subjects'
+            referencedColumns: ['id']
+          },
+        ]
+      }
       cycles: {
         Row: {
           created_at: string | null
@@ -1568,84 +1623,54 @@ export interface Database {
         Row: {
           address: string | null
           avatar_url: string | null
-          class_id: string | null
           created_at: string | null
           created_by: string | null
           date_of_birth: string | null
           first_name: string
           gender: string | null
-          grade_id: number | null
           id: string
           id_number: string
           last_name: string
           parent_id: string
-          school_id: string | null
           updated_at: string | null
           updated_by: string | null
         }
         Insert: {
           address?: string | null
           avatar_url?: string | null
-          class_id?: string | null
           created_at?: string | null
           created_by?: string | null
           date_of_birth?: string | null
           first_name: string
           gender?: string | null
-          grade_id?: number | null
           id?: string
           id_number: string
           last_name: string
           parent_id: string
-          school_id?: string | null
           updated_at?: string | null
           updated_by?: string | null
         }
         Update: {
           address?: string | null
           avatar_url?: string | null
-          class_id?: string | null
           created_at?: string | null
           created_by?: string | null
           date_of_birth?: string | null
           first_name?: string
           gender?: string | null
-          grade_id?: number | null
           id?: string
           id_number?: string
           last_name?: string
           parent_id?: string
-          school_id?: string | null
           updated_at?: string | null
           updated_by?: string | null
         }
         Relationships: [
           {
-            foreignKeyName: 'students_class_id_fkey'
-            columns: ['class_id']
-            isOneToOne: false
-            referencedRelation: 'classes'
-            referencedColumns: ['id']
-          },
-          {
-            foreignKeyName: 'students_grade_id_fkey'
-            columns: ['grade_id']
-            isOneToOne: false
-            referencedRelation: 'grades'
-            referencedColumns: ['id']
-          },
-          {
             foreignKeyName: 'students_parent_id_fkey'
             columns: ['parent_id']
             isOneToOne: false
             referencedRelation: 'users'
-            referencedColumns: ['id']
-          },
-          {
-            foreignKeyName: 'students_school_id_fkey'
-            columns: ['school_id']
-            isOneToOne: false
-            referencedRelation: 'schools'
             referencedColumns: ['id']
           },
         ]

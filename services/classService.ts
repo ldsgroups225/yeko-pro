@@ -39,7 +39,7 @@ export async function getClassBySlug(slug: string): Promise<IClass> {
 
   const { data, error } = await supabase
     .from('classes')
-    .select('*, students(count), teacher:users(id, first_name, last_name, email)')
+    .select('*, teacher:users(id, first_name, last_name, email)')
     .eq('slug', slug)
     .single()
     .throwOnError()
@@ -47,6 +47,19 @@ export async function getClassBySlug(slug: string): Promise<IClass> {
   if (error) {
     console.error('Error fetching class by slug:', error)
     throw new Error('Failed to fetch class')
+  }
+
+  const { count: studentCount, error: studentCountError } = await supabase
+    .from('student_school_class')
+    .select('class_id', { count: 'exact' })
+    .eq('class_id', data.id)
+    .eq('enrollment_status', 'accepted')
+    .is('is_active', true)
+    .throwOnError()
+
+  if (studentCountError) {
+    console.error('Error fetching class students count:', studentCountError)
+    throw new Error('Failed to count students of the class')
   }
 
   if (!data) {
@@ -59,7 +72,7 @@ export async function getClassBySlug(slug: string): Promise<IClass> {
     slug: data.slug!,
     gradeId: data.grade_id,
     isActive: data.is_active,
-    studentCount: (data.students[0] as any)?.count ?? 0,
+    studentCount: studentCount ?? 0,
     teacher: data.teacher
       ? {
           id: data.teacher.id,
@@ -628,9 +641,13 @@ export async function filterStudentWhereNotInTheClass(
 
   let query = supabase
     .from('students')
-    .select('id, id_number, first_name, last_name, avatar_url, classroom:classes!inner(id, name, school_id)')
-    .eq('classroom.school_id', schoolId)
-    .neq('class_id', classId)
+    .select(`
+      id, id_number, first_name, last_name, avatar_url,
+      enrollment:student_school_class!inner(classroom:classes!inner(id, name, school_id))
+      `,
+    )
+    .eq('enrollment.classroom.school_id', schoolId)
+    .neq('enrollment.classroom.id', classId)
 
   if (search) {
     const searchConditions = [
@@ -657,10 +674,10 @@ export async function filterStudentWhereNotInTheClass(
   const parsedData = data.map(d => ({
     idNumber: d.id_number,
     fullName: formatFullName(d.first_name, d.last_name),
-    currentClass: d.classroom
+    currentClass: (d.enrollment as any).classroom
       ? {
-          id: d.classroom.id,
-          name: d.classroom.name,
+          id: (d.enrollment as any).classroom.id,
+          name: (d.enrollment as any).classroom.name,
         }
       : null,
     imageUrl: d.avatar_url,
