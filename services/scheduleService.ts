@@ -127,8 +127,8 @@ function mapScheduleToDTO(
   return {
     id: schedule.id,
     subjectName: schedule.subject?.name ?? '',
-    teacherName: schedule.teacher
-      ? formatFullName(schedule.teacher.first_name, schedule.teacher.last_name)
+    teacherName: schedule.teacher_id.length
+      ? formatFullName(schedule.teacher!.first_name, schedule.teacher!.last_name)
       : '',
     classId: currentClass?.slug ?? '',
     classroomName: currentClass?.name ?? '',

@@ -57,7 +57,11 @@ function EventCell({ event, style, onEventUpdate }: EventCellProps) {
       >
         <h3 className="text-sm font-medium truncate">{event.subjectName}</h3>
         <p className="text-xs text-muted-foreground truncate">
-          {event.teacherName}
+          {
+            event.teacherName?.length
+              ? event.teacherName
+              : '---'
+          }
         </p>
         <div className={cn(
           'text-xs flex justify-between items-center',
