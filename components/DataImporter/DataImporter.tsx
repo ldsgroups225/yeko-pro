@@ -20,7 +20,6 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-// Importing required icons from lucide-react
 import {
   AlertCircle,
   CheckCircle2,
@@ -34,7 +33,6 @@ import Papa from 'papaparse'
 import React, { useCallback, useState } from 'react'
 import { useDropzone } from 'react-dropzone'
 import * as XLSX from 'xlsx'
-
 import { z } from 'zod'
 
 export interface ValidationError {
@@ -51,6 +49,10 @@ const DEFAULT_HEADER_ROW_NUMBER = 0
 const DEFAULT_TITLE = 'Importation des données'
 const DEFAULT_DESCRIPTION = 'Importer des données CSV ou Excel'
 
+interface DownloadTemplateConfig {
+  buttonText?: string
+}
+
 export interface DataImporterProps<T extends z.ZodType> {
   schema: T
   onDataImported?: (data: z.infer<T>[]) => void
@@ -61,6 +63,7 @@ export interface DataImporterProps<T extends z.ZodType> {
   onError?: (error: string) => void
   title?: string
   description?: string
+  downloadTemplate?: boolean | DownloadTemplateConfig
 }
 
 export function DataImporter<T extends z.ZodType>({
@@ -73,6 +76,7 @@ export function DataImporter<T extends z.ZodType>({
   onError,
   title = DEFAULT_TITLE,
   description = DEFAULT_DESCRIPTION,
+  downloadTemplate,
 }: DataImporterProps<T>) {
   const [file, setFile] = useState<File | null>(null)
   const [parsedData, setParsedData] = useState<any[]>([])
@@ -82,6 +86,30 @@ export function DataImporter<T extends z.ZodType>({
   const [isProcessing, setIsProcessing] = useState<boolean>(false)
   const [processingProgress, setProcessingProgress] = useState<number>(0)
   const [status, setStatus] = useState<'idle' | 'validating' | 'validated' | 'error'>('idle')
+
+  // Obtenir le texte du bouton du template
+  const templateButtonText = typeof downloadTemplate === 'object'
+    ? downloadTemplate.buttonText || 'Download Template'
+    : 'Download Template'
+
+  // Gérer le téléchargement du template Excel
+  const handleDownloadTemplate = () => {
+    try {
+      const shape = (schema as any)._def.shape?.()
+      if (!shape)
+        throw new Error('Le schéma doit avoir des champs définis')
+      const headers = Object.keys(shape)
+      const workbook = XLSX.utils.book_new()
+      const worksheet = XLSX.utils.aoa_to_sheet([headers])
+      XLSX.utils.book_append_sheet(workbook, worksheet, 'Template')
+      XLSX.writeFile(workbook, 'emploi_du_temps.xlsx')
+    }
+    catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Erreur inconnue'
+      if (onError)
+        onError(`Échec du téléchargement du template: ${errorMessage}`)
+    }
+  }
 
   // Validate data in batches
   const validateDataBatches = (data: any[]) => {
@@ -310,13 +338,26 @@ export function DataImporter<T extends z.ZodType>({
   return (
     <Card className="w-full">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <FileSpreadsheet className="h-5 w-5" />
-          {title}
-        </CardTitle>
-        <CardDescription>
-          {description}
-        </CardDescription>
+        <div className="flex gap-2">
+          <div>
+            <CardTitle className="flex items-center gap-2">
+              <FileSpreadsheet className="h-5 w-5" />
+              {title}
+            </CardTitle>
+            <CardDescription>
+              {description}
+            </CardDescription>
+          </div>
+
+          {downloadTemplate && (
+            <div className="mb-4 ml-auto">
+              <Button variant="outline" onClick={handleDownloadTemplate} className="w-full sm:w-auto">
+                <Download className="h-4 w-4 mr-2" />
+                {templateButtonText}
+              </Button>
+            </div>
+          )}
+        </div>
       </CardHeader>
 
       <CardContent>

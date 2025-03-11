@@ -194,6 +194,9 @@ function ImportSchedulePage() {
         allowedFileTypes={['.csv', '.xlsx']}
         maxFileSize={10 * 1024 * 1024}
         previewRowCount={5}
+        downloadTemplate={{
+          buttonText: 'Télécharger le template',
+        }}
       />
 
       {importSuccess && (
