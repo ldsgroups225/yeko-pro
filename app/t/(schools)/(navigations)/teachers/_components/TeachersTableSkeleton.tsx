@@ -9,6 +9,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import { nanoid } from 'nanoid'
 
 export function TeachersTableSkeleton() {
   const headers = ['Enseignant', 'Email', 'Enseigne dans', 'Prof principal de', 'Actions']
@@ -16,18 +17,18 @@ export function TeachersTableSkeleton() {
     <Table>
       <TableHeader>
         <TableRow>
-          {headers.map(idx => (
-            <TableHead key={idx}>
+          {headers.map(() => (
+            <TableHead key={nanoid()}>
               <Skeleton className="h-4 w-24" />
             </TableHead>
           ))}
         </TableRow>
       </TableHeader>
       <TableBody>
-        {Array.from({ length: 3 }).map(idx => (
-          <TableRow key={JSON.stringify(idx)}>
-            {headers.map(idx => (
-              <TableCell key={idx}>
+        {Array.from({ length: 10 }).map(() => (
+          <TableRow key={nanoid()}>
+            {headers.map(() => (
+              <TableCell key={nanoid()}>
                 <Skeleton className="h-4 w-full" />
               </TableCell>
             ))}

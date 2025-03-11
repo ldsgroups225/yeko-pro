@@ -95,15 +95,17 @@ export function Combobox<T extends { id: string, name: string }>({
             )}
             onBlur={() => setTouched(true)}
           >
-            {value
-              ? options.find(option => option.id === value)?.name
-              : placeholder}
+            <span className="truncate">
+              {value
+                ? options.find(option => option.id === value)?.name
+                : placeholder}
+            </span>
             {isLoading
               ? <Loader2 className="ml-2 h-4 w-4 animate-spin" />
               : <ChevronDown className="-mr-1 h-4 w-4 opacity-50" />}
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-full p-0">
+        <PopoverContent className="w-full p-0 max-h-[300px] overflow-auto">
           <Command>
             <CommandInput
               placeholder="Rechercher..."
@@ -120,13 +122,14 @@ export function Combobox<T extends { id: string, name: string }>({
                     value={option.id}
                     onSelect={() => handleSelect(option)}
                   >
-                    {option.name}
-                    <Check
-                      className={cn(
-                        'ml-auto',
-                        value === option.id ? 'opacity-100' : 'opacity-0',
-                      )}
-                    />
+                    <div className="flex items-center justify-between w-full">
+                      <span className="truncate">{option.name}</span>
+                      <Check
+                        className={cn(
+                          value === option.id ? 'opacity-100' : 'opacity-0',
+                        )}
+                      />
+                    </div>
                   </CommandItem>
                 ))}
               </CommandGroup>

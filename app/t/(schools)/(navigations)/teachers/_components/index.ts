@@ -1,3 +1,5 @@
+export * from './AssignClassesButton'
+export * from './AssignClassesDialog'
 export * from './FilterButton'
 export * from './InviteTeacherButton'
 export * from './InviteTeacherModal'

@@ -18,6 +18,7 @@ import {
 import { getTeachers } from '@/services'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { useEffect, useState } from 'react'
+import { AssignClassesButton } from './AssignClassesButton'
 
 export function TeachersTable({
   sort,
@@ -139,7 +140,17 @@ export function TeachersTable({
                 </div>
               </TableCell>
               <TableCell>
-                {/* Add action buttons here */}
+                {teacher.assignments?.filter(a => a.isMainTeacher).length}
+                {(teacher.assignments ?? []).filter(a => a.isMainTeacher).length > 1
+                  ? ' classes'
+                  : ' classe'}
+              </TableCell>
+              <TableCell>
+                <AssignClassesButton
+                  teacherId={teacher.id}
+                  teacherName={`${teacher.firstName} ${teacher.lastName}`}
+                  currentAssignments={teacher.assignments ?? []}
+                />
               </TableCell>
             </TableRow>
           ))}

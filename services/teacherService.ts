@@ -95,14 +95,20 @@ export async function getTeachers(query: ITeacherQueryParams): Promise<{ data: I
   // Sorting
   if (query.sort?.column) {
     const column = query.sort.column === 'lastName' ? 'last_name' : query.sort.column
-    supabaseQuery = supabaseQuery.order(column, { ascending: query.sort.direction === 'asc', foreignTable: 'teacher' })
+    supabaseQuery = supabaseQuery.order(
+      column,
+      {
+        ascending: query.sort.direction === 'asc',
+        referencedTable: 'teacher',
+      },
+    )
   }
 
   // Execute the query
   const { data, count, error } = await supabaseQuery
     .range(from, to)
     .order('status', { ascending: false })
-    .order('last_name', { ascending: true, foreignTable: 'teacher' })
+    .order('last_name', { ascending: true, referencedTable: 'teacher' })
 
   if (error)
     throw error
@@ -146,6 +152,48 @@ export async function updateTeacherStatus(
 
   if (error)
     throw error
+}
+
+export async function updateTeacherAssignments(
+  teacherId: string,
+  assignments: Array<{
+    classId: string
+    subjectId: string
+    isMainTeacher: boolean
+  }>,
+): Promise<void> {
+  const supabase = createClient()
+
+  const userId = await checkAuthUserId(supabase)
+  const schoolId = await getDirectorSchoolId(supabase, userId)
+
+  // Supprimer les affectations existantes
+  const { error: deleteError } = await supabase
+    .from('teacher_class_assignments')
+    .delete()
+    .eq('school_id', schoolId)
+    .eq('teacher_id', teacherId)
+
+  if (deleteError) {
+    throw deleteError
+  }
+
+  // Insérer les nouvelles affectations
+  const { error: insertError } = await supabase
+    .from('teacher_class_assignments')
+    .insert(
+      assignments.map(assignment => ({
+        teacher_id: teacherId,
+        school_id: schoolId,
+        class_id: assignment.classId,
+        subject_id: assignment.subjectId,
+        is_main_teacher: assignment.isMainTeacher,
+      })),
+    )
+
+  if (insertError) {
+    throw insertError
+  }
 }
 
 export async function createInviteTeacher(): Promise<string> {
