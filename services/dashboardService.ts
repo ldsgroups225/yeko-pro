@@ -2,7 +2,7 @@
 
 import type { SupabaseClient } from '@/lib/supabase/server'
 import type { ICandidature, IGradeNote, IPonctualite } from '@/types'
-import { NOTE_TYPE } from '@/constants'
+import { NOTE_OPTIONS_MAP, NOTE_TYPE } from '@/constants'
 import { createClient } from '@/lib/supabase/server'
 import { formatFullName } from '@/lib/utils'
 import { ERole } from '@/types'
@@ -159,6 +159,97 @@ async function getPayments(client: SupabaseClient, schoolId: string): Promise<{ 
   const improvement = (totalPayment - totalPaid) / totalPayment // TODO: implement yearOverYearGrowth calculation
 
   return { onTimeRate, improvement }
+}
+
+interface NoteDetail {
+  studentId: string
+  studentFirstName: string
+  studentLastName: string
+  note: number | null
+  gradedAt: string | null
+}
+
+export interface DetailedNote extends IGradeNote {
+  description: string | null
+  noteType: string
+  totalPoints: number
+  weight: number | null
+  details: NoteDetail[]
+}
+
+export async function getNoteDetails(noteId: string): Promise<DetailedNote> {
+  const supabase = createClient()
+
+  const userId = await checkAuthUserId(supabase)
+  await getDirectorSchoolId(supabase, userId)
+
+  const { data: note, error } = await supabase
+    .from('notes')
+    .select(`
+      id,
+      classroom: classes(name),
+      due_date,
+      description,
+      note_type,
+      total_points,
+      weight,
+      subject: subjects(name),
+      teacher: users(first_name, last_name, email),
+      details: note_details(
+        student_id,
+        note,
+        graded_at,
+        student:students(
+          first_name,
+          last_name
+        )
+      ),
+      is_published,
+      created_at
+    `)
+    .eq('id', noteId)
+    .single()
+
+  if (error) {
+    console.error('Error fetching note details:', error)
+    throw new Error('Échec de la récupération des détails de la note')
+  }
+
+  const details: NoteDetail[] = note.details.map((detail: any) => ({
+    studentId: detail.student_id,
+    studentFirstName: detail.student.first_name,
+    studentLastName: detail.student.last_name,
+    note: detail.note,
+    gradedAt: detail.graded_at,
+  }))
+
+  // Calculate min and max notes
+  const validNotes = details.map(d => d.note).filter((n): n is number => n !== null)
+  const minNote = validNotes.length ? Math.min(...validNotes) : 0
+  const maxNote = validNotes.length ? Math.max(...validNotes) : 0
+
+  const noteTypeLabel = NOTE_OPTIONS_MAP[note.note_type as NOTE_TYPE] || note.note_type
+
+  return {
+    id: note.id,
+    classroom: note.classroom?.name || 'Classe inconnue',
+    studentCount: details.length,
+    minNote,
+    maxNote,
+    createdAt: note.due_date ?? note.created_at,
+    teacher: formatFullName(
+      note.teacher?.first_name,
+      note.teacher?.last_name,
+      note.teacher?.email,
+    ),
+    subject: note.subject?.name || 'Matière inconnue',
+    status: note.is_published ? 'Publié' : 'À publier',
+    description: note.description,
+    noteType: noteTypeLabel,
+    totalPoints: note.total_points,
+    weight: note.weight,
+    details,
+  }
 }
 
 export async function getDashboardMetrics(): Promise<DashboardMetrics> {

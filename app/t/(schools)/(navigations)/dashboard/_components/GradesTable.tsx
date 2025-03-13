@@ -1,3 +1,4 @@
+import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import {
   Table,
@@ -9,7 +10,7 @@ import {
 } from '@/components/ui/table'
 import { formatDate } from '@/lib/utils'
 import { getNotes } from '@/services/dashboardService'
-import { PublishNotesButton } from './PublishNotesButton'
+import Link from 'next/link'
 
 export async function GradesTable() {
   const notes = await getNotes()
@@ -50,7 +51,15 @@ export async function GradesTable() {
                 <TableCell>{note.teacher}</TableCell>
                 <TableCell>{note.subject}</TableCell>
                 <TableCell className="text-right">
-                  <PublishNotesButton noteId={note.id} />
+                  <Link href={`/t/dashboard/${note.classroom.replace(/\s+/g, '_')}/${note.id}`}>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="bg-primary/10 text-primary hover:bg-primary/20"
+                    >
+                      Voir le contenu
+                    </Button>
+                  </Link>
                 </TableCell>
               </TableRow>
             ))}
