@@ -1,6 +1,6 @@
 'use client'
 
-import type { ISchool, IStudent } from '../../page'
+import type { ISchool, IStudent } from '../../types'
 import { createClient } from '@/lib/supabase/client'
 import { Controller, useForm } from 'react-hook-form'
 import { toast } from 'sonner'

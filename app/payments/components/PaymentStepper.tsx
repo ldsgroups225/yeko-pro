@@ -1,12 +1,13 @@
 'use client'
 
-import type { ISchool, IStudent } from '../page'
+import type { ISchool, IStudent } from '../types'
 import { Button } from '@/components/ui/button'
+import { INSCRIPTION_AMOUNT } from '@/constants'
 import { cn } from '@/lib/utils'
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { toast } from 'sonner'
-import { ClassSelectionStep } from './steps/ClassSelectionStep'
 import { ConfirmationStep } from './steps/ConfirmationStep'
+import { GradeSelectionStep } from './steps/GradeSelectionStep'
 import { PaymentStep } from './steps/PaymentStep'
 import { SearchStep } from './steps/SearchStep'
 import { VerificationStep } from './steps/VerificationStep'
@@ -20,32 +21,35 @@ interface PaymentStepperProps {
   steps: Step[]
 }
 
+interface GradeDTO {
+  id: number
+  name: string
+}
+
 export function PaymentStepper({ steps }: PaymentStepperProps) {
+  const buttonSubmitRef = useRef<HTMLButtonElement | null>(null)
+  const buttonCancelRef = useRef<HTMLButtonElement | null>(null)
+
   const [currentStep, setCurrentStep] = useState(0)
   const [student, setStudent] = useState<IStudent | null>(null)
   const [school, setSchool] = useState<ISchool | null>(null)
-  const [selectedClassId, setSelectedClassId] = useState<string>('')
+  const [selectedGrade, setSelectedGrade] = useState<{ id: number, name: string } | null>(null)
   const [paymentDetails, setPaymentDetails] = useState<{
     method: string
     phoneNumber: string
   } | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [confirmation, setConfirmation] = useState<{
-    reference: string
     amount: number
-    studentName: string
-    className: string
-    schoolName: string
-    paymentMethod: string
-    phoneNumber: string
+    reference: string
+    gradeName: string
     timestamp: string
+    schoolName: string
+    studentName: string
+    phoneNumber: string
+    paymentMethod: string
+    isGovernmentAffected?: boolean
   } | null>(null)
-
-  const mockClasses = [
-    { id: '1', name: '6ème A', tuitionFee: 150000 },
-    { id: '2', name: '5ème A', tuitionFee: 175000 },
-    { id: '3', name: '4ème A', tuitionFee: 200000 },
-  ]
 
   const mockPaymentMethods = [
     { id: 'orange', name: 'Orange Money', operatorName: 'Orange CI' },
@@ -54,48 +58,12 @@ export function PaymentStepper({ steps }: PaymentStepperProps) {
     { id: 'wave', name: 'Wave', operatorName: 'Wave Mobile Money' },
   ]
 
-  const handleSearch = async (studentId: string, schoolCode: string) => {
-    setIsLoading(true)
-    // Simulate API call
-    setTimeout(() => {
-      setStudent({
-        id: '1',
-        idNumber: studentId,
-        firstName: 'John',
-        lastName: 'Doe',
-        address: null,
-        gender: 'M',
-        birthDate: '2010-01-01',
-        avatarUrl: null,
-        parentId: '1',
-        classId: null,
-        gradeId: null,
-        schoolId: null,
-        createdAt: null,
-        updatedAt: null,
-        createdBy: null,
-        updatedBy: null,
-      })
-      setSchool({
-        id: '1',
-        code: schoolCode,
-        name: 'École Primaire Example',
-        address: '123 Rue Example',
-        imageUrl: null,
-        city: 'Abidjan',
-        email: 'contact@example.com',
-        cycleId: '1',
-        isTechnicalEducation: false,
-        phone: '0123456789',
-        stateId: null,
-        createdAt: null,
-        updatedAt: null,
-        createdBy: null,
-        updatedBy: null,
-      })
-      setIsLoading(false)
-      setCurrentStep(1)
-    }, 1500)
+  const handleSearch = (foundStudent: IStudent | null, foundSchool: ISchool) => {
+    setStudent(foundStudent)
+    setSchool(foundSchool)
+    if (foundSchool) {
+      setCurrentStep(1) // Passer à l'étape de vérification
+    }
   }
 
   const handleVerify = (verified: boolean) => {
@@ -109,8 +77,8 @@ export function PaymentStepper({ steps }: PaymentStepperProps) {
     }
   }
 
-  const handleClassSelect = (classId: string) => {
-    setSelectedClassId(classId)
+  const handleGradeSelect = (grade: GradeDTO) => {
+    setSelectedGrade(grade)
     setCurrentStep(3)
   }
 
@@ -119,14 +87,13 @@ export function PaymentStepper({ steps }: PaymentStepperProps) {
     setPaymentDetails(data)
     // Simulate payment processing
     setTimeout(() => {
-      const selectedClass = mockClasses.find(c => c.id === selectedClassId)
       const paymentMethod = mockPaymentMethods.find(pm => pm.id === data.method)
 
       setConfirmation({
         reference: `PAY-${Math.random().toString(36).substring(2, 10).toUpperCase()}`,
-        amount: selectedClass?.tuitionFee || 0,
+        amount: INSCRIPTION_AMOUNT,
         studentName: `${student?.firstName} ${student?.lastName}`,
-        className: selectedClass?.name || '',
+        gradeName: selectedGrade?.name || '',
         schoolName: school?.name || '',
         paymentMethod: paymentMethod?.name || '',
         phoneNumber: data.phoneNumber,
@@ -148,20 +115,26 @@ export function PaymentStepper({ steps }: PaymentStepperProps) {
             school={school}
             onVerify={handleVerify}
             isLoading={isLoading}
+            buttonCancelRef={buttonCancelRef}
+            buttonContinueRef={buttonSubmitRef}
           />
         )
       case 2:
         return (
-          <ClassSelectionStep
-            classes={mockClasses}
-            onSelect={handleClassSelect}
-            isLoading={isLoading}
+          <GradeSelectionStep
+            student={student!}
+            school={school!}
+            onComplete={handleGradeSelect}
+            onBack={() => {}}
+            onError={error => toast.error(error)}
+            buttonCancelRef={buttonCancelRef}
+            buttonContinueRef={buttonSubmitRef}
           />
         )
       case 3:
         return (
           <PaymentStep
-            amount={mockClasses.find(c => c.id === selectedClassId)?.tuitionFee || 0}
+            amount={INSCRIPTION_AMOUNT}
             paymentMethods={mockPaymentMethods}
             onSubmit={handlePayment}
             isLoading={isLoading}
@@ -173,12 +146,10 @@ export function PaymentStepper({ steps }: PaymentStepperProps) {
               <ConfirmationStep
                 payment={confirmation}
                 onDownloadReceipt={() => {
-                // Implement download logic
-                  toast.warning('Downloading receipt is not implemented yet')
+                  toast.warning('Téléchargement du reçu non implémenté')
                 }}
                 onPrintReceipt={() => {
-                // Implement print logic
-                  toast.warning('Printing receipt is not implemented yet')
+                  toast.warning('Impression du reçu non implémentée')
                 }}
                 isLoading={isLoading}
               />
@@ -227,30 +198,43 @@ export function PaymentStepper({ steps }: PaymentStepperProps) {
       </nav>
 
       {/* Step Content */}
-      <div className="mt-8">
+      <div className="mt-4">
         {renderStep()}
       </div>
 
       {/* Navigation Buttons */}
       {currentStep < 4 && (
-        <div className="flex justify-between mt-8">
+        <div className="flex justify-between">
           <Button
             variant="outline"
-            onClick={() => setCurrentStep(current => Math.max(current - 1, 0))}
+            onClick={() => {
+              if ((currentStep === 1 && !student) || currentStep === 2)
+                buttonCancelRef?.current?.click()
+
+              else
+                setCurrentStep(current => Math.max(current - 1, 0))
+            }}
             disabled={currentStep === 0 || isLoading}
           >
             Précédent
           </Button>
           <Button
-            onClick={() => setCurrentStep(current =>
-              Math.min(current + 1, steps.length - 1),
-            )}
+            onClick={() => {
+              if ((currentStep === 1 && !student) || currentStep === 2) {
+                buttonSubmitRef?.current?.click()
+              }
+
+              else {
+                setCurrentStep(current => Math.min(current + 1, steps.length - 1),
+                )
+              }
+            }}
             disabled={
               currentStep === steps.length - 1
               || isLoading
               || !student
               || !school
-              || (currentStep === 2 && !selectedClassId)
+              // || (currentStep === 2 && !selectedGrade)
               || (currentStep === 3 && !paymentDetails)
             }
           >

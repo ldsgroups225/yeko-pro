@@ -1,7 +1,12 @@
 'use client'
 
 import type { Database } from '@/lib/supabase/types'
-import type { ISchool, IStudent } from '../../page'
+import type { RefObject } from 'react'
+import type { ISchool, IStudent } from '../../types'
+import { GenericSelect } from '@/components/GenericSelect'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader } from '@/components/ui/card'
+import { Switch } from '@/components/ui/switch'
 import { createClient } from '@/lib/supabase/client'
 import { motion } from 'framer-motion'
 import { useEffect, useState } from 'react'
@@ -19,9 +24,11 @@ interface GradeWithTuition extends Grade {
 interface GradeSelectionStepProps {
   student: IStudent
   school: ISchool
-  onComplete: (gradeId: number, tuitionAmount: number) => void
+  onComplete: (grade: { id: number, name: string }) => void
   onBack: () => void
   onError: (error: string) => void
+  buttonContinueRef?: RefObject<HTMLButtonElement | null>
+  buttonCancelRef?: RefObject<HTMLButtonElement | null>
 }
 
 export function GradeSelectionStep({
@@ -30,10 +37,13 @@ export function GradeSelectionStep({
   onComplete,
   onBack,
   onError,
+  buttonCancelRef,
+  buttonContinueRef,
 }: GradeSelectionStepProps) {
   const [isLoading, setIsLoading] = useState(true)
   const [grades, setGrades] = useState<GradeWithTuition[]>([])
-  const [selectedGrade, setSelectedGrade] = useState<GradeWithTuition | null>(null)
+  const [selectedGradeId, setSelectedGradeId] = useState<string>('')
+  const [applyDiscount, setApplyDiscount] = useState(false)
 
   useEffect(() => {
     const fetchGrades = async () => {
@@ -85,26 +95,58 @@ export function GradeSelectionStep({
     fetchGrades()
   }, [school.id, school.cycleId, onError])
 
-  const handleGradeSelection = (grade: GradeWithTuition) => {
-    setSelectedGrade(grade)
-    if (grade.tuition) {
-      const tuitionAmount = student.schoolId === school.id && student.gradeId === grade.id
-        ? 0 // Student already enrolled in this grade
-        : grade.tuition.annualFee * (1 - (grade.tuition.governmentDiscountPercentage / 100))
-      onComplete(grade.id, tuitionAmount)
-    }
-    else {
+  const selectedGrade = grades.find(grade => grade.id.toString() === selectedGradeId)
+
+  const handleGradeChange = (gradeId: string) => {
+    setSelectedGradeId(gradeId)
+    setApplyDiscount(false)
+  }
+
+  const handleDiscountChange = (checked: boolean) => {
+    setApplyDiscount(checked)
+  }
+
+  const calculateTuitionAmount = () => {
+    if (!selectedGrade?.tuition)
+      return 0
+
+    const baseAmount = selectedGrade.tuition.annualFee
+    const discountPercentage = selectedGrade.tuition.governmentDiscountPercentage
+
+    if (student.schoolId === school.id && student.gradeId === selectedGrade.id)
+      return 0 // Student already enrolled in this grade
+
+    return applyDiscount && [7, 11].includes(selectedGrade.id)
+      ? baseAmount * (1 - (discountPercentage / 100))
+      : baseAmount
+  }
+
+  const handleContinue = () => {
+    if (!selectedGrade?.tuition) {
       toast.error('Frais de scolarité non configurés pour cette classe')
+      return
     }
+
+    onComplete(selectedGrade)
   }
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-600"></div>
-      </div>
+      <Card className="border-none bg-card/60 backdrop-blur supports-[backdrop-filter]:bg-card/60">
+        <CardContent className="pt-6">
+          <div className="flex items-center justify-center py-8">
+            <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+          </div>
+        </CardContent>
+      </Card>
     )
   }
+
+  const gradeOptions = grades.map(grade => ({
+    id: grade.id.toString(),
+    name: grade.name,
+    tuitionFee: grade.tuition?.annualFee || 0,
+  }))
 
   return (
     <motion.div
@@ -113,65 +155,70 @@ export function GradeSelectionStep({
       exit={{ opacity: 0, y: -20 }}
       className="space-y-6"
     >
-      <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-        <h3 className="text-lg font-semibold mb-4">Sélection de la classe</h3>
-        <div className="grid gap-4">
-          {grades.map(grade => (
-            <div
-              key={grade.id}
-              className={`p-4 rounded-lg border cursor-pointer transition-colors
-                ${selectedGrade?.id === grade.id
-              ? 'border-blue-500 bg-blue-50'
-              : 'border-gray-200 hover:border-blue-300'
-            }
-              `}
-              onClick={() => handleGradeSelection(grade)}
-            >
-              <div className="flex items-center justify-between">
-                <div>
-                  <h4 className="font-medium">{grade.name}</h4>
-                  <p className="text-sm text-gray-600">{grade.description}</p>
-                </div>
-                {grade.tuition && (
-                  <div className="text-right">
-                    <p className="font-medium">
-                      {new Intl.NumberFormat('fr-FR', {
-                        style: 'currency',
-                        currency: 'XOF',
-                      }).format(grade.tuition.annualFee)}
-                    </p>
-                    {grade.tuition.governmentDiscountPercentage > 0 && (
-                      <p className="text-sm text-green-600">
-                        -
-                        {grade.tuition.governmentDiscountPercentage}
-                        % remise gouvernementale
-                      </p>
-                    )}
-                  </div>
-                )}
+      <Card className="border-none bg-card/60 backdrop-blur supports-[backdrop-filter]:bg-card/60">
+        <CardHeader>
+          <h3 className="text-lg font-semibold text-center">Sélection du niveau scolaire</h3>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div className="space-y-4">
+            <GenericSelect
+              label="Niveau"
+              value={selectedGradeId}
+              options={gradeOptions}
+              onValueChange={handleGradeChange}
+              placeholder="Sélectionnez un niveau"
+              required
+            />
+
+            {selectedGrade && [7, 11].includes(selectedGrade.id) && (
+              <div className="flex items-center justify-between space-x-4 p-4 rounded-lg bg-background/50">
+                <p className="text-sm font-medium">Êtes-vous orienté d'état ?</p>
+                <Switch
+                  checked={applyDiscount}
+                  onCheckedChange={handleDiscountChange}
+                />
               </div>
-            </div>
-          ))}
-        </div>
+            )}
 
-        {grades.length === 0 && (
-          <p className="text-center text-gray-500 my-8">
-            Aucune classe disponible pour cette école
-          </p>
-        )}
-      </div>
+            {selectedGrade?.tuition && (
+              <div className="p-4 rounded-lg bg-background/50">
+                <h4 className="text-sm font-medium mb-2">Frais de scolarité</h4>
+                <div className="flex justify-between items-center">
+                  <span className="text-2xl font-bold text-primary">
+                    {new Intl.NumberFormat('fr-FR', {
+                      style: 'currency',
+                      currency: 'XOF',
+                    }).format(calculateTuitionAmount())}
+                  </span>
+                  <Button
+                    ref={buttonContinueRef}
+                    onClick={handleContinue}
+                    disabled={!selectedGrade}
+                    className="hidden"
+                  >
+                    Continuer
+                  </Button>
+                </div>
+              </div>
+            )}
+          </div>
 
-      <div className="flex justify-between">
-        <motion.button
-          type="button"
-          onClick={onBack}
-          className="px-4 py-2 text-gray-600 hover:text-gray-800"
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
-        >
-          Retour
-        </motion.button>
-      </div>
+          {grades.length === 0 && (
+            <p className="text-center text-muted-foreground my-8">
+              Aucune classe disponible pour cette école
+            </p>
+          )}
+        </CardContent>
+      </Card>
+
+      <button
+        ref={buttonCancelRef}
+        type="button"
+        onClick={onBack}
+        className="hidden"
+      >
+        Retour
+      </button>
     </motion.div>
   )
 }

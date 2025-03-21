@@ -111,7 +111,6 @@ export default function StudentPage() {
 
   const handleTabChange = useCallback((value: string) => {
     setActiveTab(value)
-    consola.log(`Tab changed to: ${value}`)
   }, [])
 
   // Fetch student data

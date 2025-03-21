@@ -1,3 +1,5 @@
+export const INSCRIPTION_AMOUNT = 10000
+
 export enum PAYMENT_METHOD {
   CASH = 'cash',
   MOBILE_MONEY = 'mobile_money',

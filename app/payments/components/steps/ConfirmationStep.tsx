@@ -6,14 +6,15 @@ import { cn } from '@/lib/utils'
 import { Check, Download, Printer } from 'lucide-react'
 
 interface PaymentDetails {
-  reference: string
   amount: number
-  studentName: string
-  className: string
-  schoolName: string
-  paymentMethod: string
-  phoneNumber: string
+  reference: string
   timestamp: string
+  gradeName: string
+  schoolName: string
+  studentName: string
+  phoneNumber: string
+  paymentMethod: string
+  isGovernmentAffected?: boolean
 }
 
 interface ConfirmationStepProps {
@@ -78,8 +79,8 @@ export function ConfirmationStep({
               <span className="text-sm font-medium">{payment.studentName}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-sm text-muted-foreground">Classe</span>
-              <span className="text-sm font-medium">{payment.className}</span>
+              <span className="text-sm text-muted-foreground">Niveau scolaire</span>
+              <span className="text-sm font-medium">{payment.gradeName}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-sm text-muted-foreground">École</span>
