@@ -139,32 +139,44 @@ export async function getStudentByIdNumberForEdit(idNumber: string): Promise<Stu
 
 export async function getStudentByIdNumber(idNumber: string): Promise<IStudentDTO | null> {
   const client = createClient()
-  const { data } = await client
+  const { data: student, error: studentError } = await client
     .from('students')
     .select(`
         id, id_number, first_name, last_name, date_of_birth, gender, avatar_url, address,
         created_at, created_by, updated_at, updated_by,
-        parent:users(first_name, last_name, phone, email, avatar_url),
-        class:classes(id, name, slug)
+        parent:users(first_name, last_name, phone, email, avatar_url)
       `)
     .eq('id_number', idNumber)
     .single()
 
-  if (!data)
+  const { data: classroom, error: classroomError } = await client
+    .from('student_school_class')
+    .select('class_id, class:classes(id, name, slug)')
+    .eq('student_id', student!.id)
+    .eq('enrollment_status', 'accepted')
+    .is('is_active', true)
+    .single()
+
+  if (studentError || classroomError) {
+    console.error('studentError', studentError)
+    console.error('classroomError', classroomError)
+    throw new Error('Erreur lors de la récupération des données de l\'élève')
+  }
+
+  if (!student)
     return null
 
-  const _class = data.class as any
-  const _parent = data.parent as any
+  const _parent = student.parent as any
 
   return {
-    id: data.id,
-    idNumber: data.id_number,
-    firstName: data.first_name,
-    lastName: data.last_name,
-    dateOfBirth: data.date_of_birth,
-    avatarUrl: data.avatar_url,
-    address: data.address,
-    gender: (data as { gender: 'M' | 'F' | null }).gender,
+    id: student.id,
+    idNumber: student.id_number,
+    firstName: student.first_name,
+    lastName: student.last_name,
+    dateOfBirth: student.date_of_birth,
+    avatarUrl: student.avatar_url,
+    address: student.address,
+    gender: (student as { gender: 'M' | 'F' | null }).gender,
     parent: _parent && {
       id: _parent.id!,
       fullName: formatFullName(_parent.first_name, _parent.last_name, _parent.email),
@@ -172,14 +184,16 @@ export async function getStudentByIdNumber(idNumber: string): Promise<IStudentDT
       phoneNumber: _parent.phone!,
       avatarUrl: _parent.avatar_url,
     },
-    classroom: _class && {
-      id: _class.id,
-      name: _class.name,
-    },
-    createdAt: data.created_at,
-    createdBy: data.created_by,
-    updatedAt: data.updated_at,
-    updatedBy: data.updated_by,
+    classroom: classroom?.class_id && classroom?.class
+      ? {
+          id: classroom.class_id,
+          name: classroom.class.name,
+        }
+      : undefined,
+    createdAt: student.created_at,
+    createdBy: student.created_by,
+    updatedAt: student.updated_at,
+    updatedBy: student.updated_by,
   } satisfies IStudentDTO
 }
 
