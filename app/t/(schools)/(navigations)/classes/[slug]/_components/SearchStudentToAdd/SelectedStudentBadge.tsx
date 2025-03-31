@@ -12,7 +12,7 @@ const badgeVariants = {
   exit: { scale: 0, opacity: 0 },
 }
 
-const AnimatedBadge = motion(Badge)
+const AnimatedBadge = motion.create(Badge)
 
 interface SelectedStudentBadgeProps {
   student: FilterStudentWhereNotInTheClass
