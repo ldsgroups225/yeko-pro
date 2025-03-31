@@ -39,7 +39,18 @@ export async function getClassBySlug(slug: string): Promise<IClass> {
 
   const { data, error } = await supabase
     .from('classes')
-    .select('*, teacher:users(id, first_name, last_name, email)')
+    .select(`
+      *,
+      teacher_assignments:teacher_class_assignments(
+        is_main_teacher,
+        teacher:users(
+          id,
+          first_name,
+          last_name,
+          email
+        )
+      )
+    `)
     .eq('slug', slug)
     .single()
     .throwOnError()
@@ -66,6 +77,10 @@ export async function getClassBySlug(slug: string): Promise<IClass> {
     throw new Error('Class not found')
   }
 
+  // Find the main teacher assignment
+  const mainTeacherAssignment = data.teacher_assignments?.find(ta => ta.is_main_teacher)
+  const mainTeacher = mainTeacherAssignment?.teacher
+
   return {
     id: data.id,
     name: data.name,
@@ -73,10 +88,10 @@ export async function getClassBySlug(slug: string): Promise<IClass> {
     gradeId: data.grade_id,
     isActive: data.is_active,
     studentCount: studentCount ?? 0,
-    teacher: data.teacher
+    teacher: mainTeacher
       ? {
-          id: data.teacher.id,
-          fullName: formatFullName(data.teacher.first_name, data.teacher.last_name, data.teacher.email),
+          id: mainTeacher.id,
+          fullName: formatFullName(mainTeacher.first_name, mainTeacher.last_name, mainTeacher.email),
         }
       : null,
   }
@@ -103,10 +118,24 @@ export async function fetchClasses({
   const from = (page - 1) * limit
   const to = from + limit - 1
 
+  // Base query without teacher filter
   let query = supabase
     .from('classes')
-    .select('*, student_enrollment_view(count), teacher:users(id, first_name, last_name, email)', { count: 'exact' })
+    .select(`
+      *,
+      student_school_class(count),
+      teacher_assignments:teacher_class_assignments(
+        is_main_teacher,
+        teacher:users(
+          id,
+          first_name,
+          last_name,
+          email
+        )
+      )
+    `, { count: 'exact' })
     .eq('school_id', schoolId)
+    .eq('student_school_class.is_active', true)
 
   // Apply optional filters
   if (gradeId) {
@@ -118,9 +147,18 @@ export async function fetchClasses({
   }
 
   if (typeof hasMainTeacher === 'boolean') {
-    query = hasMainTeacher
-      ? query.not('main_teacher_id', 'is', null)
-      : query.is('main_teacher_id', null)
+    if (hasMainTeacher) {
+      // Classes with main teacher
+      query = query
+        .not('teacher_assignments', 'is', null)
+        .is('teacher_assignments.is_main_teacher', true)
+    }
+    else {
+      // Classes without main teacher - using exists check
+      query = query
+        // TODO: show only classes without main teacher
+        .not('teacher_assignments.is_main_teacher', 'is', true)
+    }
   }
 
   if (searchTerm) {
@@ -131,7 +169,6 @@ export async function fetchClasses({
     .range(from, to)
     .order('grade_id', { ascending: true })
     .order('name', { ascending: true })
-    .throwOnError()
 
   if (error) {
     console.error('Error fetching classes:', error)
@@ -139,17 +176,21 @@ export async function fetchClasses({
   }
 
   const classes = data?.map((c) => {
+    // Find the main teacher assignment
+    const mainTeacherAssignment = c.teacher_assignments?.find(ta => ta.is_main_teacher)
+    const mainTeacher = mainTeacherAssignment?.teacher
+
     return {
       id: c.id,
       name: c.name,
       slug: c.slug!,
       gradeId: c.grade_id,
       isActive: c.is_active,
-      studentCount: (c.student_enrollment_view[0] as any)?.count ?? 0,
-      teacher: c.teacher
+      studentCount: (c.student_school_class as any)?.[0]?.count ?? 0,
+      teacher: mainTeacher
         ? {
-            id: c.teacher.id,
-            fullName: formatFullName(c.teacher.first_name, c.teacher.last_name, c.teacher.email),
+            id: mainTeacher.id,
+            fullName: formatFullName(mainTeacher.first_name, mainTeacher.last_name, mainTeacher.email),
           }
         : null,
     } satisfies IClass
@@ -251,7 +292,11 @@ export async function updateClass({
       grade_id: gradeId,
     })
     .eq('id', classId)
-    .select('*, teacher:users(id, first_name, last_name, email), students(count)')
+    .select(`
+      *,
+      teacher:users!inner(id, first_name, last_name, email),
+      students(count)
+    `)
     .single()
     .throwOnError()
 
@@ -264,6 +309,8 @@ export async function updateClass({
     throw new Error('Classe non trouvée')
   }
 
+  const teacherData = Array.isArray(data.teacher) ? data.teacher[0] : null
+
   return {
     id: data.id,
     name: data.name,
@@ -271,10 +318,10 @@ export async function updateClass({
     gradeId: data.grade_id,
     isActive: data.is_active,
     studentCount: (data.students[0] as any)?.count ?? 0,
-    teacher: data.teacher
+    teacher: teacherData
       ? {
-          id: data.teacher.id,
-          fullName: formatFullName(data.teacher.first_name, data.teacher.last_name, data.teacher.email),
+          id: teacherData.id,
+          fullName: formatFullName(teacherData.first_name, teacherData.last_name, teacherData.email),
         }
       : null,
   }
