@@ -4,7 +4,6 @@ import type { Student, StudentStats } from './types'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
 import { useStudents } from '@/hooks'
-import consola from 'consola'
 import { usePathname } from 'next/navigation'
 
 import { useCallback, useEffect, useMemo, useState } from 'react'

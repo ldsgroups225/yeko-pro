@@ -1,9 +1,10 @@
 'use server'
 
+import type { SupabaseClient } from '@/lib/supabase/server'
 import type { SearchFormData } from './schemas'
 import type { ISchool, IStudent, SearchResult } from './types'
+import { createClient } from '@/lib/supabase/server'
 import { searchSchema } from './schemas'
-import { createClient, SupabaseClient } from '@/lib/supabase/server'
 
 /**
  * Function to fetch a school by its code
@@ -21,7 +22,7 @@ async function fetchSchoolByCode(client: SupabaseClient, code: string): Promise<
     console.error('Error fetching school:', error)
     throw new Error('École non trouvée')
   }
-  
+
   return {
     id: data.id,
     code: data.code,
@@ -95,7 +96,6 @@ export async function searchStudentAndSchool(
       schoolCode: formData.get('schoolCode') as string,
     }
 
-    
     // Valider avec Zod
     const validatedData = searchSchema.parse(data)
     const client = createClient()
@@ -113,7 +113,8 @@ export async function searchStudentAndSchool(
       isFirstAttempt,
       error: undefined,
     }
-  } catch (error) {
+  }
+  catch (error) {
     if (error instanceof Error) {
       return {
         student: null,
@@ -130,4 +131,3 @@ export async function searchStudentAndSchool(
     }
   }
 }
-

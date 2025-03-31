@@ -1,6 +1,6 @@
 'use client'
 
-import type { ISchool, IStudent } from '../../page'
+import type { ISchool, IStudent } from '../../types'
 import { createClient } from '@/lib/supabase/client'
 import { motion } from 'framer-motion'
 import { useEffect, useState } from 'react'

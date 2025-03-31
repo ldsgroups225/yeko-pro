@@ -1,6 +1,6 @@
 'use client'
 
-import type { IStudent } from '../../page'
+import type { IStudent } from '../../types'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { motion } from 'framer-motion'
 import { useState } from 'react'
