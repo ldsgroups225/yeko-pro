@@ -24,8 +24,9 @@ export async function getStudents(query: IStudentsQueryParams): Promise<{ data: 
       return {
         id: student.student_id!,
         idNumber: student.id_number!,
-        firstName: student.first_name!,
         lastName: student.last_name!,
+        firstName: student.first_name!,
+        avatarUrl: student.students!.avatar_url,
         dateOfBirth: student.students!.date_of_birth,
         gender: (student.students as { gender: 'M' | 'F' | null }).gender,
         parent: _parent
@@ -330,7 +331,7 @@ function buildSupabaseQuery(query: IStudentsQueryParams) {
     .from('student_enrollment_view')
     .select(`
       student_id, enrollment_status, id_number, first_name, last_name, parent_id, class_id,
-      students(date_of_birth, gender),
+      students(date_of_birth, gender, avatar_url),
       parent:users(first_name, last_name, phone, email, avatar_url),
       classes!inner(id, name, slug)
       `, { count: 'exact' })

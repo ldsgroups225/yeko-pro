@@ -144,7 +144,17 @@ export const StudentsTable: React.FC<StudentsTableProps> = ({
               students?.map((student, index) => (
                 <TableRow key={student.id}>
                   <TableCell>{index + 1}</TableCell>
-                  <TableCell className="font-medium text-left">{student.lastName}</TableCell>
+                  <TableCell className="font-medium text-left">
+                    <div className="flex items-center gap-2">
+                      <Avatar className="h-8 w-8">
+                        <AvatarImage src={student.avatarUrl ?? ''} />
+                        <AvatarFallback>
+                          {student.firstName && student.lastName ? getAvatarFromFullName(`${student.firstName} ${student.lastName}`) : 'U'}
+                        </AvatarFallback>
+                      </Avatar>
+                      {student.lastName}
+                    </div>
+                  </TableCell>
                   <TableCell className="font-medium text-left">{student.firstName}</TableCell>
                   <TableCell className="font-medium text-center">{student.idNumber}</TableCell>
                   <TableCell className="text-center">{student.gender}</TableCell>
