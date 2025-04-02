@@ -1,28 +1,32 @@
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { cn } from '@/lib/utils'
-import { PaymentStepper } from './components/PaymentStepper'
+import { RegistrationStepper } from './components/RegistrationStepper'
 
-export default function PaymentsPage() {
+export default function RegistrationPage() {
   const steps = [
     {
-      title: 'Recherche',
-      description: 'Entrez la matricule de l\'élève et le code de l\'école',
-    },
-    {
-      title: 'Vérification',
-      description: 'Vérifiez les informations de l\'élève et de l\'école',
-    },
-    {
-      title: 'Sélection du niveau',
-      description: 'Choisissez le niveau et consultez la scolarité',
-    },
-    {
-      title: 'Paiement',
-      description: 'Entrez vos informations de paiement Mobile Money',
+      title: 'Identification',
+      description: 'Entrez le code de l\'école et la matricule de l\'élève',
     },
     {
       title: 'Confirmation',
-      description: 'Vérifiez et confirmez le paiement',
+      description: 'Vérifiez les informations de l\'école et de l\'élève',
+    },
+    {
+      title: 'Niveau',
+      description: 'Sélectionnez le niveau d\'études',
+    },
+    {
+      title: 'Frais de scolarité',
+      description: 'Consultez les frais de scolarité',
+    },
+    {
+      title: 'Paiement',
+      description: 'Effectuez le paiement des frais du premier trimestre',
+    },
+    {
+      title: 'Succès',
+      description: 'Récapitulatif de l\'inscription',
     },
   ]
 
@@ -36,11 +40,11 @@ export default function PaymentsPage() {
         <Card className="max-w-5xl mx-auto border-none bg-card/60 backdrop-blur supports-[backdrop-filter]:bg-card/60">
           <CardHeader>
             <h1 className="text-3xl font-bold text-center text-card-foreground">
-              Portail de paiement
+              Inscription
             </h1>
           </CardHeader>
           <CardContent>
-            <PaymentStepper steps={steps} />
+            <RegistrationStepper steps={steps} />
           </CardContent>
         </Card>
       </div>
