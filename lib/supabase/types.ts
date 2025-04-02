@@ -1406,54 +1406,54 @@ export interface Database {
       }
       schools: {
         Row: {
-          address: string | null
-          city: string
-          code: string
-          created_at: string | null
-          created_by: string | null
-          cycle_id: string
-          email: string
           id: string
-          image_url: string | null
-          is_technical_education: boolean | null
+          code: string
           name: string
+          address: string | null
+          image_url: string | null
+          city: string
+          email: string
+          cycle_id: string
+          is_technical_education: boolean | null
           phone: string
           state_id: number | null
+          created_at: string | null
           updated_at: string | null
+          created_by: string | null
           updated_by: string | null
         }
         Insert: {
-          address?: string | null
-          city: string
-          code: string
-          created_at?: string | null
-          created_by?: string | null
-          cycle_id: string
-          email: string
           id?: string
-          image_url?: string | null
-          is_technical_education?: boolean | null
+          code: string
           name: string
+          address?: string | null
+          image_url?: string | null
+          city: string
+          email: string
+          cycle_id: string
+          is_technical_education?: boolean | null
           phone: string
           state_id?: number | null
+          created_at?: string | null
           updated_at?: string | null
+          created_by?: string | null
           updated_by?: string | null
         }
         Update: {
-          address?: string | null
-          city?: string
-          code?: string
-          created_at?: string | null
-          created_by?: string | null
-          cycle_id?: string
-          email?: string
           id?: string
-          image_url?: string | null
-          is_technical_education?: boolean | null
+          code?: string
           name?: string
+          address?: string | null
+          image_url?: string | null
+          city?: string
+          email?: string
+          cycle_id?: string
+          is_technical_education?: boolean | null
           phone?: string
           state_id?: number | null
+          created_at?: string | null
           updated_at?: string | null
+          created_by?: string | null
           updated_by?: string | null
         }
         Relationships: [
@@ -1691,48 +1691,51 @@ export interface Database {
       }
       students: {
         Row: {
-          address: string | null
-          avatar_url: string | null
-          created_at: string | null
-          created_by: string | null
-          date_of_birth: string | null
-          first_name: string
-          gender: string | null
           id: string
           id_number: string
+          first_name: string
           last_name: string
-          parent_id: string
+          gender: string | null
+          date_of_birth: string | null
+          address: string | null
+          avatar_url: string | null
+          parent_id: string | null
+          school_id: string | null
+          created_at: string | null
           updated_at: string | null
+          created_by: string | null
           updated_by: string | null
         }
         Insert: {
-          address?: string | null
-          avatar_url?: string | null
-          created_at?: string | null
-          created_by?: string | null
-          date_of_birth?: string | null
-          first_name: string
-          gender?: string | null
           id?: string
           id_number: string
+          first_name: string
           last_name: string
-          parent_id: string
+          gender?: string | null
+          date_of_birth?: string | null
+          address?: string | null
+          avatar_url?: string | null
+          parent_id?: string | null
+          school_id?: string | null
+          created_at?: string | null
           updated_at?: string | null
+          created_by?: string | null
           updated_by?: string | null
         }
         Update: {
-          address?: string | null
-          avatar_url?: string | null
-          created_at?: string | null
-          created_by?: string | null
-          date_of_birth?: string | null
-          first_name?: string
-          gender?: string | null
           id?: string
           id_number?: string
+          first_name?: string
           last_name?: string
-          parent_id?: string
+          gender?: string | null
+          date_of_birth?: string | null
+          address?: string | null
+          avatar_url?: string | null
+          parent_id?: string | null
+          school_id?: string | null
+          created_at?: string | null
           updated_at?: string | null
+          created_by?: string | null
           updated_by?: string | null
         }
         Relationships: [
@@ -1908,48 +1911,32 @@ export interface Database {
       }
       tuition_settings: {
         Row: {
-          annual_fee: number
-          created_at: string | null
-          government_discount_percentage: number
-          grade_id: number
           id: string
+          grade_id: number
+          annual_fee: number
+          government_discount_percentage: number
           school_id: string
+          created_at: string | null
           updated_at: string | null
         }
         Insert: {
-          annual_fee: number
-          created_at?: string | null
-          government_discount_percentage?: number
-          grade_id: number
           id?: string
+          grade_id: number
+          annual_fee: number
+          government_discount_percentage: number
           school_id: string
+          created_at?: string | null
           updated_at?: string | null
         }
         Update: {
-          annual_fee?: number
-          created_at?: string | null
-          government_discount_percentage?: number
-          grade_id?: number
           id?: string
+          grade_id?: number
+          annual_fee?: number
+          government_discount_percentage?: number
           school_id?: string
+          created_at?: string | null
           updated_at?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: 'fk_grade'
-            columns: ['grade_id']
-            isOneToOne: false
-            referencedRelation: 'grades'
-            referencedColumns: ['id']
-          },
-          {
-            foreignKeyName: 'fk_school'
-            columns: ['school_id']
-            isOneToOne: false
-            referencedRelation: 'schools'
-            referencedColumns: ['id']
-          },
-        ]
       }
       user_roles: {
         Row: {
