@@ -113,16 +113,18 @@ export function RegistrationStepper({ steps }: RegistrationStepperProps) {
 
   return (
     <div className="space-y-8">
-      <Stepper
-        steps={steps}
-        currentStep={currentStep}
-        onStepClick={(step) => {
-          if (step < currentStep) {
-            setCurrentStep(step)
-          }
-        }}
-      />
-      <div className="mt-8">
+      <div className="sticky top-0 bg-card/60 backdrop-blur-sm z-10 pt-4">
+        <Stepper
+          steps={steps}
+          currentStep={currentStep}
+          onStepClick={(step) => {
+            if (step < currentStep) {
+              setCurrentStep(step)
+            }
+          }}
+        />
+      </div>
+      <div className="mt-8 max-h-[calc(100vh-20rem)] overflow-y-auto scrollbar-thin scrollbar-thumb-primary/10 scrollbar-track-transparent">
         {renderStep()}
       </div>
     </div>

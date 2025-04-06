@@ -1,5 +1,6 @@
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { cn } from '@/lib/utils'
+import Image from 'next/image'
 import { RegistrationStepper } from './components/RegistrationStepper'
 
 export default function RegistrationPage() {
@@ -37,6 +38,16 @@ export default function RegistrationPage() {
     )}
     >
       <div className="container mx-auto p-4">
+        <div className="flex justify-center mb-6">
+          <Image
+            src="/logo.png"
+            alt="Yeko Logo"
+            width={144}
+            height={144}
+            priority
+            className="h-36 w-36 object-contain"
+          />
+        </div>
         <Card className="max-w-5xl mx-auto border-none bg-card/60 backdrop-blur supports-[backdrop-filter]:bg-card/60">
           <CardHeader>
             <h1 className="text-3xl font-bold text-center text-card-foreground">
