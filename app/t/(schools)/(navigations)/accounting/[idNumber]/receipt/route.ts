@@ -153,10 +153,11 @@ async function fetchStudentData(
       id_number,
       first_name,
       last_name,
-      parent:users(first_name, last_name, phone, email)
+      parent:users(first_name, last_name, phone, email),
+      student_school_class!inner(school_id)
     `)
     .eq('id_number', idNumber)
-    .eq('school_id', schoolId)
+    .eq('student_school_class.school_id', schoolId)
     .single()
   if (error) {
     throw new Error(`Student data fetch failed: ${error.message}`)
