@@ -1,40 +1,26 @@
 'use client'
 
-import { Alert, AlertDescription } from '@/components/ui/alert'
-import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { useUser } from '@/hooks'
-import {
-  Bell,
-  BookOpen,
-  Database,
-  Globe,
-  School,
-  Shield,
-  User,
-} from 'lucide-react'
-import React, { useState } from 'react'
+import { BookOpen, School, User } from 'lucide-react'
+import { useState } from 'react'
 
-import IntegrationsSettingsTab from './tabs/IntegrationsSettingsTab'
-import NotificationsSettingsTab from './tabs/NotificationsSettingsTab'
 import ProfileSettingsTab from './tabs/ProfileSettingsTab'
 import SchoolSettingsTab from './tabs/SchoolSettingsTab'
-import SecuritySettingsTab from './tabs/SecuritySettingsTab'
 import TuitionSettingsTab from './tabs/TuitionSettingsTab'
 
 export default function SettingsPage() {
-  const { user } = useUser()
-  const [isLoading, setIsLoading] = useState(false)
+  // const { user } = useUser()
+  // const [isLoading, setIsLoading] = useState(false)
   const [storageUsed, _setStorageUsed] = useState(65)
 
-  const handleSchoolUpdate = async (event: { preventDefault: () => void }) => {
-    event.preventDefault()
-    setIsLoading(true)
-    // TODO: Implement logic
-    setIsLoading(false)
-  }
+  // const handleSchoolUpdate = async (event: { preventDefault: () => void }) => {
+  //   event.preventDefault()
+  //   setIsLoading(true)
+  //   // TODO: Implement logic
+  //   setIsLoading(false)
+  // }
 
   return (
     <div className="space-y-3 px-6 py-4">
@@ -67,7 +53,7 @@ export default function SettingsPage() {
             <BookOpen className="h-4 w-4" />
             <span>Scolarité</span>
           </TabsTrigger>
-          <TabsTrigger value="notifications" className="space-x-2">
+          {/* <TabsTrigger value="notifications" className="space-x-2">
             <Bell className="h-4 w-4" />
             <span>Notifications</span>
           </TabsTrigger>
@@ -78,7 +64,7 @@ export default function SettingsPage() {
           <TabsTrigger value="integrations" className="space-x-2">
             <Globe className="h-4 w-4" />
             <span>Intégrations</span>
-          </TabsTrigger>
+          </TabsTrigger> */}
         </TabsList>
 
         <TabsContent value="school">
@@ -93,7 +79,7 @@ export default function SettingsPage() {
           <TuitionSettingsTab />
         </TabsContent>
 
-        <TabsContent value="notifications">
+        {/* <TabsContent value="notifications">
           <NotificationsSettingsTab />
         </TabsContent>
 
@@ -103,10 +89,10 @@ export default function SettingsPage() {
 
         <TabsContent value="integrations">
           <IntegrationsSettingsTab />
-        </TabsContent>
+        </TabsContent> */}
       </Tabs>
 
-      <Alert>
+      {/* <Alert>
         <Database className="h-4 w-4" />
         <AlertDescription className="flex items-center justify-between">
           <span>
@@ -127,7 +113,7 @@ export default function SettingsPage() {
             </Button>
           </div>
         </AlertDescription>
-      </Alert>
+      </Alert> */}
     </div>
   )
 }
