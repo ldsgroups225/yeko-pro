@@ -3,7 +3,14 @@
 import type { Student } from '../../../types'
 import type { Absence } from './AbsenceHistory'
 import type { AttendanceStats } from './AttendanceSummary'
+
 import { Card } from '@/components/ui/card'
+import {
+  getStudentAbsenceHistory,
+  getStudentAttendanceStats,
+} from '@/services/attendanceService'
+import { useEffect, useState } from 'react'
+
 import { AbsenceHistory } from './AbsenceHistory'
 import { AttendanceSummary } from './AttendanceSummary'
 
@@ -12,53 +19,80 @@ interface AttendanceTabProps {
   isLoading?: boolean
 }
 
-// Mock data - Replace with API calls later
-const mockStats: AttendanceStats = {
-  totalDaysAbsent: 3,
-  totalLateArrivals: 2,
-  attendanceRate: 95,
-  justifiedAbsences: 2,
-  unjustifiedAbsences: 1,
-}
+export function AttendanceTab({ student, isLoading: initialLoading }: AttendanceTabProps) {
+  const [stats, setStats] = useState<AttendanceStats | null>(null)
+  const [absences, setAbsences] = useState<Absence[]>([])
+  const [isLoading, setIsLoading] = useState(initialLoading)
+  const [error, setError] = useState<string | null>(null)
 
-const mockAbsences: Absence[] = [
-  {
-    id: 'abs1',
-    date: '15/01/2025',
-    type: 'absence',
-    status: 'justified',
-    reason: 'Maladie - Justifiée',
-  },
-  {
-    id: 'abs2',
-    date: '22/12/2024',
-    type: 'absence',
-    status: 'justified',
-    reason: 'Rendez-vous médical',
-  },
-  {
-    id: 'late1',
-    date: '10/01/2025',
-    type: 'late',
-    status: 'unjustified',
-    duration: '30 minutes',
-  },
-]
+  useEffect(() => {
+    let mounted = true
 
-export function AttendanceTab({ student: _student, isLoading }: AttendanceTabProps) {
-  // TODO: Replace mock data with actual API calls using student data
-  // Example: useEffect(() => { fetchAttendanceData(student.id) }, [student.id])
+    async function fetchAttendanceData() {
+      if (!student?.id)
+        return
+
+      try {
+        setIsLoading(true)
+        const [attendanceStats, absenceHistory] = await Promise.all([
+          getStudentAttendanceStats(student.id),
+          getStudentAbsenceHistory(student.id),
+        ])
+
+        if (mounted) {
+          setStats(attendanceStats)
+          setAbsences(absenceHistory)
+          setError(null)
+        }
+      }
+      catch (err) {
+        if (mounted) {
+          setError(err instanceof Error ? err.message : 'Failed to fetch attendance data')
+          console.error('Error fetching attendance data:', err)
+        }
+      }
+      finally {
+        if (mounted) {
+          setIsLoading(false)
+        }
+      }
+    }
+
+    fetchAttendanceData()
+
+    return () => {
+      mounted = false
+    }
+  }, [student?.id])
+
+  if (error) {
+    return (
+      <Card>
+        <div className="p-4 text-red-500">
+          Error loading attendance data:
+          {' '}
+          {error}
+        </div>
+      </Card>
+    )
+  }
 
   return (
     <Card>
       <div className="space-y-6">
         <AttendanceSummary
-          stats={mockStats}
+          stats={stats || {
+            totalDaysAbsent: 0,
+            totalLateArrivals: 0,
+            attendanceRate: 100,
+            justifiedAbsences: 0,
+            unjustifiedAbsences: 0,
+          }}
           isLoading={isLoading}
         />
 
         <AbsenceHistory
-          absences={mockAbsences}
+          absences={absences}
           isLoading={isLoading}
         />
       </div>
@@ -68,6 +102,5 @@ export function AttendanceTab({ student: _student, isLoading }: AttendanceTabPro
 
 export { AbsenceHistory } from './AbsenceHistory'
 export type { Absence } from './AbsenceHistory'
-// Re-export sub-components and types for direct access
 export { AttendanceSummary } from './AttendanceSummary'
 export type { AttendanceStats } from './AttendanceSummary'

@@ -3,6 +3,7 @@
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
+import { cn } from '@/lib/utils'
 
 export interface Absence {
   id: string
@@ -23,15 +24,26 @@ function AbsenceRow({ absence }: { absence: Absence }) {
     <div className="flex justify-between text-sm">
       <span>{absence.date}</span>
       <div className="flex items-center gap-2">
-        <Badge variant={absence.type === 'absence' ? 'destructive' : 'default'}>
+        <Badge
+          variant={absence.type === 'absence' ? 'destructive' : 'default'}
+          className="w-24 justify-center items-center"
+        >
           {absence.type === 'absence' ? 'Absence' : 'Retard'}
         </Badge>
-        <Badge variant={absence.status === 'justified' ? 'outline' : 'secondary'}>
+        <Badge
+          variant={absence.status === 'justified' ? 'outline' : 'secondary'}
+          className="w-24 justify-center items-center"
+        >
           {absence.status === 'justified' ? 'Justifié' : 'Non justifié'}
         </Badge>
       </div>
-      <span className="text-muted-foreground">
-        {absence.reason || '-'}
+      <span
+        className={cn(
+          'text-muted-foreground',
+          absence.reason && 'font-bold text-primary',
+        )}
+      >
+        {absence.reason || 'pas de raison'}
       </span>
     </div>
   )

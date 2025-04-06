@@ -91,7 +91,7 @@ export function AttendanceSummary({ stats, isLoading }: AttendanceSummaryProps) 
               value={(
                 <div className="flex items-center gap-2">
                   <Badge variant="outline">
-                    {stats.attendanceRate}
+                    {stats.attendanceRate.toFixed(2)}
                     %
                   </Badge>
                   <Progress

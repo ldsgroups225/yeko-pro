@@ -1,3 +1,4 @@
+export * from './attendanceService'
 export * from './classService'
 export * from './gradeService'
 export * from './scheduleService'

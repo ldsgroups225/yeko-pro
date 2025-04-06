@@ -1,0 +1,126 @@
+// services/attendanceService.ts
+
+'use server'
+
+import { createClient } from '@/lib/supabase/server'
+
+const supabase = createClient()
+
+export interface AttendanceStats {
+  totalDaysAbsent: number
+  totalLateArrivals: number
+  attendanceRate: number
+  justifiedAbsences: number
+  unjustifiedAbsences: number
+}
+
+export interface Absence {
+  id: string
+  date: string
+  type: 'late' | 'absence'
+  status: 'justified' | 'unjustified'
+  reason?: string
+  duration?: string
+}
+
+export async function getStudentAttendanceStats(studentId: string): Promise<AttendanceStats> {
+  try {
+    const { data: reportData, error: reportError } = await supabase
+      .from('attendances_report_view')
+      .select('*')
+      .eq('student_id', studentId)
+      .order('month', { ascending: false })
+      .limit(1)
+
+    if (reportError)
+      throw reportError
+
+    if (!reportData?.length) {
+      return {
+        totalDaysAbsent: 0,
+        totalLateArrivals: 0,
+        attendanceRate: 100,
+        justifiedAbsences: 0,
+        unjustifiedAbsences: 0,
+      }
+    }
+
+    const { count: justifiedCount, error: justifiedError } = await supabase
+      .from('attendances')
+      .select('*', { count: 'exact', head: true })
+      .eq('student_id', studentId)
+      .eq('status', 'absent')
+      .eq('is_excused', true)
+
+    if (justifiedError)
+      throw justifiedError
+
+    const { count: totalDays, error: totalError } = await supabase
+      .from('attendances')
+      .select('*', { count: 'exact', head: true })
+      .eq('student_id', studentId)
+
+    if (totalError)
+      throw totalError
+
+    const totalAbsences = reportData[0]?.absences || 0
+    const attendanceRate = totalDays
+      ? ((totalDays - totalAbsences) / totalDays) * 100
+      : 100
+
+    return {
+      totalDaysAbsent: totalAbsences,
+      totalLateArrivals: reportData[0]?.lates || 0,
+      attendanceRate,
+      justifiedAbsences: justifiedCount || 0,
+      unjustifiedAbsences: totalAbsences - (justifiedCount || 0),
+    }
+  }
+  catch (error) {
+    console.error('Error fetching attendance stats:', error)
+    throw error
+  }
+}
+
+export async function getStudentAbsenceHistory(studentId: string): Promise<Absence[]> {
+  try {
+    const { data, error } = await supabase
+      .from('attendances')
+      .select(`
+        id,
+        created_date,
+        status,
+        is_excused,
+        reason,
+        starts_at,
+        ends_at
+      `)
+      .eq('student_id', studentId)
+      .order('created_date', { ascending: false })
+
+    if (error)
+      throw error
+
+    return data.map(record => ({
+      id: record.id,
+      date: new Date(record.created_date!).toLocaleDateString('fr-FR'),
+      type: record.status === 'late' ? 'late' : 'absence',
+      status: record.is_excused ? 'justified' : 'unjustified',
+      reason: record.reason || undefined,
+      duration: record.status === 'late'
+        ? calculateDuration(record.starts_at, record.ends_at)
+        : undefined,
+    }))
+  }
+  catch (error) {
+    console.error('Error fetching absence history:', error)
+    throw error
+  }
+}
+
+function calculateDuration(startTime: string, endTime: string): string {
+  const start = new Date(startTime)
+  const end = new Date(endTime)
+  const diffMinutes = Math.round((end.getTime() - start.getTime()) / (1000 * 60))
+  return `${diffMinutes} minutes`
+}
