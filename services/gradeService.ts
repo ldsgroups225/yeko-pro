@@ -13,7 +13,7 @@ import { createClient } from '@/lib/supabase/server'
  * @throws {Error} If there's an error fetching grades ('Failed to fetch grades')
  */
 export async function fetchGrades(cycleId: string): Promise<IGrade[]> {
-  const supabase = createClient()
+  const supabase = await createClient()
 
   const { data, error } = await supabase
     .from('grades')

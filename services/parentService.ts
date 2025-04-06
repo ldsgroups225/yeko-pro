@@ -45,9 +45,9 @@ export interface FamilyMember {
   }
 }
 
-const supabase = createClient()
-
 export async function getStudentParents(studentId: string): Promise<ParentContact[]> {
+  const supabase = createClient()
+
   const { data: student, error: studentError } = await supabase
     .from('students')
     .select(`
@@ -88,6 +88,8 @@ export async function getStudentParents(studentId: string): Promise<ParentContac
 }
 
 export async function getFamilyMembers(studentId: string): Promise<FamilyMember[]> {
+  const supabase = createClient()
+
   // First get the student's parent_id
   const { data: student, error: studentError } = await supabase
     .from('students')
@@ -173,6 +175,8 @@ export async function updateNotificationSetting(
 }
 
 export async function getParentProfile(parentId: string) {
+  const supabase = createClient()
+
   const { data: parent, error } = await supabase
     .from('users')
     .select(`

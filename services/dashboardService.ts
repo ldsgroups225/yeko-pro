@@ -178,7 +178,7 @@ export interface DetailedNote extends IGradeNote {
 }
 
 export async function getNoteDetails(noteId: string): Promise<DetailedNote> {
-  const supabase = createClient()
+  const supabase = await createClient()
 
   const userId = await checkAuthUserId(supabase)
   await getDirectorSchoolId(supabase, userId)
@@ -253,7 +253,7 @@ export async function getNoteDetails(noteId: string): Promise<DetailedNote> {
 }
 
 export async function getDashboardMetrics(): Promise<DashboardMetrics> {
-  const supabase = createClient()
+  const supabase = await createClient()
 
   const userId = await checkAuthUserId(supabase)
   const schoolId = await getDirectorSchoolId(supabase, userId)
@@ -267,7 +267,7 @@ export async function getDashboardMetrics(): Promise<DashboardMetrics> {
 }
 
 export async function getPonctualiteData(): Promise<IPonctualite[]> {
-  const supabase = createClient()
+  const supabase = await createClient()
 
   const userId = await checkAuthUserId(supabase)
   await getDirectorSchoolId(supabase, userId)
@@ -292,7 +292,7 @@ export async function getPonctualiteData(): Promise<IPonctualite[]> {
 }
 
 export async function getCandidatures(): Promise<ICandidature[]> {
-  const supabase = createClient()
+  const supabase = await createClient()
 
   const userId = await checkAuthUserId(supabase)
   await getDirectorSchoolId(supabase, userId)
@@ -365,7 +365,7 @@ export async function getCandidatures(): Promise<ICandidature[]> {
 }
 
 export async function getNotes(): Promise<IGradeNote[]> {
-  const supabase = createClient()
+  const supabase = await createClient()
   const ALLOWED_NOTE_TYPES = [
     NOTE_TYPE.WRITING_QUESTION,
     NOTE_TYPE.CLASS_TEST,
@@ -428,7 +428,7 @@ export async function getNotes(): Promise<IGradeNote[]> {
 }
 
 export async function publishNote(noteId: string): Promise<void> {
-  const supabase = createClient()
+  const supabase = await createClient()
 
   const userId = await checkAuthUserId(supabase)
   await getDirectorSchoolId(supabase, userId)
@@ -446,7 +446,7 @@ export async function publishNote(noteId: string): Promise<void> {
 }
 
 export async function handleCandidature(candidateId: string, candidateType: 'student' | 'teacher', action: 'accept' | 'reject'): Promise<void> {
-  const supabase = createClient()
+  const supabase = await createClient()
 
   if (candidateType === 'student') {
     const { error } = await supabase

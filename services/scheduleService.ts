@@ -81,7 +81,7 @@ async function getDirectorSchoolId(client: SupabaseClient, userId: string): Prom
  * @throws {Error} If fetch fails or class not found
  */
 export async function getClassId(classSlug: string): Promise<string> {
-  const supabase = createClient()
+  const supabase = await createClient()
 
   try {
     const { data: classroom, error: classIdError } = await supabase
@@ -152,7 +152,7 @@ export async function fetchClassSchedule(
   classSlug: string,
   mergedClasses: IClassesGrouped['subclasses'],
 ): Promise<IScheduleCalendarDTO[]> {
-  const supabase = createClient()
+  const supabase = await createClient()
 
   try {
     const userId = await checkAuthUserId(supabase)
@@ -240,7 +240,7 @@ class ScheduleUpdateError extends Error {
 export async function createSchedule(
   scheduleData: Omit<IScheduleCalendarDTO, 'id'>,
 ): Promise<string> {
-  const supabase = createClient()
+  const supabase = await createClient()
 
   try {
     const { data: newSchedule, error: createError } = await supabase
@@ -299,7 +299,7 @@ export async function updateSchedule(
   scheduleId: string,
   updateData: Partial<IScheduleCalendarDTO>,
 ): Promise<void> {
-  const supabase = createClient()
+  const supabase = await createClient()
 
   try {
     // Update schedule
@@ -351,7 +351,7 @@ export async function importSchedule({
 }: {
   data: Database['public']['Tables']['schedules']['Insert'][]
 }): Promise<void> {
-  const supabase = createClient()
+  const supabase = await createClient()
 
   // Verify the authenticated director and retrieve their school
   const userId = await checkAuthUserId(supabase)

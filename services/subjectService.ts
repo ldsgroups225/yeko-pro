@@ -12,7 +12,7 @@ import { createClient } from '@/lib/supabase/server'
  * @throws {Error} If there's an error fetching subjects ('Failed to fetch subjects')
  */
 export async function fetchSubjects(): Promise<ISubject[]> {
-  const supabase = createClient()
+  const supabase = await createClient()
 
   const { data, error } = await supabase
     .from('subjects')

@@ -98,7 +98,7 @@ export async function searchStudentAndSchool(
 
     // Valider avec Zod
     const validatedData = searchSchema.parse(data)
-    const client = createClient()
+    const client = await createClient()
 
     const [school, student] = await Promise.all([
       fetchSchoolByCode(client, validatedData.schoolCode),
@@ -139,7 +139,7 @@ export async function searchStudentAndSchool(
  */
 export async function fetchGrades(schoolId: string) {
   try {
-    const client = createClient()
+    const client = await createClient()
     const { data, error } = await client
       .from('grades')
       .select(`
@@ -179,7 +179,7 @@ export async function fetchGrades(schoolId: string) {
  */
 export async function fetchTuitionFees(gradeId: number) {
   try {
-    const client = createClient()
+    const client = await createClient()
     const { data, error } = await client.from('tuition_settings')
       .select('id, annual_fee, government_discount_percentage')
       .eq('grade_id', gradeId)
@@ -227,7 +227,7 @@ export async function createStudent(
   parentId: string,
 ): Promise<IStudent> {
   try {
-    const client = createClient()
+    const client = await createClient()
 
     // Generate a unique student ID
     const { data: lastStudent } = await client.from('students')
@@ -301,7 +301,7 @@ export async function createStudent(
 }
 
 export async function checkOTP(sOTP: string): Promise<string> {
-  const client = createClient()
+  const client = await createClient()
 
   const { data, error } = await client
     .from('parent_otp_requests')

@@ -4,8 +4,6 @@
 
 import { createClient } from '@/lib/supabase/server'
 
-const supabase = createClient()
-
 export interface AttendanceStats {
   totalDaysAbsent: number
   totalLateArrivals: number
@@ -24,6 +22,8 @@ export interface Absence {
 }
 
 export async function getStudentAttendanceStats(studentId: string): Promise<AttendanceStats> {
+  const supabase = await createClient()
+
   try {
     const { data: reportData, error: reportError } = await supabase
       .from('attendances_report_view')
@@ -84,6 +84,8 @@ export async function getStudentAttendanceStats(studentId: string): Promise<Atte
 
 export async function getStudentAbsenceHistory(studentId: string): Promise<Absence[]> {
   try {
+    const supabase = await createClient()
+
     const { data, error } = await supabase
       .from('attendances')
       .select(`

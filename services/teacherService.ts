@@ -34,7 +34,7 @@ async function getDirectorSchoolId(client: SupabaseClient, userId: string): Prom
 }
 
 export async function getTeachers(query: ITeacherQueryParams): Promise<{ data: ITeacherDTO[], totalCount: number | null }> {
-  const supabase = createClient()
+  const supabase = await createClient()
   const _page = query.page ?? 1
   const _limit = query.limit ?? 10
 
@@ -143,7 +143,7 @@ export async function updateTeacherStatus(
   schoolId: string,
   status: 'pending' | 'accepted' | 'rejected',
 ): Promise<void> {
-  const client = createClient()
+  const client = await createClient()
   const { error } = await client
     .from('schools_teachers')
     .update({ status })
@@ -162,7 +162,7 @@ export async function updateTeacherAssignments(
     isMainTeacher: boolean
   }>,
 ): Promise<void> {
-  const supabase = createClient()
+  const supabase = await createClient()
 
   const userId = await checkAuthUserId(supabase)
   const schoolId = await getDirectorSchoolId(supabase, userId)
@@ -197,7 +197,7 @@ export async function updateTeacherAssignments(
 }
 
 export async function createInviteTeacher(): Promise<string> {
-  const supabase = createClient()
+  const supabase = await createClient()
 
   const userId = await checkAuthUserId(supabase)
   const schoolId = await getDirectorSchoolId(supabase, userId)
@@ -222,7 +222,7 @@ export async function getTeacherToSetToCourse(
   schoolId: string,
   search?: string,
 ): Promise<ITeacherOptions[]> {
-  const client = createClient()
+  const client = await createClient()
 
   let supabaseQuery = client
     .from('schools_teachers')

@@ -15,7 +15,7 @@ export async function GET(
 ) {
   const { idNumber } = await params
   try {
-    const client = createClient()
+    const client = await createClient()
     const userId = await checkAuthUserId(client)
     const schoolId = await getDirectorSchoolId(client, userId)
     const [school, histories, paymentPlan, student] = await Promise.all([

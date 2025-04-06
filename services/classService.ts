@@ -35,7 +35,7 @@ interface UpdateClassParams {
  * @throws {Error} If class is not found or if fetch fails
  */
 export async function getClassBySlug(slug: string): Promise<IClass> {
-  const supabase = createClient()
+  const supabase = await createClient()
 
   const { data, error } = await supabase
     .from('classes')
@@ -113,7 +113,7 @@ export async function fetchClasses({
   isActive,
   hasMainTeacher,
 }: FetchClassesParams): Promise<{ classes: IClass[], totalCount: number }> {
-  const supabase = createClient()
+  const supabase = await createClient()
 
   const from = (page - 1) * limit
   const to = from + limit - 1
@@ -211,7 +211,7 @@ export async function createClass({
   schoolId,
   gradeId,
 }: CreateClassParams): Promise<IClass> {
-  const supabase = createClient()
+  const supabase = await createClient()
 
   // Validate inputs
   if (!name.trim()) {
@@ -267,7 +267,7 @@ export async function updateClass({
   name,
   gradeId,
 }: UpdateClassParams): Promise<IClass> {
-  const supabase = createClient()
+  const supabase = await createClient()
 
   const userId = await getUserId()
   if (!userId) {
@@ -328,7 +328,7 @@ export async function updateClass({
 }
 
 export async function activateDeactivateClass(classId: string, isActive: boolean) {
-  const supabase = createClient()
+  const supabase = await createClient()
 
   const { error } = await supabase
     .from('classes')
@@ -343,7 +343,7 @@ export async function activateDeactivateClass(classId: string, isActive: boolean
 }
 
 export async function deleteClass(schoolId: string, classId: string): Promise<void> {
-  const supabase = createClient()
+  const supabase = await createClient()
 
   // check first if class contains students
   const { data: students, error: studentError } = await supabase
@@ -398,7 +398,7 @@ interface GetClassStatsProps {
  * @throws {Error} If the user is unauthorized or if there is an error fetching data.
  */
 export async function getClassDetailsStats({ schoolId, classId, schoolYearId, semesterId }: GetClassStatsProps): Promise<IClassDetailsStats> {
-  const supabase = createClient()
+  const supabase = await createClient()
 
   const userId = await getUserId()
   if (!userId) {
@@ -570,7 +570,7 @@ export async function getClassStudents({
   schoolYearId,
   semesterId,
 }: GetClassStudentsProps): Promise<{ students: ClassDetailsStudent[], totalCount: number }> {
-  const supabase = createClient()
+  const supabase = await createClient()
 
   const from = (page - 1) * limit
   const to = from + limit - 1
@@ -684,7 +684,7 @@ export async function filterStudentWhereNotInTheClass(
   classId: string,
   search?: string,
 ): Promise<FilterStudentWhereNotInTheClass[]> {
-  const supabase = createClient()
+  const supabase = await createClient()
 
   let query = supabase
     .from('students')

@@ -3,9 +3,8 @@ import type { PerformanceMetric } from '@/app/t/(schools)/(navigations)/students
 import type { SubjectPerformanceData } from '@/app/t/(schools)/(navigations)/students/[idNumber]/components/Tabs/PerformanceTab/SubjectPerformance'
 import { createClient } from '@/lib/supabase/client'
 
-const supabase = createClient()
-
 export async function getStudentPerformanceMetrics(studentId: string): Promise<PerformanceMetric[]> {
+  const supabase = createClient()
   try {
     // Get current semester's average grade
     const { data: averageData, error: averageError } = await supabase
@@ -69,6 +68,8 @@ export async function getStudentPerformanceMetrics(studentId: string): Promise<P
 }
 
 export async function getStudentGradePoints(studentId: string): Promise<GradePoint[]> {
+  const supabase = await createClient()
+
   try {
     const { data, error } = await supabase
       .from('average_grades_view_with_rank')
@@ -121,6 +122,8 @@ export async function getStudentGradePoints(studentId: string): Promise<GradePoi
 }
 
 export async function getStudentSubjectPerformance(studentId: string): Promise<SubjectPerformanceData[]> {
+  const supabase = await createClient()
+
   try {
     // Get current and previous semester grades by subject
     const { data: gradesData, error: gradesError } = await supabase

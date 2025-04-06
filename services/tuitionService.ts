@@ -70,7 +70,7 @@ async function getDirectorSchoolId(client: SupabaseClient, userId: string): Prom
  *  - Will throw an error if there is an issue fetching the tuition settings from the database.
  */
 export async function getTuitions(): Promise<TuitionSettings[]> {
-  const supabase = createClient()
+  const supabase = await createClient()
 
   try {
     const userId = await checkAuthUserId(supabase)
@@ -113,7 +113,7 @@ export async function updateTuition(
   data: Partial<TuitionSettings>,
   gradeId: number,
 ): Promise<TuitionSettings> {
-  const client = createClient()
+  const client = await createClient()
 
   try {
     const userId = await checkAuthUserId(client)
@@ -190,7 +190,7 @@ export async function updateTuition(
  *  - Will throw an error if there is an issue fetching the installment templates from the database.
  */
 export async function getInstallmentTemplates(gradeId: number): Promise<InstallmentTemplate[]> {
-  const supabase = createClient()
+  const supabase = await createClient()
 
   try {
     const userId = await checkAuthUserId(supabase)
@@ -232,7 +232,7 @@ export async function getInstallmentTemplates(gradeId: number): Promise<Installm
  *  - Will throw an error if there is an issue fetching, creating, or updating the installment template in the database.
  */
 export async function updateInstallmentTemplate(data: Partial<InstallmentTemplate>, id?: string): Promise<InstallmentTemplate> {
-  const supabase = createClient()
+  const supabase = await createClient()
 
   try {
     const userId = await checkAuthUserId(supabase)

@@ -12,7 +12,7 @@ import { createClient } from '@/lib/supabase/server'
  * @throws {Error} If there's an error fetching school years ('Failed to fetch school years')
  */
 export async function fetchSchoolYears(): Promise<ISchoolYear[]> {
-  const supabase = createClient()
+  const supabase = await createClient()
 
   const { data, error } = await supabase
     .from('school_years')
@@ -29,7 +29,7 @@ export async function fetchSchoolYears(): Promise<ISchoolYear[]> {
 }
 
 export async function fetchSemesters(schoolYearId: number): Promise<ISemester[]> {
-  const supabase = createClient()
+  const supabase = await createClient()
 
   const { data, error } = await supabase
     .from('semesters')

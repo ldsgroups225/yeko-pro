@@ -95,7 +95,7 @@ export async function createPayment(
   amount: number,
   paymentMethod: string,
 ): Promise<any> {
-  const client = createClient()
+  const client = await createClient()
 
   // Verify the authenticated director and retrieve their school
   const userId = await checkAuthUserId(client)
@@ -117,7 +117,7 @@ export async function createPayment(
 }
 
 export async function getPaymentHistory(): Promise<any> {
-  const client = createClient()
+  const client = await createClient()
 
   // Verify the authenticated director and retrieve their school
   const userId = await checkAuthUserId(client)

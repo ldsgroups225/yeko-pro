@@ -14,7 +14,7 @@ import { redirect } from 'next/navigation'
  * @returns {Promise<string | null>} The current user ID or null if not authenticated
  */
 export async function getUserId(): Promise<string | null> {
-  const supabase = createClient()
+  const supabase = await createClient()
 
   const { data: { user } } = await supabase.auth.getUser()
 
@@ -30,7 +30,7 @@ export async function getUserId(): Promise<string | null> {
  * @throws {Error} With message 'School not found' if school fetch fails
  */
 export async function fetchUserProfile(): Promise<IUserProfileDTO> {
-  const supabase = createClient()
+  const supabase = await createClient()
 
   const userId = await getUserId()
   if (!userId) {
@@ -114,7 +114,7 @@ export async function fetchUserProfile(): Promise<IUserProfileDTO> {
  */
 export async function signUp(email: string, password: string) {
   const env = getEnvOrThrowServerSide()
-  const supabase = createClient()
+  const supabase = await createClient()
 
   const { error } = await supabase.auth.signUp({
     email,
@@ -142,7 +142,7 @@ export async function signUp(email: string, password: string) {
  * @returns Object containing success status and any error message
  */
 export async function signIn(email: string, password: string) {
-  const supabase = createClient()
+  const supabase = await createClient()
 
   const { error } = await supabase.auth.signInWithPassword({
     email,
@@ -160,7 +160,7 @@ export async function signIn(email: string, password: string) {
  * Signs out the current user
  */
 export async function signOut() {
-  const supabase = createClient()
+  const supabase = await createClient()
 
   // Clear auth session
   await supabase.auth.signOut()
@@ -178,7 +178,7 @@ export async function signOut() {
  * @param code - The authorization code from the OAuth provider
  */
 export async function handleAuthCallback(code: string) {
-  const supabase = createClient()
+  const supabase = await createClient()
 
   const { error } = await supabase.auth.exchangeCodeForSession(code)
 
@@ -195,7 +195,7 @@ export async function handleAuthCallback(code: string) {
  */
 export async function resetPassword(email: string) {
   const env = getEnvOrThrowServerSide()
-  const supabase = createClient()
+  const supabase = await createClient()
 
   const { error } = await supabase.auth.resetPasswordForEmail(email, {
     redirectTo: `${env.NEXT_PUBLIC_SITE_URL}/auth/reset-password`,
@@ -216,7 +216,7 @@ export async function resetPassword(email: string) {
  * @param newPassword - New password to set
  */
 export async function updatePassword(newPassword: string) {
-  const supabase = createClient()
+  const supabase = await createClient()
 
   const { error } = await supabase.auth.updateUser({
     password: newPassword,

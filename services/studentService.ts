@@ -1,5 +1,6 @@
 'use server'
 
+import type { SupabaseClient } from '@/lib/supabase/server'
 import type { IClassesGrouped, IStudentDTO, IStudentsQueryParams } from '@/types'
 import type { LinkStudentParentData, StudentFormValues } from '@/validations'
 import { createClient } from '@/lib/supabase/server'
@@ -11,7 +12,9 @@ import { nanoid } from 'nanoid'
 import { uploadImageToStorage } from './uploadImageService'
 
 export async function getStudents(query: IStudentsQueryParams): Promise<{ data: IStudentDTO[], totalCount: number | null }> {
-  const { data, count, error } = await buildSupabaseQuery(query)
+  const supabase = await createClient()
+
+  const { data, count, error } = await buildSupabaseQuery(supabase, query)
 
   if (error)
     throw error
@@ -51,7 +54,7 @@ export async function getStudents(query: IStudentsQueryParams): Promise<{ data: 
 }
 
 export async function getStudentById(id: string): Promise<IStudentDTO | null> {
-  const client = createClient()
+  const client = await createClient()
   const { data } = await client
     .from('students')
     .select(`
@@ -97,7 +100,7 @@ export async function getStudentById(id: string): Promise<IStudentDTO | null> {
 }
 
 export async function getStudentByIdNumberForEdit(idNumber: string): Promise<StudentFormValues> {
-  const client = createClient()
+  const client = await createClient()
   const { data, error } = await client
     .from('students')
     .select(`
@@ -139,7 +142,7 @@ export async function getStudentByIdNumberForEdit(idNumber: string): Promise<Stu
 }
 
 export async function getStudentByIdNumber(idNumber: string): Promise<IStudentDTO | null> {
-  const client = createClient()
+  const client = await createClient()
   const { data: student, error: studentError } = await client
     .from('students')
     .select(`
@@ -199,7 +202,7 @@ export async function getStudentByIdNumber(idNumber: string): Promise<IStudentDT
 }
 
 export async function createStudent(params: Omit<IStudentDTO, 'id' | 'createdAt' | 'updatedAt' | 'createdBy' | 'updatedBy'>): Promise<string> {
-  const client = createClient()
+  const client = await createClient()
 
   const isBase64 = params.avatarUrl?.startsWith('data:image')
 
@@ -229,7 +232,7 @@ export async function createStudent(params: Omit<IStudentDTO, 'id' | 'createdAt'
 }
 
 export async function updateStudent(params: Partial<IStudentDTO> & { id: string }): Promise<IStudentDTO> {
-  const client = createClient()
+  const client = await createClient()
 
   delete params.idNumber
 
@@ -274,7 +277,7 @@ export async function updateStudent(params: Partial<IStudentDTO> & { id: string 
 }
 
 export async function deleteStudent(id: string): Promise<boolean> {
-  const client = createClient()
+  const client = await createClient()
   const { error } = await client
     .from('students')
     .delete()
@@ -283,7 +286,7 @@ export async function deleteStudent(id: string): Promise<boolean> {
 }
 
 export async function getStudentParentById(parentId: string): Promise<IStudentDTO | null> {
-  const client = createClient()
+  const client = await createClient()
   const { data } = await client
     .from('students')
     .select('*')
@@ -299,7 +302,7 @@ interface ClassRPCResponse {
 }
 
 export async function fetchClassesBySchool(schoolId: string) {
-  const client = createClient()
+  const client = await createClient()
   const { data, error } = await client.rpc('get_classes_by_school', { school_id: schoolId })
   if (error) {
     console.error('Error fetching grouped classes:', error)
@@ -318,9 +321,7 @@ export async function fetchClassesBySchool(schoolId: string) {
 
 export type TClassesBySchool = ClassRPCResponse[]
 
-function buildSupabaseQuery(query: IStudentsQueryParams) {
-  const client = createClient()
-
+function buildSupabaseQuery(client: SupabaseClient, query: IStudentsQueryParams) {
   const _page = query.page ?? 1
   const _limit = query.limit ?? 10
 
@@ -371,7 +372,7 @@ function buildSupabaseQuery(query: IStudentsQueryParams) {
 }
 
 export async function linkStudentAndParent({ studentIdNumber, otp }: { studentIdNumber: string, otp: string }): Promise<boolean> {
-  const client = createClient()
+  const client = await createClient()
 
   function validateAndParseData(data: unknown): LinkStudentParentData {
     const result = linkStudentParentSchema.safeParse(data)
@@ -446,7 +447,7 @@ export async function linkStudentAndParent({ studentIdNumber, otp }: { studentId
 }
 
 export async function bulkAddStudentsToClass(classId: string, studentIdNumber: string[]): Promise<void> {
-  const client = createClient()
+  const client = await createClient()
 
   const {
     data: studentIDs,

@@ -1,8 +1,8 @@
 import { UserContext } from '@/providers/UserContext'
-import { useContext } from 'react'
+import { use } from 'react'
 
 export function useUserContext() {
-  const context = useContext(UserContext)
+  const context = use(UserContext)
   if (!context) {
     throw new Error('useUserContext must be used within a UserProvider')
   }

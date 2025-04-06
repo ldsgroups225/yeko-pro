@@ -1,32 +1,35 @@
-import type { Database } from '@/lib/supabase/types'
-import { getEnvOrThrowServerSide } from '@/lib/utils/EnvServer'
+// lib/supabase/server.ts
 
+import type { Database } from '@/lib/supabase/types'
+import type { CookieOptions } from '@supabase/ssr'
+import { getEnvOrThrowServerSide } from '@/lib/utils/EnvServer'
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 
-export function createClient() {
+export async function createClient() {
   const env = getEnvOrThrowServerSide()
-  // const cookieStore = cookies()
+  const cookieStore = await cookies()
 
   return createServerClient<Database>(
     env.NEXT_PUBLIC_SUPABASE_URL,
     env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
     {
       cookies: {
-        getAll: async () => {
-          const cookieStore = cookies()
-          return (await cookieStore).getAll()
+        getAll() {
+          return cookieStore.getAll()
         },
-        setAll: async (cookiesToSet) => {
+        setAll(cookiesToSet: { name: string, value: string, options: CookieOptions }[]) {
           try {
-            const cookieStore = cookies()
             cookiesToSet.forEach(({ name, value, options }) => {
-              (cookieStore as any).set(name, value, options)
+              cookieStore.set(name, value, options)
             })
           }
-          catch (error) {
-            // Handle error if necessary. Don't just silently ignore.
-            console.error('Error setting cookies:', error)
+          catch {
+            // The `setAll` method was called from a Server Component.
+            // This can be ignored if you have middleware refreshing
+            // user sessions.
+            // You might want to log this error for debugging purposes
+            // console.error('Error setting cookies in Server Component:', error);
           }
         },
       },
@@ -34,4 +37,5 @@ export function createClient() {
   )
 }
 
+// Keep SupabaseClient type export if needed elsewhere
 export type SupabaseClient = ReturnType<typeof createServerClient<Database>>
