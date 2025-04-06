@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
 import { useEffect, useState } from 'react'
-import { fetchTuitionFees } from '../actions'
+import { fetchTuitionFees } from '../../actions'
 
 interface Step4TuitionDisplayProps {
   onBack: () => void

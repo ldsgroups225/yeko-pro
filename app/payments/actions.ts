@@ -214,14 +214,18 @@ export async function fetchTuitionFees(gradeId: number) {
  * @param parentId - The ID of the parent
  * @returns The newly created student
  */
-export async function createStudent(formData: {
-  firstName: string
-  lastName: string
-  gender: 'M' | 'F'
-  birthDate: string
-  address?: string
-  avatarUrl?: string
-}, schoolId: string, parentId: string): Promise<IStudent> {
+export async function createStudent(
+  formData: {
+    firstName: string
+    lastName: string
+    gender: 'M' | 'F'
+    birthDate: string
+    address?: string
+    avatarUrl?: string
+  },
+  schoolId: string,
+  parentId: string,
+): Promise<IStudent> {
   try {
     const client = createClient()
 
@@ -294,4 +298,28 @@ export async function createStudent(formData: {
     console.error('Error in createStudent:', error)
     throw new Error('Impossible de créer l\'élève')
   }
+}
+
+export async function checkOTP(sOTP: string): Promise<string> {
+  const client = createClient()
+
+  const { data, error } = await client
+    .from('parent_otp_requests')
+    .select('parent_id, is_used, expired_at')
+    .eq('otp', sOTP)
+    .single()
+
+  if (error || !data) {
+    throw new Error('OTP invalide')
+  }
+
+  if (data.is_used) {
+    throw new Error('Ce code a déjà été utilisé')
+  }
+
+  if (new Date(data.expired_at) < new Date()) {
+    throw new Error('Ce code a expiré')
+  }
+
+  return data.parent_id
 }

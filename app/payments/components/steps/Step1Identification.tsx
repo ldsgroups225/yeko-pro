@@ -1,16 +1,18 @@
-import type { SearchFormData } from '../schemas'
-import type { ISchool, IStudent } from '../types'
+import type { SearchFormData } from '../../schemas'
+import type { ISchool, IStudent } from '../../types'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useState } from 'react'
+import { PlusIcon } from 'lucide-react'
+import { useState, useTransition } from 'react'
 import { useForm } from 'react-hook-form'
-import { searchStudentAndSchool } from '../actions'
-import { searchSchema } from '../schemas'
-import { StudentCreationForm } from './StudentCreationForm'
+import { searchStudentAndSchool } from '../../actions'
+import { searchSchema } from '../../schemas'
+import { StudentCreationForm } from '../StudentCreationForm'
 
 interface Step1IdentificationProps {
   onComplete: () => void
@@ -27,6 +29,8 @@ export function Step1Identification({
   searchAttempts,
   setSearchAttempts,
 }: Step1IdentificationProps) {
+  const [searching, startTransition] = useTransition()
+
   const [error, setError] = useState<string | null>(null)
   const [isCreatingStudent, setIsCreatingStudent] = useState(false)
   const [foundSchool, setFoundSchool] = useState<ISchool | null>(null)
@@ -45,6 +49,14 @@ export function Step1Identification({
       formData.append('schoolCode', data.schoolCode)
       formData.append('studentId', data.studentId)
 
+      // validate the form data
+      const validationResult = searchSchema.safeParse(data)
+      if (!validationResult.success) {
+        const errorMessages = validationResult.error.issues.map(issue => issue.message).join(', ')
+        setError(errorMessages)
+        return
+      }
+
       const result = await searchStudentAndSchool(null, formData)
 
       if (result.error) {
@@ -62,7 +74,7 @@ export function Step1Identification({
 
       if (!result.student) {
         setSearchAttempts(searchAttempts + 1)
-        if (searchAttempts >= 2) {
+        if (searchAttempts >= 0) {
           setIsCreatingStudent(true)
         }
         else {
@@ -88,7 +100,15 @@ export function Step1Identification({
   return (
     <div className="space-y-6">
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(handleSearch)} className="space-y-4">
+        <form
+          onSubmit={(e) => {
+            e.preventDefault()
+            startTransition(() => {
+              handleSearch(form.getValues())
+            })
+          }}
+          className="space-y-4"
+        >
           <FormField
             control={form.control}
             name="schoolCode"
@@ -103,19 +123,38 @@ export function Step1Identification({
             )}
           />
 
-          <FormField
-            control={form.control}
-            name="studentId"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Matricule de l'élève</FormLabel>
-                <FormControl>
-                  <Input placeholder="Entrez la matricule de l'élève" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+          <div className="flex items-end gap-2">
+            <FormField
+              control={form.control}
+              name="studentId"
+              render={({ field }) => (
+                <FormItem className="flex-1">
+                  <FormLabel>Matricule de l'élève</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Entrez la matricule de l'élève" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <TooltipProvider>
+              <Tooltip delayDuration={100}>
+                <TooltipTrigger asChild>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    onClick={() => setIsCreatingStudent(true)}
+                  >
+                    <PlusIcon className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Créer un nouvel élève</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
 
           {error && (
             <Alert variant="destructive">
@@ -124,8 +163,8 @@ export function Step1Identification({
             </Alert>
           )}
 
-          <Button type="submit" className="w-full">
-            Rechercher
+          <Button type="submit" className="w-full" disabled={searching}>
+            {searching ? 'Recherche en cours...' : 'Rechercher'}
           </Button>
         </form>
       </Form>

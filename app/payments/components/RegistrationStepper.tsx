@@ -3,12 +3,7 @@
 import type { ISchool, IStudent } from '../types'
 import { Stepper } from '@/components/ui/stepper'
 import { useState } from 'react'
-import { Step1Identification } from './Step1Identification'
-import { Step2Confirmation } from './Step2Confirmation'
-import { Step3GradeSelection } from './Step3GradeSelection'
-import { Step4TuitionDisplay } from './Step4TuitionDisplay'
-import { Step5Payment } from './Step5Payment'
-import { Step6Success } from './Step6Success'
+import { Step1Identification, Step2Confirmation, Step3GradeSelection, Step4TuitionDisplay, Step5Payment, Step6Success } from './steps'
 
 interface Step {
   title: string

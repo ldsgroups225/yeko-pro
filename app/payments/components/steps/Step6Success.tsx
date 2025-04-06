@@ -1,6 +1,6 @@
 'use client'
 
-import type { ISchool, IStudent } from '../types'
+import type { ISchool, IStudent } from '../../types'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { CheckCircle2 } from 'lucide-react'

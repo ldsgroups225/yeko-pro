@@ -1019,6 +1019,36 @@ export interface Database {
           },
         ]
       }
+      parent_otp_requests: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          expired_at: string
+          id: string
+          is_used: boolean
+          otp: string
+          parent_id: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          expired_at?: string
+          id?: string
+          is_used?: boolean
+          otp: string
+          parent_id: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          expired_at?: string
+          id?: string
+          is_used?: boolean
+          otp?: string
+          parent_id?: string
+        }
+        Relationships: []
+      }
       participations: {
         Row: {
           class_id: string
@@ -2417,6 +2447,7 @@ export interface Database {
           first_name: string
           last_name: string
           id_number: string
+          avatar_url: string
           class_id: string
           class_name: string
           school_id: string

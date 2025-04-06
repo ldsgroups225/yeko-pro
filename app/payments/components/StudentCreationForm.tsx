@@ -10,7 +10,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
-import { createStudent } from '../actions'
+import { checkOTP, createStudent } from '../actions'
 import { studentCreationSchema } from '../schemas'
 
 const otpSchema = z.object({
@@ -61,21 +61,9 @@ export function StudentCreationForm({
       setError(null)
 
       // Call API to verify OTP and get parent ID
-      const response = await fetch('/api/verify-parent-otp', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ otp: data.otp }),
-      })
+      const parentId = await checkOTP(data.otp)
 
-      if (!response.ok) {
-        const error = await response.json()
-        throw new Error(error.message || 'Erreur de vérification OTP')
-      }
-
-      const { parentId: verifiedParentId } = await response.json()
-      setParentId(verifiedParentId)
+      setParentId(parentId)
     }
     catch (error) {
       setError(error instanceof Error ? error.message : 'Erreur de vérification OTP')
