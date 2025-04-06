@@ -4,7 +4,14 @@ import type { Student } from '../../../types'
 import type { GradePoint } from './GradesTrend'
 import type { PerformanceMetric } from './PerformanceOverview'
 import type { SubjectPerformanceData } from './SubjectPerformance'
+
 import { Card } from '@/components/ui/card'
+import {
+  getStudentGradePoints,
+  getStudentPerformanceMetrics,
+  getStudentSubjectPerformance,
+} from '@/services/noteService'
+import { useEffect, useState } from 'react'
 
 import { GradesTrend } from './GradesTrend'
 import { PerformanceOverview } from './PerformanceOverview'
@@ -15,106 +22,83 @@ interface PerformanceTabProps {
   isLoading?: boolean
 }
 
-// Mock data - Replace with API calls later
-const mockMetrics: PerformanceMetric[] = [
-  {
-    id: 'average',
-    name: 'Moyenne Générale',
-    currentValue: 15.5,
-    previousValue: 14.8,
-    maxValue: 20,
-    trend: 'up',
-    category: 'academic',
-  },
-  {
-    id: 'participation',
-    name: 'Participation',
-    currentValue: 16,
-    previousValue: 16,
-    maxValue: 20,
-    trend: 'stable',
-    category: 'participation',
-  },
-  {
-    id: 'behavior',
-    name: 'Comportement',
-    currentValue: 18,
-    previousValue: 17,
-    maxValue: 20,
-    trend: 'up',
-    category: 'behavior',
-  },
-]
+export function PerformanceTab({ student, isLoading: initialLoading }: PerformanceTabProps) {
+  const [metrics, setMetrics] = useState<PerformanceMetric[]>([])
+  const [gradePoints, setGradePoints] = useState<GradePoint[]>([])
+  const [subjects, setSubjects] = useState<SubjectPerformanceData[]>([])
+  const [isLoading, setIsLoading] = useState(initialLoading)
+  const [error, setError] = useState<string | null>(null)
 
-const mockGradePoints: GradePoint[] = [
-  { period: 'Sept', average: 14.5, classAverage: 13.8 },
-  { period: 'Oct', average: 15.2, classAverage: 14.0 },
-  { period: 'Nov', average: 14.8, classAverage: 13.9 },
-  { period: 'Dec', average: 15.5, classAverage: 14.2 },
-  { period: 'Jan', average: 15.8, classAverage: 14.1 },
-]
+  useEffect(() => {
+    let mounted = true
 
-const mockSubjects: SubjectPerformanceData[] = [
-  {
-    id: 'math',
-    name: 'Mathématiques',
-    currentGrade: 17.5,
-    previousGrade: 16.0,
-    maxGrade: 20,
-    trend: 'up',
-    classAverage: 14.5,
-    coefficient: 3,
-    isStrength: true,
-    needsImprovement: false,
-    teacherComment: 'Excellent niveau, participe activement en classe.',
-  },
-  {
-    id: 'french',
-    name: 'Français',
-    currentGrade: 13.5,
-    previousGrade: 14.0,
-    maxGrade: 20,
-    trend: 'down',
-    classAverage: 13.8,
-    coefficient: 3,
-    isStrength: false,
-    needsImprovement: true,
-    teacherComment: 'Des difficultés en expression écrite. Un soutien serait bénéfique.',
-  },
-  {
-    id: 'physics',
-    name: 'Physique-Chimie',
-    currentGrade: 15.5,
-    previousGrade: 15.5,
-    maxGrade: 20,
-    trend: 'stable',
-    classAverage: 14.2,
-    coefficient: 2,
-    isStrength: false,
-    needsImprovement: false,
-  },
-]
+    async function fetchPerformanceData() {
+      if (!student?.id)
+        return
 
-export function PerformanceTab({ student: _student, isLoading }: PerformanceTabProps) {
-  // TODO: Replace mock data with actual API calls using student data
-  // Example: useEffect(() => { fetchPerformanceData(student.id) }, [student.id])
+      try {
+        setIsLoading(true)
+        const [performanceMetrics, gradeHistory, subjectPerformance] = await Promise.all([
+          getStudentPerformanceMetrics(student.id),
+          getStudentGradePoints(student.id),
+          getStudentSubjectPerformance(student.id),
+        ])
+
+        if (mounted) {
+          setMetrics(performanceMetrics)
+          setGradePoints(gradeHistory)
+          setSubjects(subjectPerformance)
+          setError(null)
+        }
+      }
+      catch (err) {
+        if (mounted) {
+          setError(err instanceof Error ? err.message : 'Failed to fetch performance data')
+          console.error('Error fetching performance data:', err)
+        }
+      }
+      finally {
+        if (mounted) {
+          setIsLoading(false)
+        }
+      }
+    }
+
+    fetchPerformanceData()
+
+    return () => {
+      mounted = false
+    }
+  }, [student?.id])
+
+  if (error) {
+    return (
+      <Card>
+        <div className="p-4 text-red-500">
+          Error loading performance data:
+          {' '}
+          {error}
+        </div>
+      </Card>
+    )
+  }
 
   return (
     <Card>
       <div className="space-y-6">
         <PerformanceOverview
-          metrics={mockMetrics}
+          metrics={metrics}
           isLoading={isLoading}
         />
 
         <div className="grid grid-cols-1 gap-6">
           <GradesTrend
-            data={mockGradePoints}
+            data={gradePoints}
             isLoading={isLoading}
           />
 
           <SubjectPerformance
-            subjects={mockSubjects}
+            subjects={subjects}
             isLoading={isLoading}
           />
         </div>
@@ -128,7 +112,6 @@ export { GradesTrend } from './GradesTrend'
 // Re-export types
 export type { GradePoint } from './GradesTrend'
 export { PerformanceOverview } from './PerformanceOverview'
-
 export type { PerformanceMetric } from './PerformanceOverview'
 export { SubjectPerformance } from './SubjectPerformance'
 export type { SubjectPerformanceData } from './SubjectPerformance'
