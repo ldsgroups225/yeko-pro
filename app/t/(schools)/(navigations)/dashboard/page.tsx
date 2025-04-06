@@ -50,7 +50,7 @@ export default async function DashboardPage() {
 
         <MetricCard title="Paiements Scolarité" icon={<CreditCard className="h-6 w-6" />} variant="success">
           <div className="text-3xl font-bold text-emerald-600 dark:text-white">
-            {metrics?.payments.onTimeRate || '-'}
+            {metrics?.payments.onTimeRate.toFixed(2) || '-'}
             %
           </div>
           <div className="text-sm text-emerald-600 font-medium mt-2">
