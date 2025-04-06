@@ -17,10 +17,8 @@ import { AcademicTab } from './components/Tabs/AcademicTab'
 import { AttendanceTab } from './components/Tabs/AttendanceTab'
 import { HealthTab } from './components/Tabs/HealthTab'
 import { ParentsTab } from './components/Tabs/ParentsTab'
-import { PaymentsTab } from './components/Tabs/PaymentsTab'
 import { PerformanceTab } from './components/Tabs/PerformanceTab'
 import { ProfileTab } from './components/Tabs/ProfileTab'
-import { ServicesTab } from './components/Tabs/ServicesTab'
 import { transformStudentDTO } from './types'
 
 // Mock data - Move to API calls later
@@ -84,18 +82,6 @@ export default function StudentPage() {
       label: 'Santé',
       description: 'Informations médicales et contacts d\'urgence',
       component: HealthTab,
-    },
-    {
-      id: 'payments',
-      label: 'Paiements',
-      description: 'État des paiements et historique',
-      component: PaymentsTab,
-    },
-    {
-      id: 'services',
-      label: 'Services',
-      description: 'Gestion des services optionnels',
-      component: ServicesTab,
     },
     {
       id: 'parents',
