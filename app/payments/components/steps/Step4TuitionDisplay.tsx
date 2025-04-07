@@ -32,22 +32,35 @@ export function Step4TuitionDisplay({
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    const loadTuitionFees = async () => {
-      if (!gradeId)
+    let mounted = true
+
+    async function loadTuitionFees() {
+      if (!gradeId) {
+        if (mounted) {
+          setIsLoading(false)
+        }
         return
+      }
 
       try {
         const data = await fetchTuitionFees(gradeId)
-        setTuitionFees(data)
-        setIsLoading(false)
+        if (mounted) {
+          setTuitionFees(data)
+          setIsLoading(false)
+        }
       }
       catch {
-        setError('Impossible de charger les frais de scolarité')
-        setIsLoading(false)
+        if (mounted) {
+          setError('Impossible de charger les frais de scolarité')
+          setIsLoading(false)
+        }
       }
     }
 
-    void loadTuitionFees()
+    loadTuitionFees()
+    return () => {
+      mounted = false
+    }
   }, [gradeId])
 
   const tuitionFee = tuitionFees[0] // We expect only one fee configuration per grade

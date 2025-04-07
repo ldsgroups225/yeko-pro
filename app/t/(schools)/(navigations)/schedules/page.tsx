@@ -8,7 +8,7 @@ import { useScheduleOptimistic, useSchedules, useStudents, useUser } from '@/hoo
 import { calculatePosition } from '@/lib/utils'
 import { ChevronDownIcon, EyeOpenIcon } from '@radix-ui/react-icons'
 import Link from 'next/link'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { toast } from 'sonner'
 import { AddCourseDialog, CurrentTimeLine, EventCell, TimelineIndicator } from './_components'
 
@@ -21,9 +21,19 @@ export default function SchedulePage() {
   const { groupedClasses, fetchClassesBySchool } = useStudents()
 
   const [headerHeight] = useState(64)
-  const [calendarHeight, setCalendarHeight] = useState(0)
   const [isLoading, setIsLoading] = useState<boolean>(false)
   const [selectedClassId, setSelectedClassId] = useState<string>('')
+
+  const calendarHeightRef = useRef(window.innerHeight - headerHeight)
+
+  useEffect(() => {
+    const handleResize = () => {
+      calendarHeightRef.current = window.innerHeight - headerHeight
+    }
+
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [headerHeight])
 
   const groupedEvents = useMemo(() => {
     const groups: Record<number, IScheduleCalendarDTO[]> = { 0: [], 1: [], 2: [], 3: [], 4: [] }
@@ -53,10 +63,6 @@ export default function SchedulePage() {
       fetchClassesBySchool(user.school.id)
     }
   }, [])
-
-  useEffect(() => {
-    setCalendarHeight(window.innerHeight - headerHeight)
-  }, [headerHeight])
 
   useEffect(() => {
     async function fetchSchedules() {
@@ -117,7 +123,7 @@ export default function SchedulePage() {
     }
 
     return (
-      <div className="flex flex-col overflow-hidden bg-blacks" style={{ height: calendarHeight }}>
+      <div className="flex flex-col overflow-hidden bg-blacks" style={{ height: calendarHeightRef.current }}>
         <div className="flex-1 overflow-x-auto relative">
           <div className="grid grid-cols-[auto_repeat(5,1fr)] gap-x-4 min-w-[1200px] p-4">
             <TimelineIndicator />

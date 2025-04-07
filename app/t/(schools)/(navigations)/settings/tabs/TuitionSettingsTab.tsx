@@ -63,12 +63,25 @@ export default function TuitionSettingsPage() {
   }
 
   useEffect(() => {
-    fetchTuitionSettings().then(() => {})
-  }, [])
+    let mounted = true
 
-  useEffect(() => {
-    if (selectedGradeId) {
-      fetchInstallmentTemplatesMemoized()
+    async function loadData() {
+      await fetchTuitionSettings()
+
+      if (mounted && selectedGradeId) {
+        try {
+          await fetchInstallmentTemplatesMemoized()
+        }
+        catch (error: any) {
+          console.error('Error fetching installment templates:', error)
+          toast.error(error.message)
+        }
+      }
+    }
+
+    loadData()
+    return () => {
+      mounted = false
     }
   }, [selectedGradeId])
 

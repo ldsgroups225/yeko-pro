@@ -49,7 +49,9 @@ export default function StudentPage() {
 
   const { isLoading, error: apiError, fetchStudentByIdNumber, selectedStudent: studentDTO } = useStudents()
   const [error, setError] = useState<Error | null>(null)
-  const [student, setStudent] = useState<Student | undefined>(undefined)
+
+  const student = useMemo(() =>
+    studentDTO ? transformStudentDTO(studentDTO) : undefined, [studentDTO])
 
   // Define available tabs with their configurations
   const tabs = useMemo<TabConfig[]>(() => [
@@ -113,13 +115,6 @@ export default function StudentPage() {
       getStudent(idNumber)
     }
   }, [idNumber, fetchStudentByIdNumber])
-
-  // Transform DTO to internal type when it changes
-  useEffect(() => {
-    if (studentDTO) {
-      setStudent(transformStudentDTO(studentDTO))
-    }
-  }, [studentDTO])
 
   // Handle errors
   if (error || apiError) {

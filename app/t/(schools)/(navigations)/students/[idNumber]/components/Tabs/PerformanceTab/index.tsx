@@ -22,12 +22,20 @@ interface PerformanceTabProps {
   isLoading?: boolean
 }
 
-export function PerformanceTab({ student, isLoading: initialLoading }: PerformanceTabProps) {
-  const [metrics, setMetrics] = useState<PerformanceMetric[]>([])
-  const [gradePoints, setGradePoints] = useState<GradePoint[]>([])
-  const [subjects, setSubjects] = useState<SubjectPerformanceData[]>([])
-  const [isLoading, setIsLoading] = useState(initialLoading)
-  const [error, setError] = useState<string | null>(null)
+export function PerformanceTab({ student, isLoading: initialLoading = false }: PerformanceTabProps) {
+  const [state, setState] = useState<{
+    metrics: PerformanceMetric[]
+    gradePoints: GradePoint[]
+    subjects: SubjectPerformanceData[]
+    isLoading: boolean
+    error: string | null
+  }>({
+    metrics: [],
+    gradePoints: [],
+    subjects: [],
+    isLoading: initialLoading,
+    error: null,
+  })
 
   useEffect(() => {
     let mounted = true
@@ -37,7 +45,7 @@ export function PerformanceTab({ student, isLoading: initialLoading }: Performan
         return
 
       try {
-        setIsLoading(true)
+        setState(prev => ({ ...prev, isLoading: true }))
         const [performanceMetrics, gradeHistory, subjectPerformance] = await Promise.all([
           getStudentPerformanceMetrics(student.id),
           getStudentGradePoints(student.id),
@@ -45,39 +53,40 @@ export function PerformanceTab({ student, isLoading: initialLoading }: Performan
         ])
 
         if (mounted) {
-          setMetrics(performanceMetrics)
-          setGradePoints(gradeHistory)
-          setSubjects(subjectPerformance)
-          setError(null)
+          setState({
+            metrics: performanceMetrics,
+            gradePoints: gradeHistory,
+            subjects: subjectPerformance,
+            isLoading: false,
+            error: null,
+          })
         }
       }
       catch (err) {
         if (mounted) {
-          setError(err instanceof Error ? err.message : 'Failed to fetch performance data')
+          setState(prev => ({
+            ...prev,
+            error: err instanceof Error ? err.message : 'Failed to fetch performance data',
+            isLoading: false,
+          }))
           console.error('Error fetching performance data:', err)
-        }
-      }
-      finally {
-        if (mounted) {
-          setIsLoading(false)
         }
       }
     }
 
     fetchPerformanceData()
-
     return () => {
       mounted = false
     }
   }, [student?.id])
 
-  if (error) {
+  if (state.error) {
     return (
       <Card>
         <div className="p-4 text-red-500">
           Error loading performance data:
           {' '}
-          {error}
+          {state.error}
         </div>
       </Card>
     )
@@ -87,19 +96,19 @@ export function PerformanceTab({ student, isLoading: initialLoading }: Performan
     <Card>
       <div className="space-y-6">
         <PerformanceOverview
-          metrics={metrics}
-          isLoading={isLoading}
+          metrics={state.metrics}
+          isLoading={state.isLoading}
         />
 
         <div className="grid grid-cols-1 gap-6">
           <GradesTrend
-            data={gradePoints}
-            isLoading={isLoading}
+            data={state.gradePoints}
+            isLoading={state.isLoading}
           />
 
           <SubjectPerformance
-            subjects={subjects}
-            isLoading={isLoading}
+            subjects={state.subjects}
+            isLoading={state.isLoading}
           />
         </div>
       </div>

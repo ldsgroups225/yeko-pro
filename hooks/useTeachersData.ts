@@ -1,6 +1,6 @@
 import type { ITeacherDTO, ITeacherQueryParams } from '@/types'
 import { useUser } from '@/hooks/useUser'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef } from 'react'
 import { useDebouncedCallback } from 'use-debounce'
 import { useTeachers } from './useTeachers'
 
@@ -44,13 +44,15 @@ export function useTeachersData({
   } = useTeachers()
 
   const prevFiltersRef = useRef(filters)
-  const [hasInitialized, setHasInitialized] = useState(false)
+  const hasInitializedRef = useRef(false)
 
   // Initialize once
   useEffect(() => {
-    setItemsPerPage(initialItemsPerPage)
-    setHasInitialized(true)
-  }, [])
+    if (!hasInitializedRef.current) {
+      setItemsPerPage(initialItemsPerPage)
+      hasInitializedRef.current = true
+    }
+  }, [initialItemsPerPage])
 
   function properQsParamsOrUndefined<T>(params: T): T | undefined {
     if (params === '' || params === 'all' || params === 'undefined' || params === undefined || params === 'false') {
@@ -60,7 +62,6 @@ export function useTeachersData({
   }
 
   // Update filters when they change
-
   useEffect(() => {
     const hasFiltersChanged = JSON.stringify(prevFiltersRef.current) !== JSON.stringify(filters)
     if (hasFiltersChanged) {
@@ -83,14 +84,13 @@ export function useTeachersData({
 
   // Load teachers when necessary
   useEffect(() => {
-    if (user?.school?.id && hasInitialized) {
+    if (user?.school?.id && hasInitializedRef.current) {
       _debouncedLoadTeachers(user?.school?.id)
-      // loadTeachers({ ...filters, schoolId: user.school.id })
     }
-  }, [user?.school?.id, currentPage, hasInitialized])
+  }, [user?.school?.id, currentPage])
 
   const status = (() => {
-    if (!hasInitialized)
+    if (!hasInitializedRef.current)
       return 'idle'
     if (isLoading)
       return 'loading'

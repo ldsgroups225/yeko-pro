@@ -63,12 +63,22 @@ export function EditStudentForm({ studentIdNumber, onSubmit, onCancel, isLoading
   })
 
   useEffect(() => {
-    getStudentByIdNumberForEdit(studentIdNumber).then((student) => {
-      setStudent(student)
-      form.reset(student)
-      setDateInputValue(student.dateOfBirth ? format(student.dateOfBirth, 'dd/MM/yyyy') : '')
-    })
-  }, [])
+    let mounted = true
+
+    async function loadStudent() {
+      const student = await getStudentByIdNumberForEdit(studentIdNumber)
+      if (mounted) {
+        setStudent(student)
+        form.reset(student)
+        setDateInputValue(student.dateOfBirth ? format(student.dateOfBirth, 'dd/MM/yyyy') : '')
+      }
+    }
+
+    loadStudent()
+    return () => {
+      mounted = false
+    }
+  }, [studentIdNumber, form])
 
   if (!student) {
     return (

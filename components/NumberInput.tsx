@@ -22,18 +22,16 @@ export interface NumberInputProps
 }
 
 export function NumberInput({ ref, stepper, thousandSeparator, placeholder, defaultValue, min = -Infinity, max = Infinity, onValueChange, fixedDecimalScale = false, decimalScale = 0, suffix, prefix, value: controlledValue, ...props }: NumberInputProps & { ref: React.RefObject<HTMLInputElement> }) {
-  const [value, setValue] = useState<number | undefined>(
-    controlledValue ?? defaultValue,
-  )
+  const [internalValue, setInternalValue] = useState<number | undefined>(controlledValue ?? defaultValue)
 
   const handleIncrement = useCallback(() => {
-    setValue(prev =>
+    setInternalValue(prev =>
       prev === undefined ? stepper ?? 1 : Math.min(prev + (stepper ?? 1), max),
     )
   }, [stepper, max])
 
   const handleDecrement = useCallback(() => {
-    setValue(prev =>
+    setInternalValue(prev =>
       prev === undefined
         ? -(stepper ?? 1)
         : Math.max(prev - (stepper ?? 1), min),
@@ -62,35 +60,26 @@ export function NumberInput({ ref, stepper, thousandSeparator, placeholder, defa
     }
   }, [handleIncrement, handleDecrement, ref])
 
-  useEffect(() => {
-    if (controlledValue !== undefined) {
-      setValue(controlledValue)
-    }
-  }, [controlledValue])
-
   const handleChange = (values: {
     value: string
     floatValue: number | undefined
   }) => {
-    const newValue
-        = values.floatValue === undefined ? undefined : values.floatValue
-    setValue(newValue)
+    const newValue = values.floatValue === undefined ? undefined : values.floatValue
+    setInternalValue(newValue)
     if (onValueChange) {
       onValueChange(newValue)
     }
   }
 
   const handleBlur = () => {
-    if (value !== undefined) {
-      if (value < min) {
-        setValue(min);
-        (ref as React.RefObject<HTMLInputElement>).current!.value
-            = String(min)
+    if (internalValue !== undefined) {
+      if (internalValue < min) {
+        setInternalValue(min);
+        (ref as React.RefObject<HTMLInputElement>).current!.value = String(min)
       }
-      else if (value > max) {
-        setValue(max);
-        (ref as React.RefObject<HTMLInputElement>).current!.value
-            = String(max)
+      else if (internalValue > max) {
+        setInternalValue(max);
+        (ref as React.RefObject<HTMLInputElement>).current!.value = String(max)
       }
     }
   }
@@ -98,7 +87,8 @@ export function NumberInput({ ref, stepper, thousandSeparator, placeholder, defa
   return (
     <div className="flex items-center">
       <NumericFormat
-        value={value}
+        key={controlledValue}
+        value={controlledValue ?? internalValue}
         onValueChange={handleChange}
         thousandSeparator={thousandSeparator}
         decimalScale={decimalScale}
@@ -123,7 +113,7 @@ export function NumberInput({ ref, stepper, thousandSeparator, placeholder, defa
           className="px-2 h-5 rounded-l-none rounded-br-none border-input border-l-0 border-b-[0.5px] focus-visible:relative"
           variant="outline"
           onClick={handleIncrement}
-          disabled={value === max}
+          disabled={internalValue === max}
         >
           <ChevronUp size={15} />
         </Button>
@@ -132,7 +122,7 @@ export function NumberInput({ ref, stepper, thousandSeparator, placeholder, defa
           className="px-2 h-5 rounded-l-none rounded-tr-none border-input border-l-0 border-t-[0.5px] focus-visible:relative"
           variant="outline"
           onClick={handleDecrement}
-          disabled={value === min}
+          disabled={internalValue === min}
         >
           <ChevronDown size={15} />
         </Button>

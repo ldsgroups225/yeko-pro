@@ -39,20 +39,29 @@ export function Step3GradeSelection({
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    const loadGrades = async () => {
+    let mounted = true
+
+    async function loadGrades() {
       try {
         const data = await fetchGrades(schoolId)
-        setGrades(data)
-        setIsLoading(false)
+        if (mounted) {
+          setGrades(data)
+          setIsLoading(false)
+        }
       }
       catch (err) {
         console.error('Error loading grades:', err)
-        setError('Impossible de charger les niveaux')
-        setIsLoading(false)
+        if (mounted) {
+          setError('Impossible de charger les niveaux')
+          setIsLoading(false)
+        }
       }
     }
 
-    void loadGrades()
+    loadGrades()
+    return () => {
+      mounted = false
+    }
   }, [schoolId])
 
   if (isLoading) {

@@ -5,7 +5,7 @@ import { NumberInput } from '@/components/NumberInput'
 import { Button } from '@/components/ui/button'
 import { TableCell, TableRow } from '@/components/ui/table'
 import { CheckCircle2, Edit2Icon, EyeIcon, EyeOffIcon, X } from 'lucide-react'
-import { useEffect, useRef, useState } from 'react'
+import { useRef, useState } from 'react'
 
 export interface TuitionTableRowProps {
   grade: IGrade
@@ -29,13 +29,15 @@ export function TuitionTableRow({
   })
   const annualFeeInputRef = useRef<HTMLInputElement>(null) as RefObject<HTMLInputElement>
   const governmentDiscountPercentageInputRef = useRef<HTMLInputElement>(null) as RefObject<HTMLInputElement>
+  const prevTuitionRef = useRef(tuition)
 
-  useEffect(() => {
+  if (tuition !== prevTuitionRef.current) {
     setFormData({
       annualFee: tuition?.annualFee || 0,
       governmentDiscountPercentage: tuition?.governmentDiscountPercentage || 0,
     })
-  }, [tuition])
+    prevTuitionRef.current = tuition
+  }
 
   return (
     <TableRow>

@@ -28,7 +28,7 @@ import {
   Trash2Icon,
   X,
 } from 'lucide-react'
-import { startTransition, useEffect, useOptimistic, useState } from 'react'
+import { startTransition, useOptimistic, useState } from 'react'
 import { toast } from 'sonner'
 import { AddInstallmentDialog } from './AddInstallmentDialogProps'
 
@@ -80,11 +80,6 @@ function usePaymentPlanRowLogic(
   }
   const [isEditing, setIsEditing] = useState(false)
   const [formData, setFormData] = useState<PaymentPlanFormData>(initialFormData)
-
-  // Reset form data if the plan changes.
-  useEffect(() => {
-    setFormData(initialFormData)
-  }, [plan])
 
   const startEditing = () => setIsEditing(true)
   const cancelEditing = () => {

@@ -1,5 +1,5 @@
 import type { IClass, IGrade } from '@/types'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef } from 'react'
 import { useDebouncedCallback } from 'use-debounce'
 import { useClasses } from './useClasses'
 import { useGrade } from './useGrade'
@@ -61,13 +61,15 @@ export function useClassesData({
 
   // Use refs to track previous values
   const prevFiltersRef = useRef(filters)
-  const [hasInitialized, setHasInitialized] = useState(false)
+  const hasInitializedRef = useRef(false)
 
   // Initialize once
   useEffect(() => {
-    setItemsPerPage(initialItemsPerPage)
-    setHasInitialized(true)
-  }, [])
+    if (!hasInitializedRef.current) {
+      setItemsPerPage(initialItemsPerPage)
+      hasInitializedRef.current = true
+    }
+  }, [initialItemsPerPage])
 
   function properQsParamsOrUndefined<T>(params: T): T | undefined {
     if (params === '' || params === 'all' || params === 'undefined' || params === undefined) {
@@ -101,13 +103,13 @@ export function useClassesData({
 
   // Load classes when necessary
   useEffect(() => {
-    if (user?.school?.id && hasInitialized) {
+    if (user?.school?.id && hasInitializedRef.current) {
       _debouncedLoadClasses(user.school.id)?.then(r => r)
     }
-  }, [user?.school?.id, currentPage, hasInitialized])
+  }, [user?.school?.id, currentPage])
 
   const status = (() => {
-    if (!hasInitialized)
+    if (!hasInitializedRef.current)
       return 'idle'
     if (isLoading)
       return 'loading'

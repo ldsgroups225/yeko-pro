@@ -3,7 +3,7 @@
 import type { InstallmentTemplate as ITemplate } from '@/validations'
 import { saveRecordIfDirty } from '@/lib/utils/saveDataIfDirty'
 import useTuitionStore from '@/store/tuitionStore'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { toast } from 'sonner'
 
 export interface PaymentPlanFormData {
@@ -29,10 +29,6 @@ export function usePaymentPlanRowLogic(
   }
   const [isEditing, setIsEditing] = useState(false)
   const [formData, setFormData] = useState<PaymentPlanFormData>(initialFormData)
-
-  useEffect(() => {
-    setFormData(initialFormData)
-  }, [plan])
 
   const startEditing = () => setIsEditing(true)
   const cancelEditing = () => {

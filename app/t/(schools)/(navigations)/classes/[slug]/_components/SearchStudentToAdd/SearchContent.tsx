@@ -1,3 +1,4 @@
+// app/t/(schools)/(navigations)/classes/[slug]/_components/SearchStudentToAdd/SearchContent.tsx
 'use client'
 
 import type { FilterStudentWhereNotInTheClass } from '@/types'
@@ -8,12 +9,12 @@ import {
   CommandList,
 } from '@/components/ui/command'
 import { AnimatePresence, motion } from 'framer-motion'
-import * as React from 'react'
-import { memo, useEffect, useState } from 'react'
+import { memo, useEffect, useRef, useState } from 'react'
 import { useDebounce } from 'use-debounce'
 import { SelectedStudentBadge } from './SelectedStudentBadge'
 import { StudentCommandItem } from './StudentCommandItem'
 
+// Animation variants for list items
 const listItemVariants = {
   hidden: { opacity: 0, y: 20 },
   visible: (index: number) => ({
@@ -58,16 +59,18 @@ export const SearchContent = memo(({
 }: SearchContentProps) => {
   const [localSearch, setLocalSearch] = useState(search)
   const [debouncedLocalSearch] = useDebounce(localSearch, 300)
+  const prevSearchRef = useRef(search)
 
   useEffect(() => {
     setSearch(debouncedLocalSearch)
-  }, [debouncedLocalSearch, setSearch])
+  }, [debouncedLocalSearch])
 
-  useEffect(() => {
+  if (search !== prevSearchRef.current) {
     if (search === '') {
       setLocalSearch('')
     }
-  }, [search])
+    prevSearchRef.current = search
+  }
 
   return (
     <div className="flex flex-col gap-4">
@@ -82,7 +85,11 @@ export const SearchContent = memo(({
             <div className="flex flex-wrap gap-2 p-2 border rounded-lg">
               <AnimatePresence>
                 {selectedStudents.map(student => (
-                  <SelectedStudentBadge key={student.idNumber} student={student} onRemove={onRemove} />
+                  <SelectedStudentBadge
+                    key={student.idNumber}
+                    student={student}
+                    onRemove={onRemove}
+                  />
                 ))}
               </AnimatePresence>
             </div>

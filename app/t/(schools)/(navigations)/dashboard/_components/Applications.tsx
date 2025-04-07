@@ -1,5 +1,4 @@
 // app/t/(schools)/(navigations)/dashboard/_components/Applications.tsx
-
 'use client'
 
 import type { IApplicationsProps, ICandidature } from '@/types'
@@ -7,7 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { formatTimePassed } from '@/lib/utils'
 import { handleCandidature } from '@/services/dashboardService'
-import { useEffect, useRef, useState, useTransition } from 'react'
+import { useState, useTransition } from 'react'
 import { toast } from 'sonner'
 
 type TAction = 'accept' | 'reject'
@@ -18,15 +17,8 @@ interface ApplicationActionPayload {
 }
 
 export function Applications({ applications }: IApplicationsProps) {
-  const [optimisticApps, setOptimisticApps] = useState(applications)
-
-  const previousAppsRef = useRef(optimisticApps)
-
+  const [pendingRemovals, setPendingRemovals] = useState<string[]>([])
   const [isUpdating, startTransition] = useTransition()
-
-  useEffect(() => {
-    setOptimisticApps(applications)
-  }, [applications])
 
   const optimisticSubmitAction = async (payload: ApplicationActionPayload) => {
     startTransition(async () => {
@@ -41,21 +33,15 @@ export function Applications({ applications }: IApplicationsProps) {
       catch (error) {
         console.error(`Error ${payload.action}ing application:`, error)
         toast.error('Une erreur est survenue lors de l\'action sur la candidature.')
-
-        setOptimisticApps(previousAppsRef.current)
+        setPendingRemovals(prev => prev.filter(id => id !== payload.application.candidateId))
       }
     })
   }
 
   const submitAction = async (payload: ApplicationActionPayload) => {
-    previousAppsRef.current = optimisticApps
-
-    setOptimisticApps(prev =>
-      prev.filter(app => app.candidateId !== payload.application.candidateId),
-    )
-
+    setPendingRemovals(prev => [...prev, payload.application.candidateId])
     await optimisticSubmitAction(payload).catch(() => {
-      setOptimisticApps(previousAppsRef.current)
+      setPendingRemovals(prev => prev.filter(id => id !== payload.application.candidateId))
     })
   }
 
@@ -67,6 +53,10 @@ export function Applications({ applications }: IApplicationsProps) {
     await submitAction({ application, action: 'reject' })
   }
 
+  const displayedApplications = applications.filter(
+    app => !pendingRemovals.includes(app.candidateId),
+  )
+
   return (
     <Card className="lg:col-span-2">
       <CardHeader>
@@ -74,7 +64,7 @@ export function Applications({ applications }: IApplicationsProps) {
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
-          {optimisticApps.map(application => (
+          {displayedApplications.map(application => (
             <div
               key={application.candidateId}
               className="flex items-center justify-between p-3 bg-muted/50 rounded-lg"
@@ -94,7 +84,7 @@ export function Applications({ applications }: IApplicationsProps) {
                 <Button
                   size="sm"
                   variant="outline"
-                  disabled={isUpdating}
+                  disabled={isUpdating || pendingRemovals.includes(application.candidateId)}
                   onClick={() => accept(application)}
                   className="bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
                 >
@@ -103,7 +93,7 @@ export function Applications({ applications }: IApplicationsProps) {
                 <Button
                   size="sm"
                   variant="outline"
-                  disabled={isUpdating}
+                  disabled={isUpdating || pendingRemovals.includes(application.candidateId)}
                   onClick={() => reject(application)}
                   className="bg-destructive/10 text-destructive hover:bg-destructive/20"
                 >
