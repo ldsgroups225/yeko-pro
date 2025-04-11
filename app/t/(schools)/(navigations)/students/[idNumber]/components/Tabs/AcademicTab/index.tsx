@@ -1,108 +1,115 @@
 'use client'
 
+// Types
 import type { Student } from '../../../types'
-import type { Subject } from './MainSubjects'
-import type { Observation } from './TeacherObservations'
-import type { Term } from './TermProgress'
+import type { Observation, Subject, Term } from './types'
 import { Card } from '@/components/ui/card'
+
+import { getStudentAcademicData } from '@/services/studentService'
+// External imports
+import { useEffect, useState } from 'react'
+
+// Components
 import { MainSubjects } from './MainSubjects'
 import { TeacherObservations } from './TeacherObservations'
 import { TermProgress } from './TermProgress'
 
 interface AcademicTabProps {
-  student: Student // Will be used for API calls and data fetching
+  student: Student
   isLoading?: boolean
 }
 
-// Mock data - Replace with API calls later
-const mockTerms: Term[] = [
-  {
-    id: 't1',
-    name: 'Trimestre 1',
-    average: 16.5,
-    maxScore: 20,
-    progress: 100,
-    rank: {
-      position: 3,
-      total: 42,
-    },
-  },
-  {
-    id: 't2',
-    name: 'Trimestre 2',
-    average: 15.8,
-    maxScore: 20,
-    progress: 100,
-    rank: {
-      position: 5,
-      total: 42,
-    },
-  },
-  {
-    id: 't3',
-    name: 'Trimestre 3',
-    average: 0,
-    maxScore: 20,
-    progress: 0,
-  },
-]
+export function AcademicTab({ student, isLoading: initialLoading }: AcademicTabProps) {
+  const [terms, setTerms] = useState<Term[]>([])
+  const [subjects, setSubjects] = useState<Subject[]>([])
+  const [observations, setObservations] = useState<Observation[]>([])
+  const [loading, setLoading] = useState<boolean>(initialLoading || true)
+  const [error, setError] = useState<string | null>(null)
 
-const mockSubjects: Subject[] = [
-  {
-    id: 'math',
-    name: 'Mathématiques',
-    grade: 17,
-    maxGrade: 20,
-    coefficient: 3,
-  },
-  {
-    id: 'french',
-    name: 'Français',
-    grade: 15,
-    maxGrade: 20,
-    coefficient: 2,
-  },
-  {
-    id: 'science',
-    name: 'Sciences',
-    grade: 16,
-    maxGrade: 20,
-    coefficient: 2,
-  },
-]
+  useEffect(() => {
+    async function fetchAcademicData() {
+      if (!student?.id)
+        return
 
-const mockObservations: Observation[] = [
-  {
-    id: 'obs1',
-    content: 'Élève sérieux et appliqué. Participe activement en classe et montre un réel intérêt pour les mathématiques.',
-    teacher: {
-      name: 'M. Konan',
-      role: 'Professeur Principal',
-    },
-    date: '15 janvier 2025',
-  },
-]
+      try {
+        setLoading(true)
+        const academicData = await getStudentAcademicData(student.id)
 
-export function AcademicTab({ student: _student, isLoading }: AcademicTabProps) {
-  // TODO: Replace mock data with actual API calls using student data
-  // Example: useEffect(() => { fetchTerms(student.id) }, [student.id])
+        // Transform semester data to terms format
+        const fetchedTerms = academicData.semesters.map(semester => ({
+          id: `s${semester.id}`,
+          name: semester.name,
+          average: semester.average || 0,
+          maxScore: 20,
+          progress: semester.isComplete
+            ? 100
+            : (new Date() >= new Date(semester.startDate)
+              && new Date() <= new Date(semester.endDate))
+                ? 50
+                : 0,
+          rank: semester.rank,
+        }))
+
+        // Transform subjects data
+        const fetchedSubjects = academicData.subjects.map(subject => ({
+          id: subject.id,
+          name: subject.name,
+          grade: subject.grade || 0,
+          maxGrade: 20,
+          coefficient: subject.coefficient,
+        }))
+
+        // Transform teacher observations
+        const fetchedObservations = academicData.observations.map(obs => ({
+          id: obs.id,
+          content: obs.content,
+          teacher: {
+            name: obs.teacher.name,
+            role: obs.teacher.isMainTeacher ? 'Professeur Principal' : 'Professeur',
+          },
+          date: new Date(obs.date).toLocaleDateString('fr-FR', {
+            day: 'numeric',
+            month: 'long',
+            year: 'numeric',
+          }),
+        }))
+
+        setTerms(fetchedTerms)
+        setSubjects(fetchedSubjects)
+        setObservations(fetchedObservations)
+      }
+      catch (err) {
+        console.error('Error fetching academic data:', err)
+        setError('Unable to load academic data')
+      }
+      finally {
+        setLoading(false)
+      }
+    }
+
+    fetchAcademicData()
+  }, [student?.id])
+
+  if (error) {
+    return <Card><div className="p-4 text-red-500">{error}</div></Card>
+  }
 
   return (
     <Card>
       <div className="space-y-6">
         <TermProgress
-          terms={mockTerms}
-          isLoading={isLoading}
+          terms={terms}
+          isLoading={loading}
         />
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <MainSubjects
-            subjects={mockSubjects}
-            isLoading={isLoading}
+            subjects={subjects}
+            isLoading={loading}
           />
           <TeacherObservations
-            observations={mockObservations}
-            isLoading={isLoading}
+            observations={observations}
+            isLoading={loading}
           />
         </div>
       </div>
@@ -110,10 +117,8 @@ export function AcademicTab({ student: _student, isLoading }: AcademicTabProps) 
   )
 }
 
+// Re-export sub-components and types
 export { MainSubjects } from './MainSubjects'
-export type { Subject } from './MainSubjects'
 export { TeacherObservations } from './TeacherObservations'
-export type { Observation } from './TeacherObservations'
-// Re-export sub-components and types for direct access
 export { TermProgress } from './TermProgress'
-export type { Term } from './TermProgress'
+export type { Observation, Subject, Term } from './types'

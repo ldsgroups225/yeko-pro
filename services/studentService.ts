@@ -586,3 +586,149 @@ export async function getStudentStats(studentId: string): Promise<StudentStats> 
     },
   }
 }
+
+interface SchoolYear {
+  id: number
+}
+
+interface Semester {
+  id: number
+  semester_name: string
+  start_date: string
+  end_date: string
+}
+
+interface AverageGrade {
+  average_grade: number | null
+  rank: string | null
+}
+
+interface SubjectNote {
+  subject: {
+    id: string
+    name: string
+  }
+  note_details: Array<{
+    note: number | null
+  }>
+  coefficients: Array<{
+    coefficient: number
+  }>
+}
+
+interface TeacherNote {
+  id: string
+  description: string | null
+  created_at: string
+  teacher: {
+    first_name: string
+    last_name: string
+  }
+  teacher_class_assignments: Array<{
+    is_main_teacher: boolean
+  }>
+}
+
+export async function getStudentAcademicData(studentId: string) {
+  const supabase = await createClient()
+
+  // 1. Get current school year and semester
+  const { data: currentYear } = await supabase
+    .from('school_years')
+    .select('id')
+    .eq('is_current', true)
+    .single() as { data: SchoolYear | null }
+
+  if (!currentYear?.id) {
+    throw new Error('Current school year not found')
+  }
+
+  const { data: semesters } = await supabase
+    .from('semesters')
+    .select('*')
+    .eq('school_year_id', currentYear.id)
+    .order('start_date', { ascending: true }) as { data: Semester[] | null }
+
+  if (!semesters?.length) {
+    throw new Error('No semesters found')
+  }
+
+  // 2. Get Academic Averages and Ranks for each semester
+  const semesterData = await Promise.all(
+    semesters.map(async (semester) => {
+      const { data: averageData } = await supabase
+        .from('average_grades_view_with_rank')
+        .select('average_grade, rank')
+        .eq('student_id', studentId)
+        .eq('school_year_id', currentYear.id)
+        .eq('semester_id', semester.id)
+        .single() as { data: AverageGrade | null }
+
+      return {
+        id: semester.id,
+        name: semester.semester_name,
+        average: averageData?.average_grade || null,
+        isComplete: new Date() > new Date(semester.end_date),
+        startDate: semester.start_date,
+        endDate: semester.end_date,
+        rank: averageData?.rank
+          ? {
+              position: Number.parseInt(averageData.rank.split('/')[0]),
+              total: Number.parseInt(averageData.rank.split('/')[1]),
+            }
+          : undefined,
+      }
+    }),
+  )
+
+  // 3. Get Subject Grades
+  const { data: subjects } = await supabase
+    .from('notes')
+    .select(`
+      subject:subjects(id, name),
+      note_details!inner(note),
+      coefficients!inner(coefficient)
+    `)
+    .eq('school_year_id', currentYear.id)
+    .eq('semester_id', semesters[0].id)
+    .eq('note_details.student_id', studentId)
+    .neq('note_type', 'behavior') as { data: SubjectNote[] | null }
+
+  const processedSubjects = subjects?.map(subject => ({
+    id: subject.subject.id,
+    name: subject.subject.name,
+    grade: subject.note_details[0]?.note || null,
+    coefficient: subject.coefficients[0]?.coefficient || 1,
+  })) || []
+
+  // 4. Get Teacher Observations
+  const { data: observations } = await supabase
+    .from('notes')
+    .select(`
+      id,
+      description,
+      created_at,
+      teacher:users!teacher_id(first_name, last_name),
+      teacher_class_assignments!inner(is_main_teacher)
+    `)
+    .eq('school_year_id', currentYear.id)
+    .eq('note_type', 'observation')
+    .eq('student_id', studentId)
+    .order('created_at', { ascending: false }) as { data: TeacherNote[] | null }
+
+  const processedObservations = observations?.map(obs => ({
+    id: obs.id,
+    content: obs.description || '',
+    date: obs.created_at,
+    teacher: {
+      name: `${obs.teacher.first_name} ${obs.teacher.last_name}`,
+      isMainTeacher: obs.teacher_class_assignments[0]?.is_main_teacher || false,
+    },
+  })) || []
+
+  return {
+    semesters: semesterData,
+    subjects: processedSubjects,
+    observations: processedObservations,
+  }
+}
