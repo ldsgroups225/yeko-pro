@@ -6,6 +6,7 @@ import { NOTE_OPTIONS_MAP, NOTE_TYPE } from '@/constants'
 import { createClient } from '@/lib/supabase/server'
 import { formatFullName } from '@/lib/utils'
 import { ERole } from '@/types'
+import { revalidatePath } from 'next/cache'
 
 interface DashboardMetrics {
   studentPopulation: {
@@ -72,9 +73,9 @@ async function getStudentPopulation(client: SupabaseClient, schoolId: string): P
 }
 
 async function getStudentFiles(client: SupabaseClient, schoolId: string): Promise<{ pendingApplications: number, withoutParent: number, withoutClass: number }> {
-  const pendingApplicationsQs = client.from('student_school_class').select('student_id', { count: 'estimated' }).eq('school_id', schoolId)
+  const pendingApplicationsQs = client.from('student_school_class').select('student_id', { count: 'estimated' }).eq('school_id', schoolId).eq('enrollment_status', 'pending')
   const withoutParentQs = client.from('student_school_class').select('students(parent_id)').eq('school_id', schoolId).is('students.parent_id', null)
-  const withoutClassQs = client.from('student_school_class').select('id', { count: 'estimated' }).eq('school_id', schoolId).is('class_id', null)
+  const withoutClassQs = client.from('student_school_class').select('id', { count: 'estimated' }).eq('school_id', schoolId).is('class_id', null).eq('enrollment_status', 'accepted')
 
   const [
     { count: pendingApplications, error: pendingApplicationsError },
@@ -307,7 +308,7 @@ export async function getCandidatures(): Promise<ICandidature[]> {
   // get student candidatures
   const studentsQs = supabase
     .from('student_school_class')
-    .select('enrollment_status, created_at, student:students(id, first_name, last_name)')
+    .select('grade_id, enrollment_status, created_at, student:students(id, first_name, last_name)')
     .eq('enrollment_status', 'pending')
     .order('created_at', { ascending: true })
 
@@ -349,6 +350,7 @@ export async function getCandidatures(): Promise<ICandidature[]> {
       ),
       type: 'student',
       status: student.enrollment_status,
+      grade: student.grade_id,
     }),
   )
 
@@ -445,21 +447,35 @@ export async function publishNote(noteId: string): Promise<void> {
   }
 }
 
-export async function handleCandidature(candidateId: string, candidateType: 'student' | 'teacher', action: 'accept' | 'reject'): Promise<void> {
+export async function handleCandidature(
+  candidateId: string,
+  candidateType: 'student' | 'teacher',
+  action: 'accept' | 'reject',
+  classId?: string,
+): Promise<void> {
   const supabase = await createClient()
 
   if (candidateType === 'student') {
+    if (action === 'accept' && !classId) {
+      throw new Error('Il faut sélectionner une classe pour accepter une candidature')
+    }
+
     const { error } = await supabase
       .from('student_school_class')
       .update({
         enrollment_status: action === 'accept' ? 'accepted' : 'refused',
         is_active: action === 'accept',
+        class_id: action === 'accept' ? classId : null,
       })
+      .eq('student_id', candidateId)
+      .throwOnError()
 
     if (error) {
       console.error('Error handling student candidature:', error)
       throw new Error('Échec de la gestion de la candidature')
     }
+
+    revalidatePath('/t/dashboard')
   }
   else {
     const { error } = await supabase
@@ -472,5 +488,24 @@ export async function handleCandidature(candidateId: string, candidateType: 'stu
       console.error('Error handling teacher candidature:', error)
       throw new Error('Échec de la gestion de la candidature')
     }
+
+    revalidatePath('/t/dashboard')
   }
+}
+
+export async function getClassesByGrade(gradeId: number): Promise<{ id: string, name: string }[]> {
+  const supabase = await createClient()
+
+  const { data, error } = await supabase
+    .from('classes')
+    .select('id, name')
+    .eq('grade_id', gradeId)
+    .throwOnError()
+
+  if (error) {
+    console.error('Error fetching classes by grade:', error)
+    throw new Error('Échec de la récupération des classes')
+  }
+
+  return data
 }
