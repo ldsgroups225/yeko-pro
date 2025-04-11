@@ -2,38 +2,21 @@
 
 import type { Student, StudentStats } from './types'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-
 import { useStudents } from '@/hooks'
+import { getStudentStats } from '@/services/studentService'
 import { usePathname } from 'next/navigation'
-
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { QuickStatsGrid } from './components/QuickStats'
-
 import { StudentHeader } from './components/StudentHeader'
 import { StudentPageError } from './components/StudentPageError'
 // Tab Components
 import { AcademicTab } from './components/Tabs/AcademicTab'
-
 import { AttendanceTab } from './components/Tabs/AttendanceTab'
 import { HealthTab } from './components/Tabs/HealthTab'
 import { ParentsTab } from './components/Tabs/ParentsTab'
 import { PerformanceTab } from './components/Tabs/PerformanceTab'
 import { ProfileTab } from './components/Tabs/ProfileTab'
 import { transformStudentDTO } from './types'
-
-// Mock data - Move to API calls later
-const mockStats: StudentStats = {
-  attendance: 95,
-  average: 15.5,
-  payment: {
-    status: 'up_to_date',
-    percentage: 100,
-  },
-  behavior: {
-    status: 'Bien',
-    score: 90,
-  },
-}
 
 interface TabConfig {
   id: string
@@ -47,8 +30,10 @@ export default function StudentPage() {
   const pathname = usePathname()
   const idNumber = pathname.split('/').pop()
 
-  const { isLoading, error: apiError, fetchStudentByIdNumber, selectedStudent: studentDTO } = useStudents()
+  const { isLoading: isLoadingStudent, error: apiError, fetchStudentByIdNumber, selectedStudent: studentDTO } = useStudents()
   const [error, setError] = useState<Error | null>(null)
+  const [stats, setStats] = useState<StudentStats | null>(null)
+  const [isLoadingStats, setIsLoadingStats] = useState(false)
 
   const student = useMemo(() =>
     studentDTO ? transformStudentDTO(studentDTO) : undefined, [studentDTO])
@@ -100,7 +85,7 @@ export default function StudentPage() {
     setActiveTab(value)
   }, [])
 
-  // Fetch student data
+  // Fetch student data and stats
   useEffect(() => {
     async function getStudent(idNumber: string) {
       try {
@@ -116,6 +101,28 @@ export default function StudentPage() {
     }
   }, [idNumber, fetchStudentByIdNumber])
 
+  useEffect(() => {
+    async function fetchStats() {
+      if (!student?.id)
+        return
+
+      setIsLoadingStats(true)
+      try {
+        const stats = await getStudentStats(student.id)
+        setStats(stats)
+      }
+      catch (err) {
+        console.error('Error fetching student stats:', err)
+        setError(err instanceof Error ? err : new Error('Failed to fetch student stats'))
+      }
+      finally {
+        setIsLoadingStats(false)
+      }
+    }
+
+    fetchStats()
+  }, [student?.id])
+
   // Handle errors
   if (error || apiError) {
     return (
@@ -130,13 +137,15 @@ export default function StudentPage() {
     )
   }
 
+  const isLoading = isLoadingStudent || isLoadingStats
+
   return (
     <div className="space-y-6 md:p-6">
       {/* Header Section */}
-      <StudentHeader student={student} isLoading={isLoading} />
+      <StudentHeader student={student} isLoading={isLoadingStudent} />
 
       {/* Quick Stats Overview */}
-      <QuickStatsGrid stats={!isLoading ? mockStats : undefined} isLoading={isLoading} />
+      <QuickStatsGrid stats={!isLoading ? stats || undefined : undefined} isLoading={isLoading} />
 
       {/* Main Content Tabs */}
       <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-6">

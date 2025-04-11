@@ -1,5 +1,6 @@
 'use server'
 
+import type { StudentStats } from '@/app/t/(schools)/(navigations)/students/[idNumber]/types'
 import type { SupabaseClient } from '@/lib/supabase/server'
 import type { IClassesGrouped, IStudentDTO, IStudentsQueryParams } from '@/types'
 import type { LinkStudentParentData, StudentFormValues } from '@/validations'
@@ -469,4 +470,119 @@ export async function bulkAddStudentsToClass(classId: string, studentIdNumber: s
 
   if (error)
     throw error
+}
+
+export async function getStudentStats(studentId: string): Promise<StudentStats> {
+  const supabase = await createClient()
+
+  // 1. Get current school year and semester
+  const { data: currentYear } = await supabase
+    .from('school_years')
+    .select('id')
+    .eq('is_current', true)
+    .single()
+
+  const { data: currentSemester } = await supabase
+    .from('semesters')
+    .select('id')
+    .eq('is_current', true)
+    .single()
+
+  if (!currentYear?.id || !currentSemester?.id) {
+    throw new Error('Current school year or semester not found')
+  }
+
+  // 2. Get Attendance Stats
+  const { data: attendances } = await supabase
+    .from('attendances')
+    .select('status')
+    .eq('student_id', studentId)
+    .eq('school_years_id', currentYear.id)
+    .eq('semesters_id', currentSemester.id)
+
+  // 3. Get Academic Average
+  const { data: average } = await supabase
+    .from('average_grades_view_with_rank')
+    .select('average_grade')
+    .eq('student_id', studentId)
+    .eq('school_year_id', currentYear.id)
+    .eq('semester_id', currentSemester.id)
+    .single()
+
+  // 4. Get Payment Status
+  const { data: payment } = await supabase
+    .from('payment_details_view')
+    .select(`
+      total_amount,
+      payment_amount,
+      remaining_amount
+    `)
+    .eq('student_id', studentId)
+    .eq('school_year', currentYear.id)
+    .single()
+
+  // 5. Get Behavior Score
+  const { data: behavior } = await supabase
+    .from('notes')
+    .select(`
+      id,
+      note_details!inner(note)
+    `)
+    .eq('school_year_id', currentYear.id)
+    .eq('semester_id', currentSemester.id)
+    .eq('note_type', 'behavior')
+    .eq('note_details.student_id', studentId)
+
+  // Calculate attendance percentage
+  const totalAttendances = attendances?.length || 0
+  const presentAttendances = attendances?.filter(a => a.status === 'present').length || 0
+  const attendancePercentage = totalAttendances ? (presentAttendances / totalAttendances) * 100 : 100
+
+  // Calculate payment percentage and status
+  const paymentPercentage = payment?.total_amount
+    ? ((payment.payment_amount || 0) / payment.total_amount) * 100
+    : 0
+
+  let paymentStatus: 'up_to_date' | 'pending' | 'late' = 'pending'
+  if (paymentPercentage === 100) {
+    paymentStatus = 'up_to_date'
+  }
+  else if (paymentPercentage === 0) {
+    paymentStatus = 'pending'
+  }
+  else {
+    paymentStatus = 'late'
+  }
+
+  // Calculate behavior score and status
+  const behaviorScore = behavior?.length
+    ? behavior.reduce((acc, curr) => acc + (curr.note_details?.[0]?.note || 0), 0) / behavior.length
+    : 0
+
+  const getBehaviorStatus = (score: number) => {
+    if (score >= 90)
+      return 'Excellent'
+    if (score >= 80)
+      return 'Très Bien'
+    if (score >= 70)
+      return 'Bien'
+    if (score >= 60)
+      return 'Assez Bien'
+    if (score >= 50)
+      return 'Passable'
+    return 'À améliorer'
+  }
+
+  return {
+    attendance: Math.round(attendancePercentage),
+    average: Number(average?.average_grade?.toFixed(1)) || 0,
+    payment: {
+      status: paymentStatus,
+      percentage: Math.round(paymentPercentage),
+    },
+    behavior: {
+      status: getBehaviorStatus(behaviorScore),
+      score: Math.round(behaviorScore),
+    },
+  }
 }
