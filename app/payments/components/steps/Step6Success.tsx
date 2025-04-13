@@ -1,3 +1,5 @@
+// app/payments/components/steps/Step6Success.tsx
+
 'use client'
 
 import type { ISchool, IStudent } from '../../types'

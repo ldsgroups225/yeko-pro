@@ -1,3 +1,5 @@
+// app/payments/components/steps/Step5Payment.tsx
+
 'use client'
 
 import { Button } from '@/components/ui/button'
@@ -9,6 +11,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
+import { enrollStudent } from '../../actions'
 
 const mockPaymentMethods = [
   {
@@ -57,6 +60,10 @@ interface Step5PaymentProps {
   onBack: () => void
   onComplete: () => void
   amount: number
+  studentId: string
+  schoolId: string
+  gradeId: number
+  isStateAssigned: boolean
   studentName: string
   schoolName: string
 }
@@ -65,6 +72,10 @@ export function Step5Payment({
   onBack,
   onComplete,
   amount,
+  studentId,
+  schoolId,
+  gradeId,
+  isStateAssigned,
   studentName,
   schoolName,
 }: Step5PaymentProps) {
@@ -84,9 +95,15 @@ export function Step5Payment({
     setError(null)
 
     try {
+      await enrollStudent({
+        studentId,
+        schoolId,
+        gradeId,
+        isStateAssigned,
+      })
+
       // TODO: Implement payment processing with selected method
-      console.warn('Payment processing not implemented yet. Selected method:', data.method)
-      await new Promise(resolve => setTimeout(resolve, 2000)) // Simulate API call
+      console.warn('Implement payment processing', data)
       onComplete()
     }
     catch (error) {

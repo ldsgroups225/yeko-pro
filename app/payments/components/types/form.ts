@@ -1,3 +1,5 @@
+// app/payments/components/types/form.ts
+
 import type { ReactNode } from 'react'
 import type { FieldError } from 'react-hook-form'
 

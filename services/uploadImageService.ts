@@ -1,5 +1,6 @@
+'use server'
+
 import type { SupabaseClient } from '@/lib/supabase/server'
-import { extractStoragePath } from '@/lib/utils/extractStoragePath'
 
 export async function uploadImageToStorage(client: SupabaseClient, bucketName: string, studentId: string, avatarBase64: string): Promise<string> {
   // Delete existing avatar if it exists
@@ -38,7 +39,7 @@ export async function uploadImageToStorage(client: SupabaseClient, bucketName: s
 
   if (uploadError) {
     console.error('Error uploading new avatar:', uploadError)
-    throw new Error('Failed to upload new avatar')
+    throw new Error('Un problème est survenu lors de la sauvegarde de l\'image')
   }
 
   // Retrieve public URL
@@ -46,5 +47,5 @@ export async function uploadImageToStorage(client: SupabaseClient, bucketName: s
     .from(bucketName)
     .getPublicUrl(uploadData.path)
 
-  return extractStoragePath(publicUrl)
+  return publicUrl
 }

@@ -1,9 +1,12 @@
+// app/payments/actions.ts
+
 'use server'
 
 import type { SupabaseClient } from '@/lib/supabase/server'
 import type { SearchFormData } from './schemas'
 import type { ISchool, IStudent, SearchResult } from './types'
 import { createClient } from '@/lib/supabase/server'
+import { uploadImageToStorage } from '@/services/uploadImageService'
 import { searchSchema } from './schemas'
 
 /**
@@ -202,15 +205,13 @@ export async function fetchTuitionFees(gradeId: number) {
 }
 
 /**
- * Function to create a new student
- * @param formData - The student creation form data
+ * @param formData - The form data for creating a student
  * @param formData.firstName - Student's first name
  * @param formData.lastName - Student's last name
  * @param formData.gender - Student's gender ('M' or 'F')
  * @param formData.birthDate - Student's birth date
  * @param formData.address - Student's address (optional)
  * @param formData.avatarUrl - URL of student's avatar image (optional)
- * @param schoolId - The ID of the school
  * @param parentId - The ID of the parent
  * @returns The newly created student
  */
@@ -223,7 +224,6 @@ export async function createStudent(
     address?: string
     avatarUrl?: string
   },
-  schoolId: string,
   parentId: string,
 ): Promise<IStudent> {
   try {
@@ -248,7 +248,6 @@ export async function createStudent(
         gender: formData.gender,
         date_of_birth: formData.birthDate,
         address: formData.address,
-        avatar_url: formData.avatarUrl,
         parent_id: parentId,
       })
       .select()
@@ -259,20 +258,14 @@ export async function createStudent(
       throw new Error('Impossible de créer l\'élève')
     }
 
-    // Then create the student_school_class record
-    const { error: enrollmentError } = await client.from('student_school_class')
-      .insert({
-        student_id: studentData.id,
-        school_id: schoolId,
-        grade_id: 1, // Default grade, you may want to make this configurable
-        school_year_id: 1, // Default school year, you may want to make this configurable
-        is_active: true,
-        enrollment_status: 'pending',
-      })
-
-    if (enrollmentError) {
-      console.error('Error creating enrollment:', enrollmentError)
-      throw new Error('Impossible de créer l\'inscription')
+    const isBase64 = formData.avatarUrl?.startsWith('data:image')
+    if (isBase64) {
+      if (!formData.avatarUrl) {
+        throw new Error('Incorrect avatar')
+      }
+      // Process avatar upload and update params with new URL
+      const newAvatarUrl = await uploadImageToStorage(client, 'student_avatar', studentData.id, formData.avatarUrl)
+      await client.from('students').update({ avatar_url: newAvatarUrl }).eq('id', studentData.id)
     }
 
     return {
@@ -287,7 +280,7 @@ export async function createStudent(
       parentId: studentData.parent_id,
       classId: null,
       gradeId: null,
-      schoolId,
+      schoolId: '',
       createdAt: studentData.created_at,
       updatedAt: studentData.updated_at,
       createdBy: studentData.created_by,
@@ -296,11 +289,11 @@ export async function createStudent(
   }
   catch (error) {
     console.error('Error in createStudent:', error)
-    throw new Error('Impossible de créer l\'élève')
+    throw error
   }
 }
 
-export async function checkOTP(sOTP: string): Promise<string> {
+export async function checkOTP(sOTP: string): Promise<{ parentId: string, parentName: string }> {
   const client = await createClient()
 
   const { data, error } = await client
@@ -321,5 +314,66 @@ export async function checkOTP(sOTP: string): Promise<string> {
     throw new Error('Ce code a expiré')
   }
 
-  return data.parent_id
+  const { data: parentData, error: parentError } = await client
+    .from('users')
+    .select('first_name, last_name')
+    .eq('id', data.parent_id)
+    .single()
+
+  if (parentError) {
+    throw new Error('Impossible de charger le parent')
+  }
+
+  return {
+    parentId: data.parent_id,
+    parentName: `${parentData.first_name} ${parentData.last_name}`,
+  }
+}
+
+export async function enrollStudent({
+  studentId,
+  schoolId,
+  gradeId,
+  isStateAssigned,
+  otp,
+}: {
+  studentId: string
+  schoolId: string
+  gradeId: number
+  isStateAssigned: boolean
+  otp?: string
+}): Promise<void> {
+  const client = await createClient()
+
+  const { data: schoolYearData, error: schoolYearError } = await client
+    .from('school_years')
+    .select('id')
+    .eq('is_current', true)
+    .single()
+
+  if (schoolYearError) {
+    throw new Error('Impossible de charger l\'année scolaire')
+  }
+
+  const { error: enrollmentError } = await client
+    .from('student_school_class')
+    .insert({
+      student_id: studentId,
+      school_id: schoolId,
+      grade_id: gradeId,
+      school_year_id: schoolYearData.id,
+      is_government_affected: isStateAssigned,
+    })
+
+  if (enrollmentError) {
+    console.error('Error creating enrollment:', enrollmentError)
+    throw new Error('Impossible de créer l\'inscription')
+  }
+
+  if (otp) {
+    await client
+      .from('parent_otp_requests')
+      .update({ is_used: true })
+      .eq('otp', otp)
+  }
 }

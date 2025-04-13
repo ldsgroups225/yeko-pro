@@ -1,8 +1,10 @@
+// app/payments/components/steps/Step1Identification.tsx
+
 import type { SearchFormData } from '../../schemas'
 import type { ISchool, IStudent } from '../../types'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
@@ -33,7 +35,6 @@ export function Step1Identification({
 
   const [error, setError] = useState<string | null>(null)
   const [isCreatingStudent, setIsCreatingStudent] = useState(false)
-  const [foundSchool, setFoundSchool] = useState<ISchool | null>(null)
 
   const form = useForm<SearchFormData>({
     resolver: zodResolver(searchSchema),
@@ -69,7 +70,6 @@ export function Step1Identification({
         return
       }
 
-      setFoundSchool(result.school)
       onSchoolFound(result.school)
 
       if (!result.student) {
@@ -93,8 +93,7 @@ export function Step1Identification({
 
   const handleStudentCreated = (student: IStudent) => {
     setIsCreatingStudent(false)
-    onStudentFound(student)
-    onComplete()
+    form.setValue('studentId', student.idNumber)
   }
 
   return (
@@ -170,17 +169,18 @@ export function Step1Identification({
       </Form>
 
       <Dialog open={isCreatingStudent} onOpenChange={setIsCreatingStudent}>
-        <DialogContent className="sm:max-w-[425px]">
+        <DialogContent className="sm:max-w-[425px] max-h-[88vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Créer un nouvel élève</DialogTitle>
+            <DialogDescription>
+              Veuillez entrer les informations de l&apos;élève pour créer un nouveau compte.
+            </DialogDescription>
           </DialogHeader>
-          {foundSchool && (
-            <StudentCreationForm
-              schoolId={foundSchool.id}
-              onSuccess={handleStudentCreated}
-              onCancel={() => setIsCreatingStudent(false)}
-            />
-          )}
+
+          <StudentCreationForm
+            onSuccess={handleStudentCreated}
+            onCancel={() => setIsCreatingStudent(false)}
+          />
         </DialogContent>
       </Dialog>
     </div>

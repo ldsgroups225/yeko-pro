@@ -1,3 +1,5 @@
+// app/payments/components/RegistrationStepper.tsx
+
 'use client'
 
 import type { ISchool, IStudent } from '../types'
@@ -89,6 +91,10 @@ export function RegistrationStepper({ steps }: RegistrationStepperProps) {
                 onBack={handleStepBack}
                 onComplete={() => handleStepComplete(4)}
                 amount={termFee}
+                studentId={student.id}
+                schoolId={school.id}
+                gradeId={selectedGradeId!}
+                isStateAssigned={isStateAssigned}
                 studentName={`${student.firstName} ${student.lastName}`}
                 schoolName={school.name}
               />
