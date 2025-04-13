@@ -1,5 +1,5 @@
 import type { ElementType } from 'react'
-import { Bell, BookOpen, Calendar, Home, Settings, Users, UsersRound, Wallet2Icon } from 'lucide-react'
+import { BookOpen, Calendar, Home, NotebookIcon, Settings, Users, UsersRound, Wallet2Icon } from 'lucide-react'
 
 interface ISidebarItem {
   icon: ElementType
@@ -46,10 +46,10 @@ export const sidebarItems: ISidebarItem[] = [
     ariaLabel: 'Voir les comptes',
   },
   {
-    icon: Bell,
-    label: 'Notifications',
-    href: '/t/notifications',
-    ariaLabel: 'Voir les notifications',
+    icon: NotebookIcon,
+    label: 'Notes et moyennes',
+    href: '/t/notes',
+    ariaLabel: 'Voir les notes',
   },
   {
     icon: Settings,

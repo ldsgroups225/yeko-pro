@@ -1,10 +1,14 @@
+'use server'
+
+import type { NotesQueryParams } from '@/app/t/(schools)/(navigations)/notes/types'
 import type { GradePoint } from '@/app/t/(schools)/(navigations)/students/[idNumber]/components/Tabs/PerformanceTab/GradesTrend'
 import type { PerformanceMetric } from '@/app/t/(schools)/(navigations)/students/[idNumber]/components/Tabs/PerformanceTab/PerformanceOverview'
 import type { SubjectPerformanceData } from '@/app/t/(schools)/(navigations)/students/[idNumber]/components/Tabs/PerformanceTab/SubjectPerformance'
-import { createClient } from '@/lib/supabase/client'
+import { NOTE_TYPE } from '@/constants'
+import { createClient } from '@/lib/supabase/server'
 
 export async function getStudentPerformanceMetrics(studentId: string): Promise<PerformanceMetric[]> {
-  const supabase = createClient()
+  const supabase = await createClient()
   try {
     // Get current semester's average grade
     const { data: averageData, error: averageError } = await supabase
@@ -187,4 +191,100 @@ export async function getStudentSubjectPerformance(studentId: string): Promise<S
     console.error('Error fetching subject performance:', error)
     throw error
   }
+}
+
+export async function getNotes(params?: NotesQueryParams) {
+  const supabase = await createClient()
+
+  let query = supabase
+    .from('notes')
+    .select('*, subject:subjects(name)')
+    .order('created_at', { ascending: false })
+
+  if (params?.classId) {
+    query = query.eq('class_id', params.classId)
+  }
+
+  if (params?.subjectId) {
+    query = query.eq('subject_id', params.subjectId)
+  }
+
+  if (params?.semesterId) {
+    query = query.eq('semester_id', Number(params.semesterId))
+  }
+
+  if (params?.schoolYearId) {
+    query = query.eq('school_year_id', Number(params.schoolYearId))
+  }
+
+  if (params?.searchTerm) {
+    query = query.ilike('title', `%${params.searchTerm}%`)
+  }
+
+  if (params?.noteType) {
+    query = query.eq('note_type', params.noteType)
+  }
+  else {
+    query = query.in('note_type', [
+      NOTE_TYPE.WRITING_QUESTION,
+      NOTE_TYPE.CLASS_TEST,
+      NOTE_TYPE.LEVEL_TEST,
+    ])
+  }
+
+  const { data: notes, error } = await query
+
+  if (error) {
+    console.error('Error fetching notes:', error)
+    return []
+  }
+
+  return notes
+}
+
+export async function getClasses() {
+  const supabase = await createClient()
+
+  const { data: classes } = await supabase
+    .from('classes')
+    .select('id, name')
+    .eq('is_active', true)
+    .order('name')
+
+  return classes || []
+}
+
+export async function getSubjects() {
+  const supabase = await createClient()
+
+  const { data: subjects } = await supabase
+    .from('subjects')
+    .select('id, name')
+    .order('name')
+
+  return subjects || []
+}
+
+export async function getSemesters() {
+  const supabase = await createClient()
+
+  const { data: semesters } = await supabase
+    .from('semesters')
+    .select('id, semester_name')
+    .eq('is_current', true)
+    .order('id')
+
+  return semesters || []
+}
+
+export async function getCurrentSchoolYear() {
+  const supabase = await createClient()
+
+  const { data: schoolYear } = await supabase
+    .from('school_years')
+    .select('id, academic_year_name')
+    .eq('is_current', true)
+    .single()
+
+  return schoolYear
 }

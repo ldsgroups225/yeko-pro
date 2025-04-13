@@ -49,7 +49,7 @@ const quickAccessButtonsData: QuickAccessButtonProps[] = [
   {
     icon: <BackpackIcon width={42} height={42} />,
     label: 'Scolarité',
-    href: '/t/schools',
+    href: '/t/accounting',
   },
   {
     icon: <MixIcon width={42} height={42} />,
@@ -64,7 +64,7 @@ const quickAccessButtonsData: QuickAccessButtonProps[] = [
   {
     icon: <BarChartIcon width={42} height={42} />,
     label: 'Suivi de performance',
-    href: '/t/performance',
+    href: '/t/dashboard',
   },
   {
     icon: <ChatBubbleIcon width={42} height={42} />,
