@@ -281,6 +281,7 @@ export interface Database {
           grade_id: number
           id: string
           is_active: boolean
+          max_student: number
           name: string
           school_id: string
           series: string | null
@@ -294,6 +295,7 @@ export interface Database {
           grade_id: number
           id?: string
           is_active?: boolean
+          max_student?: number
           name: string
           school_id: string
           series?: string | null
@@ -307,6 +309,7 @@ export interface Database {
           grade_id?: number
           id?: string
           is_active?: boolean
+          max_student?: number
           name?: string
           school_id?: string
           series?: string | null

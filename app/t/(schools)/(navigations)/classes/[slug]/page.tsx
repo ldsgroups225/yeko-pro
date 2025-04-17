@@ -134,6 +134,7 @@ export default function ClassDetailsPage() {
                   id: classData.id,
                   name: classData.name,
                   gradeId: classData.gradeId,
+                  maxStudent: classData.maxStudent,
                 }
               : undefined
           }

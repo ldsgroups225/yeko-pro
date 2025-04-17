@@ -46,8 +46,8 @@ interface ClassActions {
   getClassBySlug: (slug: string) => Promise<IClass | undefined>
   fetchClassBySlug: (slug: string) => Promise<IClass | undefined>
   fetchClasses: (schoolId: string) => Promise<void>
-  addClass: (params: { name: string, schoolId: string, gradeId: number }) => Promise<void>
-  updateClass: (params: { classId: string, name: string, gradeId: number }) => Promise<IClass>
+  addClass: (params: { name: string, schoolId: string, gradeId: number, maxStudent: number }) => Promise<void>
+  updateClass: (params: { classId: string, name: string, gradeId: number, maxStudent: number }) => Promise<IClass>
   deleteClass: (schoolId: string, classId: string) => Promise<void>
   activateDeactivateClass: (classId: string, isActive: boolean) => Promise<void>
   filterStudentWhereNotInTheClass: (schoolId: string, classId: string, search?: string) => Promise<FilterStudentWhereNotInTheClass[]>
@@ -165,10 +165,10 @@ const useClassStore = create<ClassState & ClassActions>((set, get) => ({
     }
   },
 
-  addClass: async ({ name, schoolId, gradeId }) => {
+  addClass: async ({ name, schoolId, gradeId, maxStudent }) => {
     set({ isLoading: true, error: null })
     try {
-      await createClass({ name, schoolId, gradeId })
+      await createClass({ name, schoolId, gradeId, maxStudent })
 
       await get().fetchClasses(get().currentSchoolId!)
     }
@@ -179,10 +179,10 @@ const useClassStore = create<ClassState & ClassActions>((set, get) => ({
     }
   },
 
-  updateClass: async ({ classId, name, gradeId }) => {
+  updateClass: async ({ classId, name, gradeId, maxStudent }) => {
     set({ isLoading: true, error: null })
     try {
-      const updatedClass = await updateClass({ classId, name, gradeId })
+      const updatedClass = await updateClass({ classId, name, gradeId, maxStudent })
       set({
         classes: get().classes.map(c => (c.id === classId ? updatedClass : c)),
         isLoading: false,

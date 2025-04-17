@@ -40,8 +40,8 @@ interface UseClassesResult {
     hasMainTeacher?: boolean
     searchTerm?: string
   }) => void
-  addClass: (params: { name: string, schoolId: string, gradeId: number }) => Promise<void>
-  updateClass: (params: { classId: string, name: string, gradeId: number }) => Promise<IClass>
+  addClass: (params: { name: string, schoolId: string, gradeId: number, maxStudent: number }) => Promise<void>
+  updateClass: (params: { classId: string, name: string, gradeId: number, maxStudent: number }) => Promise<IClass>
   deleteClass: (schoolId: string, classId: string) => Promise<void>
   filterStudentWhereNotInTheClass: (schoolId: string, classId: string, search?: string) => Promise<FilterStudentWhereNotInTheClass[]>
   loadMoreStudents: () => void

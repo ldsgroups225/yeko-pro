@@ -46,6 +46,7 @@ export const ClassesTable: React.FC<ClassesTableProps> = ({
           <TableHead>N°</TableHead>
           <TableHead>Nom de la classe</TableHead>
           <TableHead>Nombre d'élèves</TableHead>
+          <TableHead>Maximum d'élèves</TableHead>
           <TableHead>Enseignant principal</TableHead>
           <TableHead className="text-center">Status</TableHead>
           <TableHead className="text-center">Actions</TableHead>
@@ -59,6 +60,9 @@ export const ClassesTable: React.FC<ClassesTableProps> = ({
                   <TableRow key={el.id}>
                     <TableCell>
                       <Skeleton className="h-4 w-[20px]" />
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className="h-4 w-[150px]" />
                     </TableCell>
                     <TableCell>
                       <Skeleton className="h-4 w-[150px]" />
@@ -85,6 +89,14 @@ export const ClassesTable: React.FC<ClassesTableProps> = ({
                   <TableCell>{index + 1}</TableCell>
                   <TableCell>{cls.name}</TableCell>
                   <TableCell>{cls.studentCount}</TableCell>
+                  <TableCell>
+                    <Badge
+                      className="w-10 justify-center"
+                      variant={cls.studentCount < cls.maxStudent ? 'success' : 'secondary'}
+                    >
+                      {cls.maxStudent}
+                    </Badge>
+                  </TableCell>
                   <TableCell>{cls.teacher?.fullName ?? '-'}</TableCell>
                   <TableCell className="flex justify-center">
                     <Badge variant={cls.isActive ? 'default' : 'destructive'}>

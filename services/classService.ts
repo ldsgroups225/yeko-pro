@@ -19,12 +19,14 @@ interface CreateClassParams {
   name: string
   schoolId: string
   gradeId: number
+  maxStudent: number
 }
 
 interface UpdateClassParams {
   classId: string
   name: string
   gradeId: number
+  maxStudent: number
 }
 
 /**
@@ -87,6 +89,7 @@ export async function getClassBySlug(slug: string): Promise<IClass> {
     slug: data.slug!,
     gradeId: data.grade_id,
     isActive: data.is_active,
+    maxStudent: data.max_student,
     studentCount: studentCount ?? 0,
     teacher: mainTeacher
       ? {
@@ -186,6 +189,7 @@ export async function fetchClasses({
       slug: c.slug!,
       gradeId: c.grade_id,
       isActive: c.is_active,
+      maxStudent: c.max_student,
       studentCount: (c.student_school_class as any)?.[0]?.count ?? 0,
       teacher: mainTeacher
         ? {
@@ -210,6 +214,7 @@ export async function createClass({
   name,
   schoolId,
   gradeId,
+  maxStudent,
 }: CreateClassParams): Promise<IClass> {
   const supabase = await createClient()
 
@@ -230,6 +235,7 @@ export async function createClass({
       name: name.trim(),
       school_id: schoolId,
       grade_id: gradeId,
+      max_student: maxStudent,
     })
     .select('*')
     .single()
@@ -246,12 +252,13 @@ export async function createClass({
 
   return {
     id: data.id,
+    teacher: null,
+    studentCount: 0,
     name: data.name,
     slug: data.slug!,
     gradeId: data.grade_id,
     isActive: data.is_active,
-    studentCount: 0,
-    teacher: null,
+    maxStudent: data.max_student,
   }
 }
 
@@ -266,6 +273,7 @@ export async function updateClass({
   classId,
   name,
   gradeId,
+  maxStudent,
 }: UpdateClassParams): Promise<IClass> {
   const supabase = await createClient()
 
@@ -285,11 +293,26 @@ export async function updateClass({
     throw new Error('Niveau scolaire requis')
   }
 
+  const { count: studentCount, error: studentCountError } = await supabase
+    .from('student_school_class')
+    .select('id', { count: 'exact' })
+    .eq('class_id', classId)
+    .is('is_active', true)
+
+  if (studentCountError) {
+    throw studentCountError
+  }
+
+  if (maxStudent > (studentCount ?? 0)) {
+    throw new Error('Cette classe contient plus d\élève que la limite')
+  }
+
   const { data, error } = await supabase
     .from('classes')
     .update({
       name: name.trim(),
       grade_id: gradeId,
+      max_student: maxStudent,
     })
     .eq('id', classId)
     .select(`
@@ -317,6 +340,7 @@ export async function updateClass({
     slug: data.slug!,
     gradeId: data.grade_id,
     isActive: data.is_active,
+    maxStudent: data.max_student,
     studentCount: (data.students[0] as any)?.count ?? 0,
     teacher: teacherData
       ? {

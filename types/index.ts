@@ -162,6 +162,7 @@ export interface ISubject {
 
 export interface IClass {
   id: string
+  maxStudent: number
   name: string
   slug: string
   gradeId: number

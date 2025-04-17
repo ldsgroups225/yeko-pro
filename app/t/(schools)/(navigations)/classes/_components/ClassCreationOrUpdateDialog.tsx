@@ -40,6 +40,7 @@ interface Props {
     id: string
     name: string
     gradeId: number
+    maxStudent: number
   }
 }
 
@@ -54,6 +55,13 @@ const formSchema = z.object({
   }).max(13, {
     message: 'Veuillez sélectionner un niveau scolaire.',
   }),
+  maxStudent: z.number({
+    required_error: 'Veuillez mentioner le nombre maximum d\'élève pour cette classe',
+  }).min(1, {
+    message: 'Il faut au moins 1 élève par classe',
+  }).max(75, {
+    message: 'Il faut au maximum 75 élèves par classe',
+  }).default(45),
 })
 
 export function ClassCreationOrUpdateDialog({
@@ -72,6 +80,7 @@ export function ClassCreationOrUpdateDialog({
     defaultValues: {
       name: '',
       gradeId: undefined,
+      maxStudent: 45,
     },
   })
 
@@ -93,6 +102,7 @@ export function ClassCreationOrUpdateDialog({
           classId: oldClass.id,
           name: data.name,
           gradeId: data.gradeId,
+          maxStudent: data.maxStudent,
         })
 
         reset()
@@ -106,6 +116,7 @@ export function ClassCreationOrUpdateDialog({
           name: data.name,
           schoolId: user?.school.id,
           gradeId: data.gradeId,
+          maxStudent: data.maxStudent,
         })
 
         reset()
@@ -132,6 +143,7 @@ export function ClassCreationOrUpdateDialog({
       reset({
         name: '',
         gradeId: undefined,
+        maxStudent: 45,
       })
     }
   }, [open, reset])
@@ -141,6 +153,7 @@ export function ClassCreationOrUpdateDialog({
       reset({
         name: oldClass.name,
         gradeId: oldClass.gradeId,
+        maxStudent: oldClass.maxStudent,
       })
     }
   }, [oldClass, reset])
@@ -197,6 +210,23 @@ export function ClassCreationOrUpdateDialog({
                   <FormControl>
                     <Input
                       placeholder="Ex: 6ème 1, 2nde C4"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="maxStudent"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Nombre maximum d'élève</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="number"
                       {...field}
                     />
                   </FormControl>

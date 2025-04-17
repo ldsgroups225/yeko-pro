@@ -142,6 +142,7 @@ export default function ClassesPage() {
                   id: classToEdit.id,
                   name: classToEdit.name,
                   gradeId: classToEdit.gradeId,
+                  maxStudent: classToEdit.maxStudent,
                 }
               : undefined
           }
