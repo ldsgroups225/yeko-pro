@@ -25,6 +25,7 @@ interface ScheduleResponse {
   end_time: string
   subject_id: string
   teacher_id: string
+  room?: string
 }
 
 /**
@@ -137,6 +138,7 @@ function mapScheduleToDTO(
     endTime: schedule.end_time,
     subjectId: schedule.subject_id,
     teacherId: schedule.teacher_id,
+    room: schedule.room,
   }
 }
 
