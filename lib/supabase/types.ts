@@ -2271,6 +2271,7 @@ export interface Database {
           enrollment_status: string | null
           first_name: string | null
           id_number: string | null
+          is_government_affected: boolean | null
           last_name: string | null
           parent_id: string | null
           school_id: string | null
@@ -2343,30 +2344,19 @@ export interface Database {
         Returns: undefined
       }
       calculate_tuition_fees: {
-        Args: {
-          p_grade_id: number
-          p_is_government_affected: boolean
-        }
+        Args: { p_grade_id: number, p_is_government_affected: boolean }
         Returns: number
       }
       create_attendance_and_participator_and_homework: {
-        Args: {
-          attendances: Json
-          participators: Json
-          homework?: Json
-        }
+        Args: { attendances: Json, participators: Json, homework?: Json }
         Returns: string
       }
       generate_invite_teacher_otp: {
-        Args: {
-          p_school_id: string
-        }
+        Args: { p_school_id: string }
         Returns: string
       }
       generate_slug_text: {
-        Args: {
-          input_name: string
-        }
+        Args: { input_name: string }
         Returns: string
       }
       get_class_metrics: {
@@ -2384,9 +2374,7 @@ export interface Database {
         }[]
       }
       get_classes_by_school: {
-        Args: {
-          school_id: string
-        }
+        Args: { school_id: string }
         Returns: {
           grade_name: string
           count: number
@@ -2394,10 +2382,7 @@ export interface Database {
         }[]
       }
       get_group_label: {
-        Args: {
-          group_date: string
-          grouping_level: string
-        }
+        Args: { group_date: string, grouping_level: string }
         Returns: string
       }
       get_last_five_inactive_schools: {
@@ -2409,9 +2394,7 @@ export interface Database {
         }[]
       }
       get_locked_payment_details: {
-        Args: {
-          _enrollment_id: string
-        }
+        Args: { _enrollment_id: string }
         Returns: Json
       }
       get_monthly_attendance_summary: {
@@ -2427,10 +2410,7 @@ export interface Database {
         }[]
       }
       get_statistics: {
-        Args: {
-          start_date?: string
-          end_date?: string
-        }
+        Args: { start_date?: string, end_date?: string }
         Returns: {
           school_count: number
           student_count: number
@@ -2439,9 +2419,7 @@ export interface Database {
         }[]
       }
       get_student_info: {
-        Args: {
-          parent_user_id: string
-        }
+        Args: { parent_user_id: string }
         Returns: {
           student_id: string
           first_name: string
@@ -2456,22 +2434,15 @@ export interface Database {
         }[]
       }
       get_student_main_teacher: {
-        Args: {
-          student_uuid: string
-        }
+        Args: { student_uuid: string }
         Returns: string
       }
       get_teacher_data: {
-        Args: {
-          user_id: string
-        }
+        Args: { user_id: string }
         Returns: Json
       }
       get_unique_notes_by_date: {
-        Args: {
-          p_subject_id: string
-          p_class_id: string
-        }
+        Args: { p_subject_id: string, p_class_id: string }
         Returns: {
           id: string
           date: string
@@ -2479,32 +2450,23 @@ export interface Database {
           publish_date: string
         }[]
       }
-      process_payment:
-        | {
-          Args: {
-            _student_id: string
-            _amount: number
-            _payment_method: string
-          }
-          Returns: Json
-        }
-        | {
-          Args: {
+      process_payment: {
+        Args:
+          | { _student_id: string, _amount: number, _payment_method: string }
+          | {
             _student_id: string
             _school_id: string
             _amount: number
             _payment_method: string
           }
-          Returns: Json
-        }
+        Returns: Json
+      }
       update_existing_class_slugs: {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
       update_published_notes: {
-        Args: {
-          p_date: string
-        }
+        Args: { p_date: string }
         Returns: undefined
       }
     }
@@ -2517,27 +2479,29 @@ export interface Database {
   }
 }
 
-type PublicSchema = Database[Extract<keyof Database, 'public'>]
+type DefaultSchema = Database[Extract<keyof Database, 'public'>]
 
 export type Tables<
-  PublicTableNameOrOptions extends
-  | keyof (PublicSchema['Tables'] & PublicSchema['Views'])
+  DefaultSchemaTableNameOrOptions extends
+  | keyof (DefaultSchema['Tables'] & DefaultSchema['Views'])
   | { schema: keyof Database },
-  TableName extends PublicTableNameOrOptions extends { schema: keyof Database }
-    ? keyof (Database[PublicTableNameOrOptions['schema']]['Tables'] &
-      Database[PublicTableNameOrOptions['schema']]['Views'])
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof Database
+  }
+    ? keyof (Database[DefaultSchemaTableNameOrOptions['schema']]['Tables'] &
+      Database[DefaultSchemaTableNameOrOptions['schema']]['Views'])
     : never = never,
-> = PublicTableNameOrOptions extends { schema: keyof Database }
-  ? (Database[PublicTableNameOrOptions['schema']]['Tables'] &
-    Database[PublicTableNameOrOptions['schema']]['Views'])[TableName] extends {
+> = DefaultSchemaTableNameOrOptions extends { schema: keyof Database }
+  ? (Database[DefaultSchemaTableNameOrOptions['schema']]['Tables'] &
+    Database[DefaultSchemaTableNameOrOptions['schema']]['Views'])[TableName] extends {
       Row: infer R
     }
       ? R
       : never
-  : PublicTableNameOrOptions extends keyof (PublicSchema['Tables'] &
-    PublicSchema['Views'])
-    ? (PublicSchema['Tables'] &
-      PublicSchema['Views'])[PublicTableNameOrOptions] extends {
+  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema['Tables'] &
+    DefaultSchema['Views'])
+    ? (DefaultSchema['Tables'] &
+      DefaultSchema['Views'])[DefaultSchemaTableNameOrOptions] extends {
         Row: infer R
       }
         ? R
@@ -2545,20 +2509,22 @@ export type Tables<
     : never
 
 export type TablesInsert<
-  PublicTableNameOrOptions extends
-  | keyof PublicSchema['Tables']
+  DefaultSchemaTableNameOrOptions extends
+  | keyof DefaultSchema['Tables']
   | { schema: keyof Database },
-  TableName extends PublicTableNameOrOptions extends { schema: keyof Database }
-    ? keyof Database[PublicTableNameOrOptions['schema']]['Tables']
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof Database
+  }
+    ? keyof Database[DefaultSchemaTableNameOrOptions['schema']]['Tables']
     : never = never,
-> = PublicTableNameOrOptions extends { schema: keyof Database }
-  ? Database[PublicTableNameOrOptions['schema']]['Tables'][TableName] extends {
+> = DefaultSchemaTableNameOrOptions extends { schema: keyof Database }
+  ? Database[DefaultSchemaTableNameOrOptions['schema']]['Tables'][TableName] extends {
     Insert: infer I
   }
     ? I
     : never
-  : PublicTableNameOrOptions extends keyof PublicSchema['Tables']
-    ? PublicSchema['Tables'][PublicTableNameOrOptions] extends {
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema['Tables']
+    ? DefaultSchema['Tables'][DefaultSchemaTableNameOrOptions] extends {
       Insert: infer I
     }
       ? I
@@ -2566,20 +2532,22 @@ export type TablesInsert<
     : never
 
 export type TablesUpdate<
-  PublicTableNameOrOptions extends
-  | keyof PublicSchema['Tables']
+  DefaultSchemaTableNameOrOptions extends
+  | keyof DefaultSchema['Tables']
   | { schema: keyof Database },
-  TableName extends PublicTableNameOrOptions extends { schema: keyof Database }
-    ? keyof Database[PublicTableNameOrOptions['schema']]['Tables']
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof Database
+  }
+    ? keyof Database[DefaultSchemaTableNameOrOptions['schema']]['Tables']
     : never = never,
-> = PublicTableNameOrOptions extends { schema: keyof Database }
-  ? Database[PublicTableNameOrOptions['schema']]['Tables'][TableName] extends {
+> = DefaultSchemaTableNameOrOptions extends { schema: keyof Database }
+  ? Database[DefaultSchemaTableNameOrOptions['schema']]['Tables'][TableName] extends {
     Update: infer U
   }
     ? U
     : never
-  : PublicTableNameOrOptions extends keyof PublicSchema['Tables']
-    ? PublicSchema['Tables'][PublicTableNameOrOptions] extends {
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema['Tables']
+    ? DefaultSchema['Tables'][DefaultSchemaTableNameOrOptions] extends {
       Update: infer U
     }
       ? U
@@ -2587,21 +2555,23 @@ export type TablesUpdate<
     : never
 
 export type Enums<
-  PublicEnumNameOrOptions extends
-  | keyof PublicSchema['Enums']
+  DefaultSchemaEnumNameOrOptions extends
+  | keyof DefaultSchema['Enums']
   | { schema: keyof Database },
-  EnumName extends PublicEnumNameOrOptions extends { schema: keyof Database }
-    ? keyof Database[PublicEnumNameOrOptions['schema']]['Enums']
+  EnumName extends DefaultSchemaEnumNameOrOptions extends {
+    schema: keyof Database
+  }
+    ? keyof Database[DefaultSchemaEnumNameOrOptions['schema']]['Enums']
     : never = never,
-> = PublicEnumNameOrOptions extends { schema: keyof Database }
-  ? Database[PublicEnumNameOrOptions['schema']]['Enums'][EnumName]
-  : PublicEnumNameOrOptions extends keyof PublicSchema['Enums']
-    ? PublicSchema['Enums'][PublicEnumNameOrOptions]
+> = DefaultSchemaEnumNameOrOptions extends { schema: keyof Database }
+  ? Database[DefaultSchemaEnumNameOrOptions['schema']]['Enums'][EnumName]
+  : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema['Enums']
+    ? DefaultSchema['Enums'][DefaultSchemaEnumNameOrOptions]
     : never
 
 export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
-  | keyof PublicSchema['CompositeTypes']
+  | keyof DefaultSchema['CompositeTypes']
   | { schema: keyof Database },
   CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
     schema: keyof Database
@@ -2610,6 +2580,14 @@ export type CompositeTypes<
     : never = never,
 > = PublicCompositeTypeNameOrOptions extends { schema: keyof Database }
   ? Database[PublicCompositeTypeNameOrOptions['schema']]['CompositeTypes'][CompositeTypeName]
-  : PublicCompositeTypeNameOrOptions extends keyof PublicSchema['CompositeTypes']
-    ? PublicSchema['CompositeTypes'][PublicCompositeTypeNameOrOptions]
+  : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema['CompositeTypes']
+    ? DefaultSchema['CompositeTypes'][PublicCompositeTypeNameOrOptions]
     : never
+
+export const Constants = {
+  public: {
+    Enums: {
+      status_enum: ['pending', 'accepted', 'rejected'],
+    },
+  },
+} as const

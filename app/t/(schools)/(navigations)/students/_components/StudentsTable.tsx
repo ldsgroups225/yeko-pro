@@ -4,6 +4,7 @@ import {
   AvatarFallback,
   AvatarImage,
 } from '@/components/ui/avatar'
+import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
   HoverCard,
@@ -123,6 +124,7 @@ export const StudentsTable: React.FC<StudentsTableProps> = ({
             </SortableHeader>
           </TableHead>
           <TableHead className="text-center">Classe</TableHead>
+          <TableHead className="text-center">Affecté</TableHead>
           <TableHead className="text-center">Parent</TableHead>
           <TableHead className="text-right">Actions</TableHead>
         </TableRow>
@@ -178,6 +180,11 @@ export const StudentsTable: React.FC<StudentsTableProps> = ({
                     }
                   </TableCell>
                   <TableCell className="text-center">{student.classroom?.name ?? '-'}</TableCell>
+                  <TableCell className="text-center">
+                    <Badge className="w-12 justify-center" variant={student.isGouvernentAffected ? 'default' : 'outline'}>
+                      {student.isGouvernentAffected ? 'OUI' : 'NON'}
+                    </Badge>
+                  </TableCell>
                   <TableCell className="text-center">
                     <HoverCard>
                       <HoverCardTrigger asChild>

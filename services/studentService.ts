@@ -32,6 +32,7 @@ export async function getStudents(query: IStudentsQueryParams): Promise<{ data: 
         firstName: student.first_name!,
         avatarUrl: student.students!.avatar_url,
         dateOfBirth: student.students!.date_of_birth,
+        isGouvernentAffected: student!.is_government_affected ?? false,
         gender: (student.students as { gender: 'M' | 'F' | null }).gender,
         parent: _parent
           ? {
@@ -56,32 +57,53 @@ export async function getStudents(query: IStudentsQueryParams): Promise<{ data: 
 
 export async function getStudentById(id: string): Promise<IStudentDTO | null> {
   const client = await createClient()
-  const { data } = await client
+  const studentQs = client
     .from('students')
     .select(`
         id, id_number, first_name, last_name, date_of_birth, gender, avatar_url, address,
         created_at, created_by, updated_at, updated_by,
-        parent:users(first_name, last_name, phone, email, avatar_url),
-        class:classes(id, name, slug)
+        parent:users(id, first_name, last_name, phone, email, avatar_url)
       `)
     .eq('id', id)
     .single()
 
-  if (!data)
+  const classroomQs = client
+    .from('student_school_class')
+    .select('is_government_affected, class:classes(id, name)')
+    .eq('student_id', id)
+    .eq('enrollment_status', 'accepted')
+    .is('is_active', true)
+    .single()
+
+  const [
+    { data: student, error: studentError },
+    { data: classroom, error: classroomError },
+  ] = await Promise.all([
+    studentQs,
+    classroomQs,
+  ])
+
+  if (studentError || classroomError) {
+    console.error('[E_GET_STUDENT]:', studentError || classroomError)
+    throw new Error('Erreur lors de la recherche de l\'élève')
+  }
+
+  if (!student)
     return null
 
-  const _class = data.class as any
-  const _parent = data.parent as any
+  const _class = { ...classroom.class, is_government_affected: classroom.is_government_affected }
+  const _parent = student.parent
 
   return {
-    id: data.id,
-    idNumber: data.id_number,
-    firstName: data.first_name,
-    lastName: data.last_name,
-    dateOfBirth: data.date_of_birth,
-    avatarUrl: data.avatar_url,
-    address: data.address,
-    gender: (data as { gender: 'M' | 'F' | null }).gender,
+    id: student.id,
+    idNumber: student.id_number,
+    firstName: student.first_name,
+    lastName: student.last_name,
+    dateOfBirth: student.date_of_birth,
+    avatarUrl: student.avatar_url,
+    address: student.address,
+    gender: (student as { gender: 'M' | 'F' | null }).gender,
+    isGouvernentAffected: _class.is_government_affected ?? false,
     parent: _parent && {
       id: _parent.id!,
       fullName: formatFullName(_parent.first_name, _parent.last_name, _parent.email),
@@ -89,14 +111,16 @@ export async function getStudentById(id: string): Promise<IStudentDTO | null> {
       phoneNumber: _parent.phone!,
       avatarUrl: _parent.avatar_url,
     },
-    classroom: _class && {
-      id: _class.id,
-      name: _class.name,
-    },
-    createdAt: data.created_at,
-    createdBy: data.created_by,
-    updatedAt: data.updated_at,
-    updatedBy: data.updated_by,
+    classroom: _class
+      ? {
+          id: _class.id!,
+          name: _class.name!,
+        }
+      : undefined,
+    createdAt: student.created_at,
+    createdBy: student.created_by,
+    updatedAt: student.updated_at,
+    updatedBy: student.updated_by,
   } satisfies IStudentDTO
 }
 
@@ -156,7 +180,7 @@ export async function getStudentByIdNumber(idNumber: string): Promise<IStudentDT
 
   const { data: classroom, error: classroomError } = await client
     .from('student_school_class')
-    .select('class_id, class:classes(id, name, slug)')
+    .select('class_id, is_government_affected, class:classes(id, name, slug)')
     .eq('student_id', student!.id)
     .eq('enrollment_status', 'accepted')
     .is('is_active', true)
@@ -181,6 +205,7 @@ export async function getStudentByIdNumber(idNumber: string): Promise<IStudentDT
     dateOfBirth: student.date_of_birth,
     avatarUrl: student.avatar_url,
     address: student.address,
+    isGouvernentAffected: classroom.is_government_affected ?? false,
     gender: (student as { gender: 'M' | 'F' | null }).gender,
     parent: _parent && {
       id: _parent.id!,
@@ -332,7 +357,7 @@ function buildSupabaseQuery(client: SupabaseClient, query: IStudentsQueryParams)
   let supabaseQuery = client
     .from('student_enrollment_view')
     .select(`
-      student_id, enrollment_status, id_number, first_name, last_name, parent_id, class_id,
+      student_id, enrollment_status, id_number, first_name, last_name, parent_id, class_id, is_government_affected,
       students(date_of_birth, gender, avatar_url),
       parent:users(first_name, last_name, phone, email, avatar_url),
       classes!inner(id, name, slug)

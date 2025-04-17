@@ -97,6 +97,7 @@ export interface IStudentDTO {
   idNumber: string
   gender: 'M' | 'F' | null
   dateOfBirth: string | null
+  isGouvernentAffected?: boolean
   avatarUrl?: string | null
   address?: string | null
 
