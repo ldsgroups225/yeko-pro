@@ -1,3 +1,5 @@
+'use client'
+
 import type { IClassDetailsStats } from '@/types'
 import { Card, CardContent } from '@/components/ui/card'
 import { Award, TrendingUp } from 'lucide-react'

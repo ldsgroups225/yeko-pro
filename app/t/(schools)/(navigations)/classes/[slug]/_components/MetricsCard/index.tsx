@@ -1,3 +1,5 @@
+'use client'
+
 import type { IClassDetailsStats } from '@/types'
 import { AttendanceMetrics } from './AttendanceMetrics'
 import { AverageGradeMetrics } from './AverageGradeMetrics'
