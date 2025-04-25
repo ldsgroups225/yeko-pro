@@ -1,6 +1,7 @@
 'use client'
 
 import type { Student } from '../../types'
+import { Badge } from '@/components/ui/badge'
 import { School } from 'lucide-react'
 
 interface StudentInfoProps {
@@ -30,6 +31,10 @@ export function StudentInfo({ student, className = '' }: StudentInfoProps) {
           <span className="text-primary ml-1">{student.idNumber}</span>
         </span>
       </div>
+
+      <Badge variant={student.isGouvernentAffected ? 'success' : 'default'}>
+        {student.isGouvernentAffected ? 'Affecté d\'état' : 'Non affecté'}
+      </Badge>
     </div>
   )
 }

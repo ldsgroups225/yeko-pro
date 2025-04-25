@@ -31,32 +31,33 @@ export function StudentActions({ student }: StudentActionsProps) {
     firstName: student.firstName,
     lastName: student.lastName,
     idNumber: student.idNumber,
-    gender: 'M' as const, // Default to 'M' since it's required
-    dateOfBirth: undefined,
-    avatarUrl: undefined, // Changed to undefined to match Student type
-    address: undefined,
-    classroom: undefined,
+    isGouvernentAffected: student.isGouvernentAffected,
+    gender: student.gender,
+    dateOfBirth: student.birthDate ?? undefined,
+    avatarUrl: student.avatarUrl ?? '/user_placeholder.png',
+    address: student.address ?? undefined,
+    classroom: { id: student.classId ?? '', name: student.className ?? 'Non defini' },
     parent: undefined,
     classId: undefined,
     parentId: undefined,
-    createdAt: undefined,
+    dateJoined: student.dateJoined ?? undefined,
     createdBy: undefined,
     updatedAt: undefined,
     updatedBy: undefined,
   }
 
-  const handleEditSubmit = async (_values: StudentFormValues) => {
+  const handleEditSubmit = async (val: StudentFormValues) => {
     setIsSubmitting(true)
 
     try {
       await updateStudent({
-        id: _values.id,
-        gender: _values.gender,
-        address: _values.address,
-        lastName: _values.lastName,
-        firstName: _values.firstName,
-        avatarUrl: _values.avatarUrl,
-        dateOfBirth: _values.dateOfBirth?.toISOString(),
+        id: val.id,
+        gender: val.gender,
+        address: val.address,
+        lastName: val.lastName,
+        firstName: val.firstName,
+        avatarUrl: val.avatarUrl,
+        dateOfBirth: val.dateOfBirth?.toISOString(),
       },
       )
 

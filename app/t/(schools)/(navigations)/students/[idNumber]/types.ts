@@ -9,10 +9,12 @@ export interface Student {
   dateOfBirth?: string
   address?: string
   avatarUrl?: string
+  isGouvernentAffected: boolean
   classroom?: {
     id: string
     name: string
   }
+  dateJoined?: string
 }
 
 export interface StudentStats {
@@ -41,6 +43,7 @@ export function transformStudentDTO(dto: IStudentDTO): Student {
     dateOfBirth: dto.dateOfBirth || undefined,
     address: dto.address || undefined,
     avatarUrl: dto.avatarUrl || undefined,
+    isGouvernentAffected: dto.isGouvernentAffected ?? false,
     classroom: dto.classroom
       ? {
           id: dto.classroom.id,

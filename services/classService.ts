@@ -612,7 +612,11 @@ export async function getClassStudents({
       id_number,
       first_name,
       last_name,
-      student_enrollment_view!inner(school_id, class_id, enrollment_status),
+      gender,
+      date_of_birth,
+      avatar_url,
+      address,
+      student_enrollment_view!inner(school_id, class_id, enrollment_status, created_at, is_government_affected, class_id, class_name),
       note_details(
         note,
         notes!inner (
@@ -677,11 +681,23 @@ export async function getClassStudents({
     const absentCount = currentAttendance.filter(a => a.status === 'absent').length
     const lateCount = currentAttendance.filter(a => a.status === 'late').length
 
+    const enrollment: typeof student.student_enrollment_view[0] = student.student_enrollment_view.length > 0
+      ? student.student_enrollment_view[0]
+      : { school_id: null, class_id: null, enrollment_status: null, created_at: null, is_government_affected: null, class_name: null }
+
     return {
       id: student.id,
       idNumber: student.id_number,
       firstName: student.first_name,
       lastName: student.last_name,
+      gender: (student.gender || 'M') as 'M' | 'F',
+      birthDate: student.date_of_birth,
+      avatarUrl: student.avatar_url,
+      address: student.address,
+      classId: enrollment.class_id,
+      className: enrollment.class_name,
+      dateJoined: enrollment.created_at,
+      isGouvernentAffected: enrollment.is_government_affected || false,
       gradeAverage: Number(gradeAverage.toFixed(2)),
       absentCount,
       lateCount,

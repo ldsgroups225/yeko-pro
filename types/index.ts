@@ -203,11 +203,19 @@ export interface ClassDetailsStudent {
   idNumber: string
   lastName: string
   firstName: string
+  gender: 'M' | 'F'
+  birthDate: string | null
+  avatarUrl: string | null
+  address: string | null
+  classId: string | null
+  className: string | null
+  isGouvernentAffected: boolean
   lateCount: number
   absentCount: number
   teacherNotes: string
   gradeAverage: number
   lastEvaluation: string
+  dateJoined: string | null
 }
 
 export interface IStudentsQueryParams {

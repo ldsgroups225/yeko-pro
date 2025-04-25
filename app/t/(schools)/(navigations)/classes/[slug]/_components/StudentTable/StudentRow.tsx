@@ -3,6 +3,7 @@ import type { ClassDetailsStudent } from '@/types'
 import { Badge } from '@/components/ui/badge'
 import { Checkbox } from '@/components/ui/checkbox'
 import { TableCell, TableRow } from '@/components/ui/table'
+import { formatDate } from '@/lib/utils'
 import { AbsenceBadge, GradeBadge, LateBadge } from './Badges'
 import { StudentActions } from './StudentActions'
 
@@ -40,7 +41,7 @@ export function StudentRow({ student, isSelected, onSelect, classId }: StudentRo
         <LateBadge count={student.lateCount} />
       </TableCell>
       <TableCell>
-        <div className="text-sm">{student.lastEvaluation}</div>
+        <div className="text-sm">{formatDate(student.lastEvaluation)}</div>
         <div className="text-xs text-muted-foreground truncate max-w-[200px]">
           {student.teacherNotes}
         </div>

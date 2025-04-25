@@ -169,6 +169,8 @@ export interface Database {
           ended_at: string | null
           id: string
           initiated_by: string | null
+          is_last_message_read: boolean | null
+          last_message: string | null
           message_count: number | null
           parent_id: string
           school_id: string
@@ -184,6 +186,8 @@ export interface Database {
           ended_at?: string | null
           id?: string
           initiated_by?: string | null
+          is_last_message_read?: boolean | null
+          last_message?: string | null
           message_count?: number | null
           parent_id: string
           school_id: string
@@ -199,6 +203,8 @@ export interface Database {
           ended_at?: string | null
           id?: string
           initiated_by?: string | null
+          is_last_message_read?: boolean | null
+          last_message?: string | null
           message_count?: number | null
           parent_id?: string
           school_id?: string
@@ -2270,6 +2276,7 @@ export interface Database {
         Row: {
           class_id: string | null
           class_name: string | null
+          created_at: string | null
           enrollment_id: string | null
           enrollment_status: string | null
           first_name: string | null
@@ -2452,6 +2459,10 @@ export interface Database {
           is_published: boolean
           publish_date: string
         }[]
+      }
+      mark_chat_read: {
+        Args: { chat_id_param: string, user_id_param: string }
+        Returns: undefined
       }
       process_payment: {
         Args:

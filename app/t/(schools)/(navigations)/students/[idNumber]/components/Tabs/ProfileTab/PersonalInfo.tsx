@@ -40,7 +40,7 @@ export function PersonalInfo({ student }: PersonalInfoProps) {
         <div className="space-y-4">
           <InfoRow
             icon={<CalendarDays className="h-5 w-5 text-muted-foreground" />}
-            label="Date de naissance"
+            label="Naissance"
             value={
               student.dateOfBirth
                 ? (
@@ -83,7 +83,11 @@ export function PersonalInfo({ student }: PersonalInfoProps) {
           <InfoRow
             icon={<Calendar className="h-5 w-5 text-muted-foreground" />}
             label="Date d'inscription"
-            value="À définir"
+            value={
+              student.dateJoined
+                ? formatDate(student.dateJoined)
+                : 'À définir'
+            }
           />
         </div>
       </CardContent>
