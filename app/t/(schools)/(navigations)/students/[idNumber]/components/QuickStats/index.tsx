@@ -1,73 +1,24 @@
-'use client'
-
-import type { StudentStats } from '../../types'
-import { BookOpen, Clock, Heart, Wallet } from 'lucide-react'
-import { nanoid } from 'nanoid'
-import { QuickStatsGridSkeleton } from './QuickStatsGridSkeleton'
-import { StatCard } from './StatCard'
+import { getStudentStats } from '@/services/studentService'
+import { QuickStatsGridDisplay } from './QuickStatsGridDisplay'
 
 interface QuickStatsGridProps {
-  stats?: StudentStats
-  isLoading?: boolean
+  studentId: string
   className?: string
 }
 
-export function QuickStatsGrid({ stats, isLoading, className = '' }: QuickStatsGridProps) {
-  if (isLoading) {
-    return <QuickStatsGridSkeleton />
-  }
-
-  if (!stats) {
+// This is now an async Server Component
+export async function QuickStatsGrid({ studentId, className = '' }: QuickStatsGridProps) {
+  // Fetch data directly within the server component
+  // This will implicitly cause the component to suspend if the promise is pending
+  const stats = await getStudentStats(studentId).catch((error) => {
+    console.error('Error fetching student stats:', error)
+    // Return null or throw an error to be caught by an ErrorBoundary
     return null
-  }
+  })
 
-  const statCards = [
-    {
-      title: 'Assiduité',
-      value: `${stats.attendance}%`,
-      progress: stats.attendance,
-      icon: Clock,
-      iconColor: 'text-blue-500',
-    },
-    {
-      title: 'Moyenne Générale',
-      value: `${stats.average.toFixed(1)}/20`,
-      progress: (stats.average / 20) * 100,
-      icon: BookOpen,
-      iconColor: 'text-green-500',
-    },
-    {
-      title: 'Paiement',
-      value: stats.payment.status === 'up_to_date' ? 'À jour' : 'En attente',
-      progress: stats.payment.percentage,
-      icon: Wallet,
-      iconColor: 'text-purple-500',
-    },
-    {
-      title: 'Comportement',
-      value: stats.behavior.status,
-      progress: stats.behavior.score,
-      icon: Heart,
-      iconColor: 'text-red-500',
-    },
-  ]
-
-  return (
-    <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 ${className}`}>
-      {statCards.map(stat => (
-        <StatCard
-          key={nanoid()}
-          title={stat.title}
-          value={stat.value}
-          progress={stat.progress}
-          icon={stat.icon}
-          iconColor={stat.iconColor}
-        />
-      ))}
-    </div>
-  )
+  return <QuickStatsGridDisplay stats={stats} className={className} />
 }
 
+// Re-export sub-components if needed elsewhere
 export { QuickStatsGridSkeleton } from './QuickStatsGridSkeleton'
-// Re-export sub-components
 export { StatCard } from './StatCard'
