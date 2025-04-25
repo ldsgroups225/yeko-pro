@@ -249,7 +249,7 @@ export async function getClasses() {
     .from('classes')
     .select('id, name')
     .eq('is_active', true)
-    .order('name')
+    .order('grade_id')
 
   return classes || []
 }
@@ -270,7 +270,7 @@ export async function getSemesters() {
 
   const { data: semesters } = await supabase
     .from('semesters')
-    .select('id, semester_name')
+    .select('id, name:semester_name')
     .eq('is_current', true)
     .order('id')
 
@@ -282,9 +282,87 @@ export async function getCurrentSchoolYear() {
 
   const { data: schoolYear } = await supabase
     .from('school_years')
-    .select('id, academic_year_name')
+    .select('id, name:academic_year_name')
     .eq('is_current', true)
     .single()
 
   return schoolYear
+}
+
+export interface RawNoteData {
+  noteId: string
+  title: string | null
+  weight: number | null
+  noteType: NOTE_TYPE
+  createdAt: string
+  isGraded: boolean
+  noteValue: number | null
+  studentId: string
+  firstName: string
+  lastName: string
+}
+
+export async function getNotesForTableView(params: {
+  classId: string
+  subjectId: string
+  semesterId: string
+  teacherId?: string
+}): Promise<RawNoteData[]> {
+  const supabase = await createClient()
+
+  const { data: notes, error } = await supabase
+    .from('notes')
+    .select(`
+      id,
+      title,
+      weight,
+      note_type,
+      created_at,
+      is_graded,
+      note_details(
+        note,
+        student:students(
+          id,
+          first_name,
+          last_name
+        )
+      )
+    `)
+    .eq('class_id', params.classId)
+    .eq('subject_id', params.subjectId)
+    .eq('semester_id', Number(params.semesterId))
+    .in('note_type', [
+      NOTE_TYPE.PARTICIPATION,
+      NOTE_TYPE.WRITING_QUESTION,
+      NOTE_TYPE.CLASS_TEST,
+      NOTE_TYPE.LEVEL_TEST,
+      NOTE_TYPE.HOMEWORK,
+    ])
+    .order('created_at', { ascending: true })
+
+  if (error) {
+    console.error('Error fetching notes for table view:', error)
+    throw new Error('Failed to fetch notes data')
+  }
+
+  if (!notes)
+    return []
+
+  // Flatten the data structure to match RawNoteData
+  const flattenedNotes: RawNoteData[] = notes.flatMap(note =>
+    note.note_details.map(detail => ({
+      noteId: note.id,
+      title: note.title,
+      weight: note.weight,
+      noteType: note.note_type as NOTE_TYPE,
+      createdAt: note.created_at,
+      isGraded: note.is_graded,
+      noteValue: detail.note,
+      studentId: detail.student.id,
+      firstName: detail.student.first_name,
+      lastName: detail.student.last_name,
+    })),
+  )
+
+  return flattenedNotes
 }

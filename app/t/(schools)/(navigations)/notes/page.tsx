@@ -1,7 +1,6 @@
 import type { Metadata } from 'next'
-import type { NotesQueryParams } from './types'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { getClasses, getCurrentSchoolYear, getSemesters, getSubjects } from '@/services/noteService'
+import { getClasses, getSemesters, getSubjects } from '@/services/noteService'
 import { Suspense } from 'react'
 import { NotesFilters, NotesTable, NotesTableSkeleton } from './_components'
 
@@ -10,24 +9,35 @@ export const metadata: Metadata = {
   description: 'Gestion des notes des élèves',
 }
 
-export default async function NotesPage({
-  searchParams: rawSearchParams,
-}: {
-  searchParams?: Promise<NotesQueryParams>
-}) {
-  const [searchParams, currentSchoolYear, classes, subjects, semesters] = await Promise.all([
-    rawSearchParams,
-    getCurrentSchoolYear(),
+interface NotesPageProps {
+  searchParams: Promise<{
+    classId?: string
+    subjectId?: string
+    semesterId?: string
+    noteType?: string
+    searchTerm?: string
+  }>
+}
+
+async function getInitialData() {
+  const [classes, subjects, semesters] = await Promise.all([
     getClasses(),
     getSubjects(),
     getSemesters(),
   ])
 
-  const params = {
-    ...searchParams,
-    noteType: searchParams?.noteType,
-    schoolYearId: currentSchoolYear?.id?.toString(),
+  return {
+    classes,
+    subjects,
+    semesters,
   }
+}
+
+export default async function NotesPage({
+  searchParams,
+}: NotesPageProps) {
+  const initialData = await getInitialData()
+  const resolvedParams = await searchParams
 
   return (
     <div className="px-6 py-2">
@@ -37,16 +47,14 @@ export default async function NotesPage({
         </CardHeader>
 
         <CardContent className="px-6 py-3">
-          <Suspense>
-            <NotesFilters
-              classes={classes}
-              subjects={subjects}
-              semesters={semesters}
-            />
-          </Suspense>
+          <NotesFilters
+            classes={initialData.classes}
+            subjects={initialData.subjects}
+            semesters={initialData.semesters}
+          />
 
           <Suspense fallback={<NotesTableSkeleton />}>
-            <NotesTable searchParams={params} />
+            <NotesTable searchParams={resolvedParams} />
           </Suspense>
         </CardContent>
       </Card>

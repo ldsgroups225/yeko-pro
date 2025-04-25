@@ -13,9 +13,10 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover'
-import { cn } from '@/lib/utils'
+import { cn, removeAccents } from '@/lib/utils'
 import { Check, ChevronDown, Loader2 } from 'lucide-react'
-import React, { useCallback, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
+import { useDebounceValue } from 'usehooks-ts'
 
 interface ComboboxProps<T extends { id: string, name: string }> {
   value?: string
@@ -23,94 +24,145 @@ interface ComboboxProps<T extends { id: string, name: string }> {
   onSelect: (option: T) => void
   label?: string
   placeholder?: string
+  searchPlaceholder?: string
   emptyText?: string
   isLoading?: boolean
+  searchFrom?: 'name' | 'id' | 'both'
   onSearchChange?: (search: string) => void
   className?: string
   inputClassName?: string
   disabled?: boolean
   required?: boolean
+  debounceDelay?: number
 }
 
-export function Combobox<T extends { id: string, name: string }>({
+export function Combobox({
   value,
   options,
   onSelect,
   label,
   placeholder = 'Sélectionnez une option',
+  searchPlaceholder = 'Rechercher...',
   emptyText = 'Aucun résultat trouvé',
+  searchFrom = 'both',
   isLoading = false,
   onSearchChange,
   className,
   inputClassName,
   disabled = false,
   required = false,
-}: ComboboxProps<T>) {
+  debounceDelay = 300,
+}: ComboboxProps<{ id: string, name: string }>) {
   const [isOpen, setIsOpen] = useState(false)
-  const [search, setSearch] = useState('')
+  const [inputValue, setInputValue] = useState('')
+  const [debouncedSearchTerm] = useDebounceValue(inputValue, debounceDelay)
   const [touched, setTouched] = useState(false)
 
-  const handleSearchChange = useCallback((searchValue: string) => {
-    setSearch(searchValue)
-    onSearchChange?.(searchValue)
-  }, [onSearchChange])
+  useEffect(() => {
+    onSearchChange?.(debouncedSearchTerm)
+  }, [debouncedSearchTerm, onSearchChange])
 
-  const handleSelect = (option: T) => {
+  const handleSelect = (option: { id: string, name: string }) => {
     onSelect(option)
     setIsOpen(false)
-    setSearch('')
+    setInputValue('')
     setTouched(true)
   }
 
-  const filteredOptions = options.filter(option =>
-    option.name.toLowerCase().includes(search.toLowerCase()),
-  )
+  const filteredOptions = useMemo(() => {
+    const searchTermLower = removeAccents(debouncedSearchTerm.toLowerCase())
+
+    if (!searchTermLower) {
+      return options
+    }
+
+    return options.filter((option) => {
+      const nameLower = removeAccents(option.name.toLowerCase())
+      const idLower = removeAccents(option.id.toLowerCase())
+
+      switch (searchFrom) {
+        case 'name':
+          return nameLower.includes(searchTermLower)
+        case 'id':
+          return idLower.includes(searchTermLower)
+        case 'both':
+        default:
+          return (
+            nameLower.includes(searchTermLower)
+            || idLower.includes(searchTermLower)
+          )
+      }
+    })
+  }, [options, debouncedSearchTerm, searchFrom])
 
   const isInvalid = required && touched && !value
 
+  const displayValue = useMemo(() => {
+    return options.find(option => option.id === value)?.name
+  }, [options, value])
+
+  // Clear search when closing the popover if nothing is selected
+  const handleOpenChange = (open: boolean) => {
+    setIsOpen(open)
+    if (!open) {
+      setInputValue('')
+    }
+  }
   return (
-    <>
+    <div className="w-full">
       {label && (
-        <Label className={cn(
-          required && 'after:content-["*"] after:ml-1 after:text-red-500',
-        )}
+        <Label
+          htmlFor={label}
+          className={cn(
+            'block text-sm font-medium text-gray-700 mb-1',
+            required && 'after:content-["*"] after:ml-0.5 after:text-red-500',
+          )}
         >
           {label}
         </Label>
       )}
-      <Popover
-        open={isOpen}
-        onOpenChange={setIsOpen}
-      >
+      <Popover open={isOpen} onOpenChange={handleOpenChange}>
         <PopoverTrigger asChild>
           <Button
+            id={label}
             variant="outline"
             role="combobox"
+            aria-expanded={isOpen}
             disabled={disabled}
             className={cn(
-              'w-full justify-between',
+              'w-full justify-between text-left font-normal',
+              !displayValue && 'text-muted-foreground',
               disabled && 'opacity-50 cursor-not-allowed',
-              isInvalid && 'border-red-500 focus:border-red-500',
+              isInvalid && 'border-red-500 focus:ring-red-500',
               className,
             )}
-            onBlur={() => setTouched(true)}
+            onBlur={() => {
+              if (!value) {
+                setTouched(true)
+              }
+            }}
           >
             <span className="truncate">
-              {value
-                ? options.find(option => option.id === value)?.name
-                : placeholder}
+              {displayValue ?? placeholder}
             </span>
             {isLoading
-              ? <Loader2 className="ml-2 h-4 w-4 animate-spin" />
-              : <ChevronDown className="-mr-1 h-4 w-4 opacity-50" />}
+              ? (
+                  <Loader2 className="ml-2 h-4 w-4 animate-spin shrink-0" />
+                )
+              : (
+                  <ChevronDown className="ml-2 h-4 w-4 opacity-50 shrink-0" />
+                )}
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-full p-0 max-h-[300px] overflow-auto">
-          <Command>
+        <PopoverContent
+          className="w-[--radix-popover-trigger-width] p-0 max-h-[300px] overflow-auto"
+          align="start"
+        >
+          <Command shouldFilter={false}>
             <CommandInput
-              placeholder="Rechercher..."
-              value={search}
-              onValueChange={handleSearchChange}
+              placeholder={searchPlaceholder}
+              value={inputValue}
+              onValueChange={setInputValue}
               className={inputClassName}
             />
             <CommandList>
@@ -122,14 +174,13 @@ export function Combobox<T extends { id: string, name: string }>({
                     value={option.id}
                     onSelect={() => handleSelect(option)}
                   >
-                    <div className="flex items-center justify-between w-full">
-                      <span className="truncate">{option.name}</span>
-                      <Check
-                        className={cn(
-                          value === option.id ? 'opacity-100' : 'opacity-0',
-                        )}
-                      />
-                    </div>
+                    <Check
+                      className={cn(
+                        'mr-2 h-4 w-4',
+                        value === option.id ? 'opacity-100' : 'opacity-0',
+                      )}
+                    />
+                    <span className="truncate">{option.name}</span>
                   </CommandItem>
                 ))}
               </CommandGroup>
@@ -138,10 +189,10 @@ export function Combobox<T extends { id: string, name: string }>({
         </PopoverContent>
       </Popover>
       {isInvalid && (
-        <p className="text-sm text-red-500">
+        <p className="mt-1 text-sm text-red-500">
           This field is required
         </p>
       )}
-    </>
+    </div>
   )
 }

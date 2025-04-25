@@ -1,5 +1,6 @@
 'use client'
 
+import { Combobox } from '@/components/Combobox'
 import { Input } from '@/components/ui/input'
 import {
   Select,
@@ -13,10 +14,15 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { useCallback, useEffect, useState } from 'react'
 import { useDebounceCallback } from 'usehooks-ts'
 
+interface IOption {
+  id: string
+  name: string
+}
+
 interface NotesFiltersProps {
-  classes: any[]
-  subjects: any[]
-  semesters: any[]
+  classes: IOption[]
+  subjects: IOption[]
+  semesters: { id: number, name: string }[]
 }
 
 export function NotesFilters({ classes, subjects, semesters }: NotesFiltersProps) {
@@ -74,21 +80,14 @@ export function NotesFilters({ classes, subjects, semesters }: NotesFiltersProps
         value={searchTerm}
       />
 
-      <Select
-        onValueChange={value => handleFilterChange('classId', value)}
+      <Combobox
+        options={classes}
         value={searchParams?.get('classId') ?? undefined}
-      >
-        <SelectTrigger className="max-w-[200px]">
-          <SelectValue placeholder="Classe" />
-        </SelectTrigger>
-        <SelectContent>
-          {classes.map(classItem => (
-            <SelectItem key={classItem.id} value={classItem.id}>
-              {classItem.name}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
+        onSelect={option => handleFilterChange('classId', option.id)}
+        placeholder="Classe"
+        emptyText="Aucune classe trouvée"
+        className="max-w-[200px]"
+      />
 
       <Select
         onValueChange={value => handleFilterChange('subjectId', value)}
@@ -116,7 +115,7 @@ export function NotesFilters({ classes, subjects, semesters }: NotesFiltersProps
         <SelectContent>
           {semesters.map(semester => (
             <SelectItem key={semester.id} value={semester.id.toString()}>
-              {semester.semester_name}
+              {semester.name}
             </SelectItem>
           ))}
         </SelectContent>
