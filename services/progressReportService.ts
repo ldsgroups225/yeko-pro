@@ -2,7 +2,7 @@
 
 import type { SupabaseClient } from '@/lib/supabase/server'
 import type { Database } from '@/lib/supabase/types'
-import type { ILessonProgressReportConfig } from '@/types'
+import type { ILessonProgressReport, ILessonProgressReportConfig } from '@/types'
 import { createClient } from '@/lib/supabase/server'
 import { ERole } from '@/types'
 import { getUserId } from './userService'
@@ -55,20 +55,42 @@ interface GetProgressReportsConfigParams {
   ascending?: boolean
 }
 
-// interface GetProgressReportsParams {
-//   schoolId: string
-//   filters?: {
-//     gradeId?: number
-//     subjectId?: string
-//     schoolYearId?: number
-//     series?: string
-//     isCompleted?: boolean
-//   }
-//   page?: number
-//   limit?: number
-//   sortBy?: keyof ILessonProgressReport
-//   ascending?: boolean
-// }
+interface GetProgressReportsParams {
+  filters?: {
+    gradeId?: number
+    subjectId?: string
+    schoolYearId?: number
+    series?: string
+    classId?: string
+    isCompleted?: boolean
+  }
+  page?: number
+  limit?: number
+  sortBy?: LessonProgressReportSortKeys
+  ascending?: boolean
+}
+
+// Define a type for sorting keys that could be on the report or its config
+// This should align with the keys available in ILessonProgressReport and conceptually sortable fields
+export type LessonProgressReportSortKeys =
+  | keyof LessonProgressReport
+  | `config.${keyof LessonProgressReportConfig}`
+  | 'config.grade.name'
+  | 'config.subject.name'
+  | 'level'
+  | 'id'
+  | 'createdAt'
+  | 'startedAt'
+  | 'updatedAt'
+  | 'completedAt'
+  | 'isCompleted'
+  | 'sessionsCompleted'
+  | 'classId'
+  | 'config.id'
+  | 'config.level'
+  | 'config.subjectName'
+  | 'config.lessonOrder'
+  | 'config.sessionsCount'
 
 export async function getLessonsProgressReportsConfig(
   params: GetProgressReportsConfigParams,
@@ -147,7 +169,7 @@ export async function createLessonProgressReportConfig(
 
   if (error) {
     console.error('Erreur lors de la création de la configuration de progression de cours:', error)
-    // Handle specific errors like unique constraint violation
+
     if (error.code === '23505') { // Unique violation code in PostgreSQL
       throw new Error('Une configuration de progression pour cette leçon, matière et classe existe déjà pour cette année scolaire. Veuillez vérifier les données saisies.')
     }
@@ -236,97 +258,208 @@ export async function importLessonsProgressReportsConfig(reports: LessonProgress
   const { data, error } = await supabase
     .from('lessons_progress_reports_config')
     .insert(reportsWithSchoolId)
-    .select() // Select to get results, though bulk insert might not return detailed errors per row easily
+    .select()
 
   let successCount = 0
   const errors: { row: number, error: string }[] = []
 
   if (error) {
     console.error('Erreur lors de l\'import de la configuration de progression de cours:', error)
-    // Basic error reporting for bulk insert
+
     errors.push({ row: 0, error: `Erreur lors de l'import de la configuration de progression de cours: ${error.message}. Veuillez vérifier le fichier importé et réessayer.` })
-    // Depending on the error, maybe only some rows failed.
-    // Supabase might not return individual row errors on bulk insert failure easily.
-    // For detailed row errors, consider inserting one by one or using a different approach.
   }
   else {
-    successCount = data?.length || 0 // Assuming success if no error
+    successCount = data?.length || 0
   }
 
   return { successCount, errors }
 }
 
-// export const progress = {
-//   async getLessonsProgressReportsConfig(
-//     params: GetProgressReportsParams,
-//   ): Promise<{ data: ILessonProgressReportConfig[], count: number | null }> {
-//     const supabase = await createClient()
-//     const { filters = {}, page = 1, limit = 10, sortBy = 'lesson_order', ascending = true } = params
-//     const schoolId = await checkAuthAndGetSchoolId(supabase)
+export async function getLessonsProgressReports(
+  params: GetProgressReportsParams,
+): Promise<{ data: ILessonProgressReport[], count: number | null }> {
+  const supabase = await createClient()
 
-//     const from = (page - 1) * limit
-//     const to = from + limit - 1
+  const { filters = {}, page = 1, limit = 10, sortBy = 'config.lessonOrder', ascending = true } = params
+  const schoolId = await checkAuthAndGetSchoolId(supabase)
 
-//     let query = supabase
-//       .from('lessons_progress_reports_config')
-//       .select(`
-//       *,
-//       grade: grades ( name ),
-//       subject: subjects ( name ),
-//       school_year: school_years ( academic_year_name )
-//     `, { count: 'exact' })
-//       .eq('school_id', schoolId)
+  const from = (page - 1) * limit
+  const to = from + limit - 1
 
-//     // Apply filters
-//     if (filters.gradeId)
-//       query = query.eq('grade_id', filters.gradeId)
-//     if (filters.subjectId)
-//       query = query.eq('subject_id', filters.subjectId)
-//     if (filters.schoolYearId)
-//       query = query.eq('school_year_id', filters.schoolYearId)
-//     if (filters.series)
-//       query = query.eq('series', filters.series)
-//     if (typeof filters.isCompleted === 'boolean')
-//       query = query.eq('is_completed', filters.isCompleted)
+  const selectStatement = `
+    id,
+    class_id,
+    created_at,
+    is_completed,
+    sessions_completed,
+    started_at,
+    updated_at,
+    completed_at,
+    classroom: classes( name ),
+    config: lessons_progress_reports_config!inner (
+      id,
+      lesson,
+      lesson_order,
+      sessions_count,
+      series,
+      grade: grades ( name ),
+      subject: subjects ( name ),
+      school_year: school_years ( academic_year_name ),
+      school_id,
+      grade_id,
+      subject_id,
+      school_year_id
+    )
+  `
 
-//     query = query.order(sortBy, { ascending })
+  let query = supabase
+    .from('lessons_progress_reports')
+    .select(selectStatement, { count: 'exact' })
 
-//     const { data, error, count } = await query.range(from, to)
+    .eq('config.school_id', schoolId)
 
-//     if (error) {
-//       console.error('Error fetching lesson progress reports:', error)
-//       throw new Error('Erreur lors de la récupération des rapports de progression.')
-//     }
+  // Apply filters targeting the main 'lessons_progress_reports' table
+  if (typeof filters.isCompleted === 'boolean')
+    query = query.eq('is_completed', filters.isCompleted)
+  if (filters.classId)
+    query = query.eq('class_id', filters.classId)
 
-//     // export interface ILessonProgressReportConfig {
-//     //   createdAt: string
-//     //   lessonOrder: number
-//     //   schoolId: string
-//     //   series: string | null
-//     //   sessionsCount: number
-//     //   subjectId: string
-//     //   updatedAt: string
-//     // }
+  // Apply filters targeting the related 'lessons_progress_reports_config' table
+  if (filters.gradeId !== undefined)
+    query = query.eq('config.grade_id', filters.gradeId)
+  if (filters.subjectId !== undefined)
+    query = query.eq('config.subject_id', filters.subjectId)
+  if (filters.schoolYearId !== undefined)
+    query = query.eq('config.school_year_id', filters.schoolYearId)
+  if (filters.series !== undefined)
+    query = query.eq('config.series', filters.series)
 
-//     return {
-//       data: data
-//         ? data.map(d => ({
-//             id: d.id,
-//             gradeId: d.grade_id,
-//             subjectId: d.subject_id,
-//             subjectName: d.subject.name,
-//             lesson: d.lesson,
-//             lessonOrder: d.lesson_order,
-//             series: d.series,
-//             sessionsCount: d.sessions_count,
-//             isCompleted: false, // d.is_completed,
-//             sessionsCompleted: 0, // d.sessions_completed,
-//             completedAt: null, // d.completed_at,
-//             createdAt: d.created_at,
-//             updatedAt: d.updated_at,
-//           }))
-//         : [],
-//       count,
-//     }
-//   },
-// }
+  // --- Apply Sorting ---
+  let dbSortColumn: string
+  const sortKey = sortBy as LessonProgressReportSortKeys // Type assertion for switch
+
+  // Map the conceptual sortBy key (from ILessonProgressReport) to the actual database column path
+  switch (sortKey) {
+    // --- Fields on lessons_progress_reports ---
+    case 'id': dbSortColumn = 'id'
+      break
+    case 'classId': dbSortColumn = 'class_id'
+      break
+    case 'createdAt': dbSortColumn = 'created_at'
+      break
+    case 'isCompleted': dbSortColumn = 'is_completed'
+      break
+    case 'sessionsCompleted': dbSortColumn = 'sessions_completed'
+      break
+    case 'startedAt': dbSortColumn = 'started_at'
+      break
+    case 'updatedAt': dbSortColumn = 'updated_at'
+      break
+    case 'completedAt': dbSortColumn = 'completed_at'
+      break
+
+    // --- Fields accessed via config relation ---
+    case 'config.id': dbSortColumn = 'config(id)'
+      break
+    case 'config.lessonOrder': dbSortColumn = 'config(lesson_order)'
+      break
+    case 'config.sessionsCount': dbSortColumn = 'config(sessions_count)'
+      break
+    case 'config.lesson': dbSortColumn = 'config(lesson)'
+      break
+    case 'config.series': dbSortColumn = 'config(series)'
+      break
+    case 'config.grade_id': dbSortColumn = 'config(grade_id)'
+      break
+    case 'config.subject_id': dbSortColumn = 'config(subject_id)'
+      break
+    case 'config.school_year_id': dbSortColumn = 'config(school_year_id)'
+      break
+    case 'config.created_at': dbSortColumn = 'config(created_at)'
+      break
+    case 'config.updated_at': dbSortColumn = 'config(updated_at)'
+      break
+
+    // --- Conceptual/Nested Sorting (May require adjustments or proxy sorting) ---
+    case 'config.level':
+    case 'config.grade.name':
+      // Direct sorting by related name might fail or be inefficient. Sort by ID as a proxy.
+      dbSortColumn = 'config(grade_id)'
+      console.warn('Sorting by \'level\' or \'config.grade.name\' might not produce exact alphabetical order. Sorting by grade_id as a proxy.')
+      // For true name sorting, consider a database view or RPC.
+      break
+    case 'config.subjectName':
+    case 'config.subject.name':
+      dbSortColumn = 'config(subject_id)'
+      console.warn('Sorting by \'config.subjectName\' or \'config.subject.name\' might not produce exact alphabetical order. Sorting by subject_id as a proxy.')
+      break
+
+    default:
+      console.warn(`Unsupported sortBy key: '${sortKey}'. Defaulting to config.lesson_order.`)
+      dbSortColumn = 'config(lesson_order)'
+  }
+
+  query = query.order(dbSortColumn, { ascending })
+
+  const { data, error, count } = await query.range(from, to)
+
+  if (error) {
+    console.error('Error fetching lesson progress reports:', error)
+
+    if (error.message.includes('relation') && error.message.includes('does not exist')) {
+      throw new Error(`Erreur de base de données: La relation ${error.message.split('"')[1]} est introuvable. Vérifiez la structure de la requête.`)
+    }
+    if (error.message.includes('could not identify an ordering operator') || error.message.includes('order operator')) {
+      throw new Error(`Erreur de tri: Impossible de trier par la colonne '${dbSortColumn}'. Vérifiez le type de données ou la structure de la requête. Détails: ${error.message}`)
+    }
+    throw new Error(`Erreur lors de la récupération des rapports de progression: ${error.message}`)
+  }
+
+  return {
+    data: data
+      ? data.map((d) => {
+          const configData = d.config
+
+          const series = configData?.series ?? ''
+          const subjectName = configData?.subject?.name ?? 'N/A'
+          const level = `${d.classroom.name} ${series}`.trim()
+
+          if (!configData) {
+            console.error(`Inconsistent state: Progress report ${d.id} missing config despite inner join.`)
+
+            return {
+              id: d.id,
+              config: { id: 'error', level: 'Error', subjectName: 'Error', lessonOrder: 0, sessionsCount: 0, lesson: 'Error' },
+              classId: d.class_id,
+              createdAt: d.created_at,
+              isCompleted: d.is_completed,
+              sessionsCompleted: d.sessions_completed,
+              startedAt: d.started_at,
+              updatedAt: d.updated_at,
+              completedAt: d.completed_at,
+            } satisfies ILessonProgressReport
+          }
+
+          return {
+            id: d.id,
+            config: {
+              id: configData.id,
+              level,
+              subjectName,
+              lessonOrder: configData.lesson_order,
+              sessionsCount: configData.sessions_count,
+              lesson: configData.lesson ?? 'N/A',
+            },
+            classId: d.class_id,
+            createdAt: d.created_at,
+            isCompleted: d.is_completed,
+            sessionsCompleted: d.sessions_completed,
+            startedAt: d.started_at,
+            updatedAt: d.updated_at,
+            completedAt: d.completed_at,
+          } satisfies ILessonProgressReport
+        })
+      : [],
+    count,
+  }
+}

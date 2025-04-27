@@ -413,6 +413,7 @@ export interface ILessonProgressReport {
     subjectName: string
     lessonOrder: number
     sessionsCount: number
+    lesson: string
   }
   classId: string
   createdAt: string
