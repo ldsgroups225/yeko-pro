@@ -682,6 +682,96 @@ export interface Database {
           },
         ]
       }
+      lessons_progress_reports: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          grade_id: number
+          id: string
+          is_completed: boolean
+          lesson: string
+          lesson_order: number
+          school_id: string
+          school_year_id: number
+          series: string | null
+          sessions_completed: number
+          sessions_count: number
+          started_at: string
+          subject_id: string
+          updated_at: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          grade_id: number
+          id?: string
+          is_completed?: boolean
+          lesson: string
+          lesson_order: number
+          school_id: string
+          school_year_id: number
+          series?: string | null
+          sessions_completed?: number
+          sessions_count: number
+          started_at?: string
+          subject_id: string
+          updated_at?: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          grade_id?: number
+          id?: string
+          is_completed?: boolean
+          lesson?: string
+          lesson_order?: number
+          school_id?: string
+          school_year_id?: number
+          series?: string | null
+          sessions_completed?: number
+          sessions_count?: number
+          started_at?: string
+          subject_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'progress_reports_grade_id_fkey'
+            columns: ['grade_id']
+            isOneToOne: false
+            referencedRelation: 'grades'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'progress_reports_school_id_fkey'
+            columns: ['school_id']
+            isOneToOne: false
+            referencedRelation: 'schools'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'progress_reports_school_year_id_fkey'
+            columns: ['school_year_id']
+            isOneToOne: false
+            referencedRelation: 'average_grades_view_with_rank'
+            referencedColumns: ['school_year_id']
+          },
+          {
+            foreignKeyName: 'progress_reports_school_year_id_fkey'
+            columns: ['school_year_id']
+            isOneToOne: false
+            referencedRelation: 'school_years'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'progress_reports_subject_id_fkey'
+            columns: ['subject_id']
+            isOneToOne: false
+            referencedRelation: 'subjects'
+            referencedColumns: ['id']
+          },
+        ]
+      }
       link_student_parent: {
         Row: {
           created_at: string
