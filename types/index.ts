@@ -407,7 +407,13 @@ export interface ILessonProgressReportConfig {
 
 export interface ILessonProgressReport {
   id: string
-  lessonsProgressReportsConfigId: string
+  config: {
+    id: string
+    level: string
+    subjectName: string
+    lessonOrder: number
+    sessionsCount: number
+  }
   classId: string
   createdAt: string
   isCompleted: boolean

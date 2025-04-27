@@ -11,7 +11,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { capitalize } from '@/lib/utils'
-import { config } from '@/services/progressReportService'
+import { importLessonsProgressReportsConfig } from '@/services/progressReportService'
 import { nanoid } from 'nanoid'
 import { useState } from 'react'
 import { toast } from 'sonner'
@@ -122,7 +122,7 @@ export function ImportProgressReportsDialog({
 
     // --- Call Server Action for Import ---
     try {
-      const result = await config.importLessonsProgressReportsConfig(validReports)
+      const result = await importLessonsProgressReportsConfig(validReports)
 
       if (result.errors.length > 0) {
         // Handle potential bulk insert errors (might be less specific)
