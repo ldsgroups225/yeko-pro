@@ -37,7 +37,7 @@ export function useInitUsefulData() {
       console.error('Error initializing useful data:', error)
       throw error
     }
-  }, [isAuthenticated, fetchUser, fetchSubjects, fetchSchoolYears, fetchGrades])
+  }, [isAuthenticated])
 
   return { initialize }
 }

@@ -33,7 +33,7 @@ export async function fetchSemesters(schoolYearId: number): Promise<ISemester[]>
 
   const { data, error } = await supabase
     .from('semesters')
-    .select('id, semester_name, start_date, is_current')
+    .select('id, semester_name, start_date, end_date, is_current')
     .eq('school_year_id', schoolYearId)
     .order('start_date', { ascending: true })
     .throwOnError()
@@ -47,6 +47,7 @@ export async function fetchSemesters(schoolYearId: number): Promise<ISemester[]>
     id: semester.id,
     name: semester.semester_name,
     startDate: semester.start_date,
+    endDate: semester.end_date,
     isCurrent: semester.is_current,
   })) ?? []
 }
