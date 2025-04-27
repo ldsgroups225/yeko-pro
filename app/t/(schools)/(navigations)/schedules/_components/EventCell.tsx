@@ -11,7 +11,7 @@ interface EventCellProps {
 }
 
 function EventCell({ event, style, onEventUpdate }: EventCellProps) {
-  const [currentTime, setCurrentTime] = useState(format(new Date(), 'HH:mm:ss'))
+  const [currentTime, setCurrentTime] = useState(() => format(new Date(), 'HH:mm:ss'))
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
 
   const isOneHour = useMemo(() => {
