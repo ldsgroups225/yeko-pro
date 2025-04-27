@@ -10,7 +10,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import { getLessonsProgressReportsConfig } from '@/services/progressReportService'
+import { config } from '@/services/progressReportService'
 import { useEffect, useState } from 'react'
 import { ProgressReportTableActions } from './ProgressReportTableActions'
 
@@ -43,7 +43,7 @@ export function ProgressReportTable({
     async function fetchData() {
       try {
         setLoading(true)
-        const result = await getLessonsProgressReportsConfig({
+        const result = await config.getLessonsProgressReportsConfig({
           schoolId,
           filters,
           page,

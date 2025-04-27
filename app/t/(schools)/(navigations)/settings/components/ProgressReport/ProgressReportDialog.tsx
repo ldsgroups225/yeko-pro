@@ -26,10 +26,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import {
-  createLessonProgressReportConfig,
-  updateLessonProgressReportConfig,
-} from '@/services/progressReportService'
+import { config } from '@/services/progressReportService'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { AnimatePresence, motion } from 'framer-motion'
 import { Loader2 } from 'lucide-react'
@@ -75,8 +72,8 @@ const reportSchema = z
 
 type ReportFormValues = z.infer<typeof reportSchema>
 
-type CreatePayload = Parameters<typeof createLessonProgressReportConfig>[0]
-type UpdatePayload = Parameters<typeof updateLessonProgressReportConfig>[1]
+type CreatePayload = Parameters<typeof config.createLessonProgressReportConfig>[0]
+type UpdatePayload = Parameters<typeof config.updateLessonProgressReportConfig>[1]
 
 const EMPTY_GRADES: IGrade[] = []
 const EMPTY_SUBJECTS: ISubject[] = []
@@ -134,11 +131,11 @@ export function ProgressReportDialog({
         }
 
         if (isEditing && report) {
-          await updateLessonProgressReportConfig(report.id, payload)
+          await config.updateLessonProgressReportConfig(report.id, payload)
           toast.success('Rapport mis à jour avec succès.')
         }
         else {
-          await createLessonProgressReportConfig(payload)
+          await config.createLessonProgressReportConfig(payload)
           toast.success('Rapport créé avec succès.')
         }
 

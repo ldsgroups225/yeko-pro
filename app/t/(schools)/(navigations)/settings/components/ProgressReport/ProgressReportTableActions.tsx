@@ -9,7 +9,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { deleteLessonProgressReportConfig } from '@/services/progressReportService'
+import { config } from '@/services/progressReportService'
 import { Edit, Loader2, MoreHorizontal, Trash } from 'lucide-react'
 import { useState, useTransition } from 'react'
 import { toast } from 'sonner'
@@ -28,7 +28,7 @@ export function ProgressReportTableActions({ schoolYearId, report, refresh }: Pr
   const handleDelete = () => {
     startDeleteTransition(async () => {
       try {
-        await deleteLessonProgressReportConfig(report.id)
+        await config.deleteLessonProgressReportConfig(report.id)
         toast.success('Configuration de progression de cours supprimé.')
         // Revalidation handled by server action
       }
