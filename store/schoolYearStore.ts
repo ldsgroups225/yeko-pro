@@ -63,10 +63,9 @@ const useSchoolYearStore = create<SchoolYearState & SchoolYearActions>((set, get
     try {
       const data = await fetchSemesters(schoolYearId)
 
-      set({ semesters: data, isLoading: false })
+      set({ semesters: data, isLoading: false, selectedSchoolYearId: schoolYearId })
 
       if (data.length > 0) {
-        set({ selectedSchoolYearId: data[0].id })
         const activeSemester = data.find(semester => semester.isCurrent)
 
         if (activeSemester)

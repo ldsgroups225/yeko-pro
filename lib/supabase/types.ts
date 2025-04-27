@@ -684,87 +684,126 @@ export interface Database {
       }
       lessons_progress_reports: {
         Row: {
+          class_id: string
           completed_at: string | null
+          created_at: string
+          id: string
+          is_completed: boolean
+          lessons_progress_reports_config_id: string
+          sessions_completed: number
+          started_at: string
+          updated_at: string
+        }
+        Insert: {
+          class_id: string
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          is_completed?: boolean
+          lessons_progress_reports_config_id: string
+          sessions_completed?: number
+          started_at?: string
+          updated_at?: string
+        }
+        Update: {
+          class_id?: string
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          is_completed?: boolean
+          lessons_progress_reports_config_id?: string
+          sessions_completed?: number
+          started_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'lpr_class_fkey'
+            columns: ['class_id']
+            isOneToOne: false
+            referencedRelation: 'classes'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'lpr_config_fkey'
+            columns: ['lessons_progress_reports_config_id']
+            isOneToOne: false
+            referencedRelation: 'lessons_progress_reports_config'
+            referencedColumns: ['id']
+          },
+        ]
+      }
+      lessons_progress_reports_config: {
+        Row: {
           created_at: string
           grade_id: number
           id: string
-          is_completed: boolean
           lesson: string
           lesson_order: number
           school_id: string
           school_year_id: number
           series: string | null
-          sessions_completed: number
           sessions_count: number
-          started_at: string
           subject_id: string
           updated_at: string
         }
         Insert: {
-          completed_at?: string | null
           created_at?: string
           grade_id: number
           id?: string
-          is_completed?: boolean
           lesson: string
           lesson_order: number
           school_id: string
           school_year_id: number
           series?: string | null
-          sessions_completed?: number
           sessions_count: number
-          started_at?: string
           subject_id: string
           updated_at?: string
         }
         Update: {
-          completed_at?: string | null
           created_at?: string
           grade_id?: number
           id?: string
-          is_completed?: boolean
           lesson?: string
           lesson_order?: number
           school_id?: string
           school_year_id?: number
           series?: string | null
-          sessions_completed?: number
           sessions_count?: number
-          started_at?: string
           subject_id?: string
           updated_at?: string
         }
         Relationships: [
           {
-            foreignKeyName: 'progress_reports_grade_id_fkey'
+            foreignKeyName: 'lprc_grade_fkey'
             columns: ['grade_id']
             isOneToOne: false
             referencedRelation: 'grades'
             referencedColumns: ['id']
           },
           {
-            foreignKeyName: 'progress_reports_school_id_fkey'
+            foreignKeyName: 'lprc_school_fkey'
             columns: ['school_id']
             isOneToOne: false
             referencedRelation: 'schools'
             referencedColumns: ['id']
           },
           {
-            foreignKeyName: 'progress_reports_school_year_id_fkey'
+            foreignKeyName: 'lprc_school_year_fkey'
             columns: ['school_year_id']
             isOneToOne: false
             referencedRelation: 'average_grades_view_with_rank'
             referencedColumns: ['school_year_id']
           },
           {
-            foreignKeyName: 'progress_reports_school_year_id_fkey'
+            foreignKeyName: 'lprc_school_year_fkey'
             columns: ['school_year_id']
             isOneToOne: false
             referencedRelation: 'school_years'
             referencedColumns: ['id']
           },
           {
-            foreignKeyName: 'progress_reports_subject_id_fkey'
+            foreignKeyName: 'lprc_subject_fkey'
             columns: ['subject_id']
             isOneToOne: false
             referencedRelation: 'subjects'

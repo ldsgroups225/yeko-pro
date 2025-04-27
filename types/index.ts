@@ -126,12 +126,15 @@ export interface IStudentDTO {
 export interface ISchoolYear {
   id: number
   name: string | null
+  isCurrent?: boolean
 }
 
 export interface ISemester {
   id: number
   name: string
   isCurrent: boolean
+  startDate: string
+  endDate: string
 }
 
 export interface IStudentFiltersDTO {
@@ -384,4 +387,32 @@ export interface IApplicationsProps {
 
 export interface IGradesTableProps {
   onPublish?: (id: string) => void
+}
+
+export interface ILessonProgressReportConfig {
+  id: string
+  gradeId: number
+  subjectId: string
+  schoolYearId: number
+  level: string
+  subjectName: string
+  lesson: string
+  lessonOrder: number
+  series: string | null
+  sessionsCount: number
+  createdAt: string
+  updatedAt: string
+  schoolId?: string
+}
+
+export interface ILessonProgressReport {
+  id: string
+  lessonsProgressReportsConfigId: string
+  classId: string
+  createdAt: string
+  isCompleted: boolean
+  sessionsCompleted: number
+  startedAt: string
+  updatedAt: string
+  completedAt: string | null
 }

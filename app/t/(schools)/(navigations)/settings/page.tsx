@@ -3,10 +3,11 @@
 import { Card, CardContent } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { BookOpen, School, User } from 'lucide-react'
+import { BookOpen, ListChecks, School, User } from 'lucide-react'
 import { useState } from 'react'
 
 import ProfileSettingsTab from './tabs/ProfileSettingsTab'
+import ProgressReportsSettingsTab from './tabs/ProgressReportsSettingsTab'
 import SchoolSettingsTab from './tabs/SchoolSettingsTab'
 import TuitionSettingsTab from './tabs/TuitionSettingsTab'
 
@@ -53,6 +54,10 @@ export default function SettingsPage() {
             <BookOpen className="h-4 w-4" />
             <span>Scolarité</span>
           </TabsTrigger>
+          <TabsTrigger value="progress-reports" className="space-x-2">
+            <ListChecks className="h-4 w-4" />
+            <span>Conf. Suivi Pédagogique</span>
+          </TabsTrigger>
           {/* <TabsTrigger value="notifications" className="space-x-2">
             <Bell className="h-4 w-4" />
             <span>Notifications</span>
@@ -77,6 +82,10 @@ export default function SettingsPage() {
 
         <TabsContent value="tuition">
           <TuitionSettingsTab />
+        </TabsContent>
+
+        <TabsContent value="progress-reports">
+          <ProgressReportsSettingsTab />
         </TabsContent>
 
         {/* <TabsContent value="notifications">
