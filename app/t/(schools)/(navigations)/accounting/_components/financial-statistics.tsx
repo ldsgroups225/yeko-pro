@@ -6,7 +6,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { useUser } from '@/hooks'
 import { formatCurrency } from '@/lib/utils'
 import { getFinancialMetrics } from '@/services/accountingService'
-import { AlertCircle, CheckCircle, DollarSign, Percent, Users } from 'lucide-react'
+import { CheckCircle, Percent, Users } from 'lucide-react'
 import { nanoid } from 'nanoid'
 import { useEffect, useState } from 'react'
 
@@ -14,7 +14,7 @@ interface StatisticCardProps {
   title: string
   value: string | number
   description: string
-  icon: React.ReactNode
+  icon: React.ReactNode | string
 }
 
 function StatisticCard({ title, value, description, icon }: StatisticCardProps) {
@@ -96,15 +96,17 @@ export function FinancialStatistics() {
     ? [
         {
           title: 'Revenue',
-          value: formatCurrency(metrics.revenue.total),
+          value: formatCurrency(metrics.revenue.total, false),
           description: `${metrics.revenue.previousMonthPercentage > 0 ? '+' : ''}${metrics.revenue.previousMonthPercentage.toFixed(1)}% du mois dernier`,
-          icon: <DollarSign className="h-4 w-4 text-muted-foreground" />,
+          icon: 'F CFA',
+          // icon: <DollarSign className="h-4 w-4 text-muted-foreground" />,
         },
         {
           title: 'Impayée',
-          value: formatCurrency(metrics.unpaidAmount.total),
+          value: formatCurrency(metrics.unpaidAmount.total, false),
           description: `De ${metrics.unpaidAmount.studentCount} élèves`,
-          icon: <AlertCircle className="h-4 w-4 text-destructive" />,
+          icon: 'F CFA',
+          // icon: <AlertCircle className="h-4 w-4 text-destructive" />,
         },
         {
           title: 'Recouvrement',

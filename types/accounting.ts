@@ -4,7 +4,7 @@ export interface FinancialStatistic {
   title: string
   value: string | number
   description: string
-  icon: ReactNode
+  icon: ReactNode | string
 }
 
 export interface FinancialMetrics {
