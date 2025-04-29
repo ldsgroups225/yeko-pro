@@ -89,6 +89,12 @@ export interface IUserProfileDTO {
   school: ISchoolDTO
 }
 
+export interface MedicalCondition {
+  id: string
+  description: string
+  severity: 'low' | 'medium' | 'high'
+}
+
 export interface IStudentDTO {
   id: string
   firstName: string
@@ -98,6 +104,7 @@ export interface IStudentDTO {
   gender: 'M' | 'F' | null
   dateOfBirth: string | null
   isGouvernentAffected?: boolean
+  medicalCondition?: MedicalCondition[]
   avatarUrl?: string | null
   address?: string | null
 

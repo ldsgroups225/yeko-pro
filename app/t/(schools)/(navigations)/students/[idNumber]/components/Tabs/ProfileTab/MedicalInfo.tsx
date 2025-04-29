@@ -1,32 +1,16 @@
 'use client'
 
+import type { MedicalCondition } from '@/types'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { AlertCircle } from 'lucide-react'
 
-export interface MedicalCondition {
-  id: string
-  description: string
-  severity: 'low' | 'medium' | 'high'
-}
-
 interface MedicalInfoProps {
-  conditions?: MedicalCondition[]
+  conditions: MedicalCondition[]
   isLoading?: boolean
 }
 
 export function MedicalInfo({ conditions, isLoading }: MedicalInfoProps) {
-  // Default condition if none provided
-  const defaultConditions: MedicalCondition[] = [
-    {
-      id: 'asthma',
-      description: 'L\'élève est asthmatique - Nécessite un inhalateur',
-      severity: 'medium',
-    },
-  ]
-
-  const displayedConditions = conditions || defaultConditions
-
   if (isLoading) {
     return (
       <Card>
@@ -48,16 +32,16 @@ export function MedicalInfo({ conditions, isLoading }: MedicalInfoProps) {
         <CardDescription>Conditions médicales et allergies</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        {displayedConditions.map(condition => (
+        {conditions.map(condition => (
           <Alert
             key={condition.id}
             variant={condition.severity === 'high' ? 'destructive' : 'default'}
           >
-            <AlertCircle className="h-4 w-4" />
+            <AlertCircle className="h-4 w-4 -mt-1" />
             <AlertDescription>{condition.description}</AlertDescription>
           </Alert>
         ))}
-        {displayedConditions.length === 0 && (
+        {conditions.length === 0 && (
           <Alert>
             <AlertCircle className="h-4 w-4" />
             <AlertDescription>

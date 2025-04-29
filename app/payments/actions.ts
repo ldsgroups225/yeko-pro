@@ -6,6 +6,7 @@ import type { SupabaseClient } from '@/lib/supabase/server'
 import type { SearchFormData } from './schemas'
 import type { ISchool, IStudent, SearchResult } from './types'
 import { createClient } from '@/lib/supabase/server'
+import { parseMedicalCondition } from '@/lib/utils'
 import { uploadImageToStorage } from '@/services/uploadImageService'
 import { searchSchema } from './schemas'
 
@@ -62,6 +63,8 @@ async function fetchStudentById(client: SupabaseClient, id: string): Promise<ISt
     return null
   }
 
+  const medicalCondition = parseMedicalCondition(data.medical_condition)
+
   return {
     id: data.id,
     idNumber: data.id_number,
@@ -71,7 +74,7 @@ async function fetchStudentById(client: SupabaseClient, id: string): Promise<ISt
     gender: data.gender,
     birthDate: data.date_of_birth,
     avatarUrl: data.avatar_url,
-    medicalCondition: data.medical_condition ?? null,
+    medicalCondition,
     parentId: data.parent_id,
     createdAt: data.created_at,
     updatedAt: data.updated_at,
@@ -225,7 +228,7 @@ export async function createStudent(
     birthDate: string
     address?: string
     avatarUrl?: string
-    medicalCondition: string | null
+    medicalCondition: { description: string, severity: 'low' | 'medium' | 'high' }[]
   },
   parentId: string,
 ): Promise<IStudent> {
@@ -272,6 +275,8 @@ export async function createStudent(
       await client.from('students').update({ avatar_url: newAvatarUrl }).eq('id', studentData.id)
     }
 
+    const medicalCondition = parseMedicalCondition(formData.medicalCondition)
+
     return {
       id: studentData.id,
       idNumber: studentData.id_number,
@@ -280,7 +285,7 @@ export async function createStudent(
       address: studentData.address,
       gender: studentData.gender,
       birthDate: studentData.date_of_birth,
-      medicalCondition: studentData.medical_condition ?? null,
+      medicalCondition,
       avatarUrl: studentData.avatar_url,
       parentId: studentData.parent_id,
       classId: null,

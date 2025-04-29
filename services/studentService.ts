@@ -5,7 +5,7 @@ import type { SupabaseClient } from '@/lib/supabase/server'
 import type { IClassesGrouped, IStudentDTO, IStudentsQueryParams } from '@/types'
 import type { LinkStudentParentData, StudentFormValues } from '@/validations'
 import { createClient } from '@/lib/supabase/server'
-import { formatFullName } from '@/lib/utils'
+import { formatFullName, parseMedicalCondition } from '@/lib/utils'
 import { linkStudentParentSchema } from '@/validations'
 import { camelCase, snakeCase } from 'change-case'
 import { parseISO } from 'date-fns'
@@ -171,12 +171,17 @@ export async function getStudentByIdNumber(idNumber: string): Promise<IStudentDT
   const { data: student, error: studentError } = await client
     .from('students')
     .select(`
-        id, id_number, first_name, last_name, date_of_birth, gender, avatar_url, address,
+        id, id_number, first_name, last_name, date_of_birth, gender, avatar_url, address, medical_condition,
         created_at, created_by, updated_at, updated_by,
         parent:users(first_name, last_name, phone, email, avatar_url)
       `)
     .eq('id_number', idNumber)
     .single()
+
+  if (studentError || !student) {
+    console.error('studentError', studentError)
+    return null
+  }
 
   const { data: classroom, error: classroomError } = await client
     .from('student_school_class')
@@ -196,6 +201,7 @@ export async function getStudentByIdNumber(idNumber: string): Promise<IStudentDT
     return null
 
   const _parent = student.parent as any
+  const medicalCondition = parseMedicalCondition(student.medical_condition)
 
   return {
     id: student.id,
@@ -205,6 +211,7 @@ export async function getStudentByIdNumber(idNumber: string): Promise<IStudentDT
     dateOfBirth: student.date_of_birth,
     avatarUrl: student.avatar_url,
     address: student.address,
+    medicalCondition,
     isGouvernentAffected: classroom.is_government_affected ?? false,
     gender: (student as { gender: 'M' | 'F' | null }).gender,
     parent: _parent && {

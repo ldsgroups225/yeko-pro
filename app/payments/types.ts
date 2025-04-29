@@ -1,3 +1,5 @@
+import type { MedicalCondition } from '@/types'
+
 export interface SearchResult {
   student: IStudent | null
   school: ISchool | null
@@ -13,7 +15,7 @@ export interface IStudent {
   address: string | null
   gender: string | null
   birthDate: string | null
-  medicalCondition: string | null
+  medicalCondition: MedicalCondition[]
   avatarUrl: string | null
   parentId: string
   classId: string | null

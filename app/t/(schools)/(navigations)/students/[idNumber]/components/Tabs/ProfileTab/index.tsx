@@ -1,7 +1,6 @@
 'use client'
 
 import type { Student } from '../../../types'
-import type { MedicalCondition } from './MedicalInfo'
 import type { Service } from './SubscribedServices'
 import consola from 'consola'
 import { Bus, Utensils } from 'lucide-react'
@@ -37,14 +36,6 @@ export function ProfileTab({ student, isLoading }: ProfileTabProps) {
     },
   ]
 
-  const medicalConditions: MedicalCondition[] = [
-    {
-      id: 'asthma',
-      description: 'L\'élève est asthmatique - Nécessite un inhalateur',
-      severity: 'medium',
-    },
-  ]
-
   return (
     <div className="space-y-6">
       <PersonalInfo student={student} />
@@ -55,7 +46,7 @@ export function ProfileTab({ student, isLoading }: ProfileTabProps) {
           isLoading={isLoading}
         />
         <MedicalInfo
-          conditions={medicalConditions}
+          conditions={student.medicalCondition}
           isLoading={isLoading}
         />
       </div>
@@ -64,7 +55,6 @@ export function ProfileTab({ student, isLoading }: ProfileTabProps) {
 }
 
 export { MedicalInfo } from './MedicalInfo'
-export type { MedicalCondition } from './MedicalInfo'
 // Re-export sub-components for direct access if needed
 export { PersonalInfo } from './PersonalInfo'
 export { SubscribedServices } from './SubscribedServices'

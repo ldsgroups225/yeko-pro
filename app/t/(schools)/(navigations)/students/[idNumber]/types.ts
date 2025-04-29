@@ -1,4 +1,4 @@
-import type { IStudentDTO } from '@/types'
+import type { IStudentDTO, MedicalCondition } from '@/types'
 
 export interface Student {
   id: string
@@ -9,6 +9,7 @@ export interface Student {
   dateOfBirth?: string
   address?: string
   avatarUrl?: string
+  medicalCondition: MedicalCondition[]
   isGouvernentAffected: boolean
   classroom?: {
     id: string
@@ -44,6 +45,7 @@ export function transformStudentDTO(dto: IStudentDTO): Student {
     address: dto.address || undefined,
     avatarUrl: dto.avatarUrl || undefined,
     isGouvernentAffected: dto.isGouvernentAffected ?? false,
+    medicalCondition: dto.medicalCondition || [],
     classroom: dto.classroom
       ? {
           id: dto.classroom.id,

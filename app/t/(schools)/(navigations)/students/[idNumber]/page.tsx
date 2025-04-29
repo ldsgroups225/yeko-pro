@@ -11,7 +11,7 @@ import { StudentHeader } from './components/StudentHeader'
 // Tab Components
 import { AcademicTab } from './components/Tabs/AcademicTab'
 import { AttendanceTab } from './components/Tabs/AttendanceTab'
-import { HealthTab } from './components/Tabs/HealthTab'
+// import { HealthTab } from './components/Tabs/HealthTab'
 import { ParentsTab } from './components/Tabs/ParentsTab'
 import { PerformanceTab } from './components/Tabs/PerformanceTab'
 import { ProfileTab } from './components/Tabs/ProfileTab'
@@ -51,12 +51,12 @@ const tabs: TabConfig[] = [
     description: 'Analyse détaillée des performances',
     component: PerformanceTab,
   },
-  {
-    id: 'health',
-    label: 'Santé',
-    description: 'Informations médicales et contacts d\'urgence',
-    component: HealthTab,
-  },
+  // {
+  //   id: 'health',
+  //   label: 'Santé',
+  //   description: 'Informations médicales et contacts d\'urgence',
+  //   component: HealthTab,
+  // },
   {
     id: 'parents',
     label: 'Parents',

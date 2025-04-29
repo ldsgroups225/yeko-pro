@@ -29,7 +29,11 @@ export const studentCreationSchema = z.object({
     .min(minBirthDate, { message: `Trop jeune (minimum ${MIN_STUDENT_AGE} ans).` })
     .max(maxBirthDate, { message: `Trop âgé (maximum ${MAX_STUDENT_AGE} ans).` }),
   address: z.string().trim().optional(),
-  medicalCondition: z.string().trim(),
+  medicalCondition: z.array(z.object({
+    id: z.string().optional(),
+    description: z.string(),
+    severity: z.enum(['low', 'medium', 'high']),
+  })),
   parentId: z.string({ required_error: 'Vérification parent requise.' })
     .min(1, 'Vérification parent requise.'),
   otp: z.string({ required_error: 'Code OTP requis.' })

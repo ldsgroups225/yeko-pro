@@ -7,12 +7,11 @@ import { ImageUpload } from '@/components/ImageUpload'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { Calendar } from '@/components/ui/calendar'
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { InputOTP, InputOTPGroup, InputOTPSeparator, InputOTPSlot } from '@/components/ui/input-otp'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
-import { Textarea } from '@/components/ui/textarea'
 import { maxBirthDate, minBirthDate } from '@/constants'
 import { cn } from '@/lib/utils'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -23,6 +22,8 @@ import { useState, useTransition } from 'react'
 import { useForm } from 'react-hook-form'
 import { checkOTP, createStudent } from '../actions'
 import { studentCreationSchema } from '../schemas'
+import { FormFieldWrapper } from './FormFieldWrapper'
+import { MedicalConditionInput } from './MedicalConditionInput'
 
 interface StudentCreationFormProps {
   onSuccess: (student: IStudent) => void
@@ -48,7 +49,7 @@ export function StudentCreationForm({
       gender: 'M',
       birthDate: undefined,
       address: '',
-      medicalCondition: '',
+      medicalCondition: [],
       otp: '',
       parentId: '',
 
@@ -98,7 +99,7 @@ export function StudentCreationForm({
           ...data,
           birthDate: data.birthDate.toISOString(),
           avatarUrl,
-          medicalCondition: data.medicalCondition ?? null,
+          medicalCondition: data.medicalCondition,
         }
 
         const student = await createStudent(payload, data.parentId)
@@ -114,7 +115,6 @@ export function StudentCreationForm({
 
   return (
     <Form {...studentForm}>
-      {/* Use react-hook-form's handleSubmit to trigger validation THEN onSubmit */}
       <form onSubmit={studentForm.handleSubmit(onSubmit)} className="space-y-4">
         <div className="flex justify-center mb-6">
           <ImageUpload
@@ -125,136 +125,146 @@ export function StudentCreationForm({
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <FormField
+          {/* First Name using Wrapper */}
+          <FormFieldWrapper
             control={studentForm.control}
             name="firstName"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Prénom</FormLabel>
-                <FormControl>
-                  <Input placeholder="Entrez le prénom" {...field} disabled={isLoading} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
+            label="Prénom"
+          >
+            {({ field }) => (
+              <Input
+                placeholder="Entrez le prénom"
+                {...field}
+                disabled={isLoading}
+              />
             )}
-          />
+          </FormFieldWrapper>
 
-          <FormField
+          {/* Last Name using Wrapper */}
+          <FormFieldWrapper
             control={studentForm.control}
             name="lastName"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Nom</FormLabel>
-                <FormControl>
-                  <Input placeholder="Entrez le nom" {...field} disabled={isLoading} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
+            label="Nom"
+          >
+            {({ field }) => (
+              <Input
+                placeholder="Entrez le nom"
+                {...field}
+                disabled={isLoading}
+              />
             )}
-          />
+          </FormFieldWrapper>
         </div>
 
-        <FormField
+        {/* Gender using Wrapper */}
+        <FormFieldWrapper
           control={studentForm.control}
           name="gender"
-          render={({ field }) => (
-            <FormItem className="space-y-3">
-              <FormLabel>Genre</FormLabel>
-              <FormControl>
-                <RadioGroup
-                  onValueChange={field.onChange}
-                  defaultValue={field.value}
-                  value={field.value}
-                  className="flex space-x-4"
-                  disabled={isLoading}
-                >
-                  <FormItem className="flex items-center space-x-2">
-                    <FormControl>
-                      <RadioGroupItem value="M" />
-                    </FormControl>
-                    <FormLabel className="font-normal">Masculin</FormLabel>
-                  </FormItem>
-                  <FormItem className="flex items-center space-x-2">
-                    <FormControl>
-                      <RadioGroupItem value="F" />
-                    </FormControl>
-                    <FormLabel className="font-normal">Féminin</FormLabel>
-                  </FormItem>
-                </RadioGroup>
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+          label="Genre"
+          className="space-y-3"
+        >
+          {({ field }) => (
 
-        <FormField
+            <RadioGroup
+              onValueChange={field.onChange}
+              value={field.value}
+              defaultValue={field.value}
+              className="flex space-x-4"
+              disabled={isLoading}
+
+            >
+              {/* Structure within RadioGroup requires FormItem/FormControl/FormLabel again */}
+              {/* This is specific to RadioGroup's structure, not the wrapper */}
+              <FormItem className="flex items-center space-x-2">
+                <FormControl>
+                  <RadioGroupItem value="M" />
+                </FormControl>
+                <FormLabel className="font-normal">Masculin</FormLabel>
+              </FormItem>
+              <FormItem className="flex items-center space-x-2">
+                <FormControl>
+                  <RadioGroupItem value="F" />
+                </FormControl>
+                <FormLabel className="font-normal">Féminin</FormLabel>
+              </FormItem>
+            </RadioGroup>
+          )}
+        </FormFieldWrapper>
+
+        {/* Birth Date using Wrapper */}
+        <FormFieldWrapper
           control={studentForm.control}
           name="birthDate"
-          render={({ field }) => (
-            <FormItem className="flex flex-col">
-              <FormLabel>Date de naissance</FormLabel>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <FormControl>
-                    <Button
-                      variant="outline"
-                      disabled={isLoading}
-                      className={cn(
-                        'w-full pl-3 text-left font-normal',
-                        !field.value && 'text-muted-foreground',
-                      )}
-                    >
-                      {field.value
-                        ? format(field.value, 'PPP', { locale: fr })
-                        : <span>Choisir une date</span>}
-                      <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                    </Button>
-                  </FormControl>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={field.value}
-                    onSelect={field.onChange}
-                    locale={fr}
-                    disabled={date =>
-                      isLoading
-                      || date > new Date()
-                      || date < minBirthDate
-                      || date > maxBirthDate}
-                    initialFocus
-                    captionLayout="dropdown-buttons"
-                    fromYear={minBirthDate.getFullYear()}
-                    toYear={maxBirthDate.getFullYear()}
-                  />
-                </PopoverContent>
-              </Popover>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+          label="Date de naissance"
+        >
+          {({ field }) => (
+            <Popover>
+              <PopoverTrigger asChild>
+                {/* FormControl is handled by FormFieldWrapper, but we need the Button inside */}
+                <Button
+                  variant="outline"
+                  disabled={isLoading}
+                  className={cn(
+                    'w-full pl-3 text-left font-normal',
+                    !field.value && 'text-muted-foreground',
+                  )}
+                >
+                  {field.value
+                    ? format(field.value, 'PPP', { locale: fr })
+                    : <span>Choisir une date</span>}
+                  <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="single"
+                  selected={field.value}
+                  onSelect={field.onChange}
 
-        <FormField
+                  locale={fr}
+                  disabled={date =>
+                    isLoading
+                    || date > new Date()
+                    || date < minBirthDate
+                    || date > maxBirthDate}
+                  initialFocus
+                  captionLayout="dropdown-buttons"
+                  fromYear={minBirthDate.getFullYear()}
+                  toYear={maxBirthDate.getFullYear()}
+                />
+              </PopoverContent>
+            </Popover>
+          )}
+        </FormFieldWrapper>
+
+        {/* Address using Wrapper */}
+        <FormFieldWrapper
           control={studentForm.control}
           name="address"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Adresse</FormLabel>
-              <FormControl>
-                <Input placeholder="Entrez l'adresse" {...field} value={field.value ?? ''} disabled={isLoading} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
+          label="Adresse"
+        >
+          {({ field }) => (
+            <Input
+              placeholder="Entrez l'adresse"
+              {...field}
+              value={field.value ?? ''}
+              disabled={isLoading}
+            />
           )}
-        />
+        </FormFieldWrapper>
 
-        {/* Display Parent Info */}
+        {/* Display Parent Info - Keep specific structure */}
+        {/* FormFieldWrapper is not ideal here as we don't have a standard input */}
+        {/* We are just displaying info based on state and linking message to parentId */}
         <FormField
           control={studentForm.control}
           name="parentId"
           render={() => (
             <FormItem>
-              <FormLabel className="text-center font-normal">
+              {/* Manually place label/info */}
+              <div className="text-center text-sm text-muted-foreground">
+                {' '}
+                {/* Mimic label style */}
                 {isOtpChecking
                   ? 'Vérification OTP...'
                   : parentName
@@ -270,72 +280,70 @@ export function StudentCreationForm({
                     : (
                         <p>Parent (Vérification OTP requise)</p>
                       )}
-              </FormLabel>
+              </div>
+              {/* Manually place message */}
+              {/* RHF automatically links FormMessage via FormField context */}
               <FormMessage />
             </FormItem>
           )}
         />
 
-        {/* OTP Input Field */}
-        <FormField
+        {/* OTP Input Field using Wrapper */}
+        <FormFieldWrapper
           control={studentForm.control}
           name="otp"
-          render={({ field }) => (
-            <FormItem className="flex flex-col items-center justify-center">
-              <FormLabel>Code Parent (OTP)</FormLabel>
-              <FormControl>
-                <InputOTP
-                  maxLength={6}
-                  {...field}
-                  value={field.value ?? ''}
-                  disabled={isLoading}
-                  onComplete={verifyOTP}
-                >
-                  <InputOTPGroup>
-                    <InputOTPSlot index={0} />
-                    <InputOTPSlot index={1} />
-                    <InputOTPSlot index={2} />
-                  </InputOTPGroup>
-                  <InputOTPSeparator />
-                  <InputOTPGroup>
-                    <InputOTPSlot index={3} />
-                    <InputOTPSlot index={4} />
-                    <InputOTPSlot index={5} />
-                  </InputOTPGroup>
-                </InputOTP>
-              </FormControl>
-              <FormDescription className="text-xs text-muted-foreground italic text-center mt-1">
-                Code à 6 chiffres généré dans l'application parent.
-              </FormDescription>
-              {/* RHF message for OTP field */}
-              <FormMessage />
-            </FormItem>
+          label="Code Parent (OTP)"
+          description="Code à 6 chiffres généré dans l'application parent."
+          className="flex flex-col items-center justify-center"
+        >
+          {({ field }) => (
+            <InputOTP
+              maxLength={6}
+              {...field}
+              value={field.value ?? ''}
+              disabled={isLoading}
+              onComplete={verifyOTP}
+            >
+              <InputOTPGroup>
+                <InputOTPSlot index={0} />
+                <InputOTPSlot index={1} />
+                <InputOTPSlot index={2} />
+              </InputOTPGroup>
+              <InputOTPSeparator />
+              <InputOTPGroup>
+                <InputOTPSlot index={3} />
+                <InputOTPSlot index={4} />
+                <InputOTPSlot index={5} />
+              </InputOTPGroup>
+            </InputOTP>
           )}
-        />
+        </FormFieldWrapper>
 
-        {/* Medical condition */}
-        <FormField
+        {/* Medical condition using Wrapper */}
+        <FormFieldWrapper
           control={studentForm.control}
           name="medicalCondition"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Condition médicale (optionnel)</FormLabel>
-              <FormControl>
-                <Textarea placeholder="Maladie, allergie, etc." {...field} disabled={isLoading} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
+          label="Condition médicale (optionnel)"
+        >
+          {({ field }) => (
+            <MedicalConditionInput
+              value={field.value}
+              onChange={field.onChange}
+              // name={field.name} // Probably not needed if value/onChange are handled
+              // onBlur={field.onBlur} // Pass if MedicalConditionInput uses it
+              // ref={field.ref} // Pass if MedicalConditionInput needs ref
+              disabled={isLoading}
+            />
           )}
-        />
+        </FormFieldWrapper>
 
-        {/* Display general error messages */}
+        {/* --- Error Display and Buttons remain the same --- */}
         {error && (
           <Alert variant="destructive">
             <AlertTitle>Erreur</AlertTitle>
             <AlertDescription>{error}</AlertDescription>
           </Alert>
         )}
-        {/* Display RHF server-side errors if you set them */}
         {studentForm.formState.errors.root?.serverError && (
           <Alert variant="destructive">
             <AlertTitle>Erreur Serveur</AlertTitle>
@@ -354,7 +362,7 @@ export function StudentCreationForm({
           </Button>
           <Button
             type="submit"
-            disabled={isLoading || !studentForm.formState.isValid}
+            disabled={isLoading || !studentForm.formState.isValid || !parentName /* Also disable if parent not verified */}
           >
             {isSubmitting ? 'Création...' : 'Créer l\'élève'}
           </Button>

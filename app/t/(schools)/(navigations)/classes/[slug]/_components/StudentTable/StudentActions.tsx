@@ -33,6 +33,7 @@ export function StudentActions({ student }: StudentActionsProps) {
     idNumber: student.idNumber,
     isGouvernentAffected: student.isGouvernentAffected,
     gender: student.gender,
+    medicalCondition: [],
     dateOfBirth: student.birthDate ?? undefined,
     avatarUrl: student.avatarUrl ?? '/user_placeholder.png',
     address: student.address ?? undefined,
