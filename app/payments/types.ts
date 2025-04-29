@@ -13,6 +13,7 @@ export interface IStudent {
   address: string | null
   gender: string | null
   birthDate: string | null
+  medicalCondition: string | null
   avatarUrl: string | null
   parentId: string
   classId: string | null

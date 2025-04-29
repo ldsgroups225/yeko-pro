@@ -1871,6 +1871,7 @@ export interface Database {
           id: string
           id_number: string
           last_name: string
+          medical_condition: string | null
           parent_id: string
           updated_at: string | null
           updated_by: string | null
@@ -1886,6 +1887,7 @@ export interface Database {
           id?: string
           id_number: string
           last_name: string
+          medical_condition?: string | null
           parent_id: string
           updated_at?: string | null
           updated_by?: string | null
@@ -1901,6 +1903,7 @@ export interface Database {
           id?: string
           id_number?: string
           last_name?: string
+          medical_condition?: string | null
           parent_id?: string
           updated_at?: string | null
           updated_by?: string | null

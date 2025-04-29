@@ -12,6 +12,7 @@ import { Input } from '@/components/ui/input'
 import { InputOTP, InputOTPGroup, InputOTPSeparator, InputOTPSlot } from '@/components/ui/input-otp'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
+import { Textarea } from '@/components/ui/textarea'
 import { maxBirthDate, minBirthDate } from '@/constants'
 import { cn } from '@/lib/utils'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -47,6 +48,7 @@ export function StudentCreationForm({
       gender: 'M',
       birthDate: undefined,
       address: '',
+      medicalCondition: '',
       otp: '',
       parentId: '',
 
@@ -96,6 +98,7 @@ export function StudentCreationForm({
           ...data,
           birthDate: data.birthDate.toISOString(),
           avatarUrl,
+          medicalCondition: data.medicalCondition ?? null,
         }
 
         const student = await createStudent(payload, data.parentId)
@@ -310,6 +313,21 @@ export function StudentCreationForm({
           )}
         />
 
+        {/* Medical condition */}
+        <FormField
+          control={studentForm.control}
+          name="medicalCondition"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Condition médicale (optionnel)</FormLabel>
+              <FormControl>
+                <Textarea placeholder="Maladie, allergie, etc." {...field} disabled={isLoading} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
         {/* Display general error messages */}
         {error && (
           <Alert variant="destructive">
@@ -336,7 +354,6 @@ export function StudentCreationForm({
           </Button>
           <Button
             type="submit"
-
             disabled={isLoading || !studentForm.formState.isValid}
           >
             {isSubmitting ? 'Création...' : 'Créer l\'élève'}

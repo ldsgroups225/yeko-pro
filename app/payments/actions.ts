@@ -71,6 +71,7 @@ async function fetchStudentById(client: SupabaseClient, id: string): Promise<ISt
     gender: data.gender,
     birthDate: data.date_of_birth,
     avatarUrl: data.avatar_url,
+    medicalCondition: data.medical_condition ?? null,
     parentId: data.parent_id,
     createdAt: data.created_at,
     updatedAt: data.updated_at,
@@ -211,6 +212,7 @@ export async function fetchTuitionFees(gradeId: number) {
  * @param formData.gender - Student's gender ('M' or 'F')
  * @param formData.birthDate - Student's birth date
  * @param formData.address - Student's address (optional)
+ * @param formData.medicalCondition - Student's medical condition (optional)
  * @param formData.avatarUrl - URL of student's avatar image (optional)
  * @param parentId - The ID of the parent
  * @returns The newly created student
@@ -223,6 +225,7 @@ export async function createStudent(
     birthDate: string
     address?: string
     avatarUrl?: string
+    medicalCondition: string | null
   },
   parentId: string,
 ): Promise<IStudent> {
@@ -249,6 +252,7 @@ export async function createStudent(
         date_of_birth: formData.birthDate,
         address: formData.address,
         parent_id: parentId,
+        medical_condition: formData.medicalCondition,
       })
       .select()
       .single()
@@ -276,6 +280,7 @@ export async function createStudent(
       address: studentData.address,
       gender: studentData.gender,
       birthDate: studentData.date_of_birth,
+      medicalCondition: studentData.medical_condition ?? null,
       avatarUrl: studentData.avatar_url,
       parentId: studentData.parent_id,
       classId: null,
