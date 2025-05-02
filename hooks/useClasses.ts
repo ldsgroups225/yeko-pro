@@ -92,7 +92,6 @@ export function useClasses(): UseClassesResult {
   } = useClassStore()
 
   const alreadyClass = useRef('')
-  const alreadySchoolId = useRef('')
 
   const hasNoClasses = useMemo(() => classes.length === 0, [classes])
 
@@ -114,14 +113,13 @@ export function useClasses(): UseClassesResult {
     }
   }, [totalStudentsCount, studentsPerPage, currentStudentPage])
 
-  const shouldReloadStudents = useCallback((schoolId: string, classId: string): boolean => {
-    if (alreadySchoolId.current === '' && alreadyClass.current === '')
+  const shouldReloadStudents = useCallback((classId: string): boolean => {
+    if (alreadyClass.current === '')
       return true
 
-    const shouldReload = alreadySchoolId.current !== schoolId || alreadyClass.current !== classId
+    const shouldReload = alreadyClass.current !== classId
 
     if (shouldReload) {
-      alreadySchoolId.current = schoolId
       alreadyClass.current = classId
     }
 
@@ -154,21 +152,21 @@ export function useClasses(): UseClassesResult {
   }, [selectedSchoolYearId, activeSemester])
 
   const _debouncedLoadClassStudents = useDebouncedCallback(
-    async (schoolId: string, classId: string) => {
+    async (classId: string) => {
       if (activeSemester === null)
         return
 
-      if (shouldReloadStudents(schoolId, classId)) {
-        await getClassStudents({ schoolId, classId, schoolYearId: selectedSchoolYearId, semesterId: activeSemester!.id })
+      if (shouldReloadStudents(classId)) {
+        await getClassStudents({ classId, schoolYearId: selectedSchoolYearId, semesterId: activeSemester!.id })
       }
     },
     300,
     { maxWait: 1000 },
   )
 
-  const loadClassStudents = useCallback(async (schoolId: string, classId: string): Promise<void> => {
+  const loadClassStudents = useCallback(async (classId: string): Promise<void> => {
     try {
-      await _debouncedLoadClassStudents(schoolId, classId)
+      await _debouncedLoadClassStudents(classId)
     }
     catch (error) {
       console.error('Failed to load class students:', error)
@@ -182,11 +180,10 @@ export function useClasses(): UseClassesResult {
 
   useEffect(() => {
     if (currentClass?.id && user?.school.id) {
-      const schoolId = user.school.id
       const classId = currentClass.id
 
-      if (shouldReloadStudents(schoolId, classId)) {
-        _debouncedLoadClassStudents(schoolId, classId)
+      if (shouldReloadStudents(classId)) {
+        _debouncedLoadClassStudents(classId)
       }
     }
 

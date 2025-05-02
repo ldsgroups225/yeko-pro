@@ -54,7 +54,7 @@ interface ClassActions {
   getClassDetailsStats: (
     params: { schoolId: string, classId: string, schoolYearId: number, semesterId?: number }
   ) => Promise<IClassDetailsStats>
-  getClassStudents: (params: { schoolId: string, classId: string, schoolYearId: number, semesterId: number }) => Promise<void>
+  getClassStudents: (params: { classId: string, schoolYearId: number, semesterId: number }) => Promise<void>
   clearClasses: () => void
 }
 
@@ -245,7 +245,6 @@ const useClassStore = create<ClassState & ClassActions>((set, get) => ({
     try {
       const data = await getClassStudents({
         classId: params.classId,
-        schoolId: params.schoolId,
         semesterId: params.semesterId,
         schoolYearId: params.schoolYearId,
 

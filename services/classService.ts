@@ -1,9 +1,9 @@
 'use server'
 
+import type { SupabaseClient } from '@/lib/supabase/server'
 import type { ClassDetailsStudent, FilterStudentWhereNotInTheClass, IClass, IClassDetailsStats } from '@/types'
 import { createClient } from '@/lib/supabase/server'
 import { formatFullName } from '@/lib/utils'
-import { getUserId } from './userService'
 
 interface FetchClassesParams {
   schoolId: string
@@ -27,6 +27,24 @@ interface UpdateClassParams {
   name: string
   gradeId: number
   maxStudent: number
+}
+
+/**
+ * Retrieves the authenticated user's ID using the provided Supabase client.
+ * This function verifies user authentication and is used as a prerequisite for other operations.
+ *
+ * @async
+ * @param {SupabaseClient} client - The Supabase client instance configured for server-side operations.
+ * @returns {Promise<string>} A promise that resolves to the authenticated user's ID.
+ * @throws {Error} Will throw an error if fetching the user fails, indicating an authentication issue.
+ */
+async function checkAuthUserId(client: SupabaseClient): Promise<string> {
+  const { data: user, error } = await client.auth.getUser()
+  if (error) {
+    console.error('Error fetching user:', error)
+    throw new Error('Vous n\'êtes pas autorisé à accéder à cette page')
+  }
+  return user.user.id
 }
 
 /**
@@ -277,7 +295,7 @@ export async function updateClass({
 }: UpdateClassParams): Promise<IClass> {
   const supabase = await createClient()
 
-  const userId = await getUserId()
+  const userId = await checkAuthUserId(supabase)
   if (!userId) {
     throw new Error('Unauthorized')
   }
@@ -424,7 +442,7 @@ interface GetClassStatsProps {
 export async function getClassDetailsStats({ schoolId, classId, schoolYearId, semesterId }: GetClassStatsProps): Promise<IClassDetailsStats> {
   const supabase = await createClient()
 
-  const userId = await getUserId()
+  const userId = await checkAuthUserId(supabase)
   if (!userId) {
     throw new Error('Unauthorized')
   }
@@ -463,111 +481,64 @@ export async function getClassDetailsStats({ schoolId, classId, schoolYearId, se
     throw new Error('Failed to fetch attendance data')
   }
 
-  const totalAttendances = attendanceData.length
   const absentCount = attendanceData.filter(a => a.status === 'absent').length
   const lateCount = attendanceData.filter(a => a.status === 'late').length
 
-  const absentRate = totalAttendances ? (absentCount / totalAttendances) * 100 : 0
-  const lateRate = totalAttendances ? (lateCount / totalAttendances) * 100 : 0
-
   // Get grades and calculate average
-  let gradeQs = supabase
-    .from('note_details')
-    .select(`
-    note,
-    notes!inner (
-      subject_id,
-      created_at,
-      total_points
-      )
-    `)
-    .eq('notes.class_id', classId)
-    .eq('notes.school_year_id', schoolYearId)
-    .eq('notes.is_graded', true)
+  const { data: classAverage, error: classAverageError } = await supabase
+    .from('class_year_average_view')
+    .select('year_average')
+    .eq('class_id', classId)
+    .eq('school_year_id', schoolYearId)
+    .single()
 
-  if (semesterId) {
-    gradeQs = gradeQs.eq('notes.semester_id', semesterId)
+  if (classAverageError || !classAverage) {
+    throw new Error('Failed to fetch class average data')
   }
 
-  const { data: gradeData } = await gradeQs
+  // // Calculate subject performance
+  // const subjectPerformance = Object.values(
+  //   gradeData.reduce((acc: { [key: string]: { subject: string, grades: number[], highest: number, lowest: number } }, curr) => {
+  //     const subjectId = curr.notes.subject_id
+  //     const percentage = ((curr.note ?? 0) / curr.notes.total_points) * 100
 
-  if (!gradeData) {
-    throw new Error('Failed to fetch grade data')
-  }
+  //     if (!acc[subjectId]) {
+  //       acc[subjectId] = {
+  //         subject: subjectId,
+  //         grades: [],
+  //         highest: percentage,
+  //         lowest: percentage,
+  //       }
+  //     }
 
-  // Calculate overall average grade
-  const averageGrade = gradeData.length > 0
-    ? gradeData.reduce((acc, curr) => {
-      const percentage = ((curr.note ?? 0) / curr.notes.total_points) * 100
-      return acc + percentage
-    }, 0) / gradeData.length
-    : 0
+  //     acc[subjectId].grades.push(percentage)
+  //     acc[subjectId].highest = Math.max(acc[subjectId].highest, percentage)
+  //     acc[subjectId].lowest = Math.min(acc[subjectId].lowest, percentage)
 
-  // Calculate performance data by month
-  const performanceData = Object.values(
-    gradeData.reduce((acc: { [key: string]: { month: string, average: number, count: number, attendance: number } }, curr) => {
-      const month = new Date(curr.notes.created_at).toLocaleString('default', { month: 'long' })
-
-      if (!acc[month]) {
-        acc[month] = { month, average: 0, count: 0, attendance: 0 }
-      }
-
-      const percentage = ((curr.note ?? 0) / curr.notes.total_points) * 100
-      acc[month].average = ((acc[month].average * acc[month].count) + percentage) / (acc[month].count + 1)
-      acc[month].count++
-
-      return acc
-    }, {}),
-  ).map(({ month, average, attendance }) => ({
-    month,
-    average: Number(average.toFixed(2)),
-    attendance: Number(attendance.toFixed(2)),
-  }))
-
-  // Calculate subject performance
-  const subjectPerformance = Object.values(
-    gradeData.reduce((acc: { [key: string]: { subject: string, grades: number[], highest: number, lowest: number } }, curr) => {
-      const subjectId = curr.notes.subject_id
-      const percentage = ((curr.note ?? 0) / curr.notes.total_points) * 100
-
-      if (!acc[subjectId]) {
-        acc[subjectId] = {
-          subject: subjectId,
-          grades: [],
-          highest: percentage,
-          lowest: percentage,
-        }
-      }
-
-      acc[subjectId].grades.push(percentage)
-      acc[subjectId].highest = Math.max(acc[subjectId].highest, percentage)
-      acc[subjectId].lowest = Math.min(acc[subjectId].lowest, percentage)
-
-      return acc
-    }, {}),
-  ).map(({ subject, grades, highest, lowest }) => ({
-    subject,
-    average: Number((grades.reduce((a, b) => a + b, 0) / grades.length).toFixed(2)),
-    highest: Number(highest.toFixed(2)),
-    lowest: Number(lowest.toFixed(2)),
-  }))
+  //     return acc
+  //   }, {}),
+  // ).map(({ subject, grades, highest, lowest }) => ({
+  //   subject,
+  //   average: Number((grades.reduce((a, b) => a + b, 0) / grades.length).toFixed(2)),
+  //   highest: Number(highest.toFixed(2)),
+  //   lowest: Number(lowest.toFixed(2)),
+  // }))
 
   return {
     totalStudents,
-    averageGrade: Number(averageGrade.toFixed(2)),
-    absentRate: Number(absentRate.toFixed(2)),
-    lateRate: Number(lateRate.toFixed(2)),
+    averageGrade: classAverage.year_average ?? 0,
+    absentCount,
+    lateCount,
     boyCount,
     girlCount,
     activeStudents,
     inactiveStudents,
-    performanceData,
-    subjectPerformance,
+    performanceData: [], // TODO: Implement performance data
+    subjectPerformance: [], // TODO: Implement subject performance
   }
 }
 
 interface GetClassStudentsProps {
-  schoolId: string
   classId: string
   page: number
   limit: number
@@ -587,7 +558,6 @@ interface GetClassStudentsProps {
  * @throws {Error} If the user is unauthorized or if there is an error fetching data.
  */
 export async function getClassStudents({
-  schoolId,
   classId,
   page,
   limit,
@@ -599,77 +569,60 @@ export async function getClassStudents({
   const from = (page - 1) * limit
   const to = from + limit - 1
 
-  const userId = await getUserId()
-  if (!userId) {
-    throw new Error('Unauthorized')
-  }
+  await checkAuthUserId(supabase)
 
-  // First, get all students in the class
-  const { data: students, error: studentError, count: studentCount } = await supabase
-    .from('students')
+  // Fetch student data using the new student_semester_average_view
+  const { data: studentData, error, count: totalCount } = await supabase
+    .from('student_semester_average_view')
     .select(`
-      id,
-      id_number,
-      first_name,
-      last_name,
-      gender,
-      date_of_birth,
-      avatar_url,
-      address,
-      student_enrollment_view!inner(school_id, class_id, enrollment_status, created_at, is_government_affected, class_id, class_name),
-      note_details(
-        note,
-        notes!inner (
-          total_points,
-          school_year_id,
-          semester_id,
-          created_at
+      student:students!inner (
+        id,
+        id_number,
+        first_name,
+        last_name,
+        gender,
+        date_of_birth,
+        avatar_url,
+        address,
+        student_enrollment_view!inner(school_id, class_id, enrollment_status, created_at, is_government_affected, class_name),
+        attendances(
+          status,
+          created_at,
+          school_years_id,
+          semesters_id
         )
       ),
-      attendances(
-        status,
-        created_at,
-        school_years_id,
-        semesters_id
-      )
+      semester_average,
+      rank_in_class,
+      class_id,
+      school_year_id,
+      semester_id
     `, { count: 'exact' })
-    .eq('student_enrollment_view.class_id', classId)
-    .eq('student_enrollment_view.school_id', schoolId)
+    .eq('class_id', classId)
+    .eq('school_year_id', schoolYearId)
+    .eq('semester_id', semesterId)
     .range(from, to)
-    .order('last_name', { ascending: true })
-    .order('first_name', { ascending: true })
+    .order('rank_in_class', { ascending: true, nullsFirst: false })
     .throwOnError()
 
-  if (studentError) {
+  if (error) {
+    console.error('Error fetching class students with rank:', error)
     throw new Error('Failed to fetch students')
   }
 
-  if (!students) {
+  if (!studentData) {
     throw new Error('Failed to fetch students data')
   }
 
   // Process each student's data to match the interface
-  const studentsWithStats = students.map((student) => {
-    // Filter grades for current school year and semester
-    const currentGrades = student.note_details.filter(detail =>
-      detail.notes.school_year_id === schoolYearId
-      && detail.notes.semester_id === semesterId,
-    )
+  const students = studentData.map((item) => {
+    const student = item.student // Access nested student object
 
-    // Calculate grade average
-    const gradeAverage = currentGrades.length > 0
-      ? currentGrades.reduce((acc, curr) => {
-        const percentage = ((curr.note ?? 0) / curr.notes.total_points) * 100
-        return acc + percentage
-      }, 0) / currentGrades.length
-      : 0
-
-    // Get last evaluation date
-    const lastEvaluation = currentGrades.length > 0
-      ? new Date(Math.max(...currentGrades.map(g =>
-          new Date(g.notes.created_at).getTime(),
-        ))).toLocaleDateString()
-      : ''
+    if (!student) {
+      // Handle cases where the join might unexpectedly fail, though !inner should prevent this
+      console.warn(`Student data missing for rank entry: ${JSON.stringify(item)}`)
+      return null // Or throw an error, or return a default structure
+    }
 
     // Filter attendance for current school year and semester
     const currentAttendance = student.attendances.filter(attendance =>
@@ -681,9 +634,23 @@ export async function getClassStudents({
     const absentCount = currentAttendance.filter(a => a.status === 'absent').length
     const lateCount = currentAttendance.filter(a => a.status === 'late').length
 
+    // Get last evaluation date from attendance (best effort)
+    const validAttendances = currentAttendance.filter(a => a.created_at !== null)
+
+    const lastEvaluation = validAttendances.length > 0
+      ? new Date(Math.max(...validAttendances.map(a =>
+          // We know a.created_at is not null here due to the filter above
+          new Date(a.created_at!).getTime(),
+        ))).toLocaleDateString()
+      : ''
+
     const enrollment: typeof student.student_enrollment_view[0] = student.student_enrollment_view.length > 0
       ? student.student_enrollment_view[0]
       : { school_id: null, class_id: null, enrollment_status: null, created_at: null, is_government_affected: null, class_name: null }
+
+    // Use semester_average and rank_in_class from the view
+    const gradeAverage = item.semester_average ?? 0
+    const rank = item.rank_in_class ?? 0
 
     return {
       id: student.id,
@@ -698,25 +665,19 @@ export async function getClassStudents({
       className: enrollment.class_name,
       dateJoined: enrollment.created_at,
       isGouvernentAffected: enrollment.is_government_affected || false,
-      gradeAverage: Number(gradeAverage.toFixed(2)),
+      gradeAverage: Number(gradeAverage.toFixed(2)), // Ensure formatting
       absentCount,
       lateCount,
       lastEvaluation,
-      teacherNotes: '', // You might want to add a notes table/column
-      status: 'active', // You might want to add a status column
-      rank: 0, // Will be calculated after sorting
+      teacherNotes: '', // Placeholder
+      status: 'active', // Placeholder
+      rank, // Use rank from view
     }
-  })
+  }).filter((s): s is ClassDetailsStudent => s !== null) // Filter out any nulls if handled that way
 
-  // Sort by grade average and assign ranks
-  const sortedStudents = studentsWithStats
-    .sort((a, b) => b.gradeAverage - a.gradeAverage)
-    .map((student, index) => ({
-      ...student,
-      rank: index + 1,
-    }))
+  // No need for manual sorting/ranking anymore
 
-  return { students: sortedStudents, totalCount: studentCount ?? 0 }
+  return { students, totalCount: totalCount ?? 0 }
 }
 
 export async function filterStudentWhereNotInTheClass(

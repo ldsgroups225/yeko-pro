@@ -4,7 +4,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Clock } from 'lucide-react'
 
 interface AttendanceMetricsProps {
-  stats: Pick<IClassDetailsStats, 'absentRate' | 'lateRate'>
+  stats: Pick<IClassDetailsStats, 'absentCount' | 'lateCount'>
 }
 
 export function AttendanceMetrics({ stats }: AttendanceMetricsProps) {
@@ -15,8 +15,7 @@ export function AttendanceMetrics({ stats }: AttendanceMetricsProps) {
           <div>
             <p className="text-sm text-muted-foreground">Assiduité</p>
             <p className="text-2xl font-bold">
-              {(100 - stats.absentRate).toFixed(1)}
-              %
+              {stats.absentCount}
             </p>
           </div>
           <Clock className="h-8 w-8 text-orange-500" />
@@ -25,15 +24,13 @@ export function AttendanceMetrics({ stats }: AttendanceMetricsProps) {
           <div className="flex justify-between text-sm">
             <span>Absences</span>
             <Badge variant="outline" className="bg-red-500/10">
-              {stats.absentRate}
-              %
+              {stats.absentCount}
             </Badge>
           </div>
           <div className="flex justify-between text-sm">
             <span>Retards</span>
             <Badge variant="outline" className="bg-yellow-500/10">
-              {stats.lateRate}
-              %
+              {stats.lateCount}
             </Badge>
           </div>
         </div>

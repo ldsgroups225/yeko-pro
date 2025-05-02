@@ -14,7 +14,6 @@ interface StudentTableClientProps {
   initialStudents: ClassDetailsStudent[]
   totalCount: number
   classId: string
-  schoolId: string
   schoolYearId: number
   semesterId: number
   itemsPerPage: number
@@ -24,7 +23,6 @@ export function StudentTableClient({
   initialStudents,
   totalCount,
   classId,
-  schoolId,
   schoolYearId,
   semesterId,
   itemsPerPage,
@@ -62,7 +60,6 @@ export function StudentTableClient({
       // Fetch data for the new page client-side
       const { students: newStudents } = await getClassStudents({
         classId,
-        schoolId,
         schoolYearId,
         semesterId,
         page: newPage,
@@ -79,7 +76,7 @@ export function StudentTableClient({
     finally {
       setIsLoading(false)
     }
-  }, [currentPage, classId, schoolId, schoolYearId, semesterId, itemsPerPage])
+  }, [currentPage, classId, schoolYearId, semesterId, itemsPerPage])
 
   return (
     <>

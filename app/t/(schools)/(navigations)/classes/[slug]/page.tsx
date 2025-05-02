@@ -25,7 +25,7 @@ export default async function ClassDetailsPage({
   // Fetch essential data server-side in parallel
   const [classDataResult, gradesResult, userResult] = await Promise.allSettled([
     getClassBySlug(slug),
-    fetchGrades('secondary'), // Assuming 'secondary' or fetch dynamically if needed
+    fetchGrades('secondary'),
     fetchUserProfile(),
   ])
 
@@ -61,10 +61,7 @@ export default async function ClassDetailsPage({
             <StudentTableHeaderClient classData={classData} grades={grades} />
           </CardHeader>
           <CardContent>
-            <StudentTableLoader
-              classId={classData.id}
-              schoolId={user.school.id}
-            />
+            <StudentTableLoader classId={classData.id} />
           </CardContent>
         </Card>
       </Suspense>

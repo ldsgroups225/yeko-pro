@@ -187,8 +187,8 @@ export interface IClass {
 export interface IClassDetailsStats {
   totalStudents: number
   averageGrade: number
-  absentRate: number
-  lateRate: number
+  absentCount: number
+  lateCount: number
   boyCount: number
   girlCount: number
   activeStudents: number
