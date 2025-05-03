@@ -104,6 +104,9 @@ export interface IStudentDTO {
   gender: 'M' | 'F' | null
   dateOfBirth: string | null
   isGouvernentAffected?: boolean
+  isOrphan?: boolean
+  hasSubscribedTransportationService?: boolean
+  hasSubscribedCanteenService?: boolean
   medicalCondition?: MedicalCondition[]
   avatarUrl?: string | null
   address?: string | null
@@ -220,6 +223,9 @@ export interface ClassDetailsStudent {
   classId: string | null
   className: string | null
   isGouvernentAffected: boolean
+  isOrphan: boolean
+  hasSubscribedTransportationService: boolean
+  hasSubscribedCanteenService: boolean
   lateCount: number
   absentCount: number
   teacherNotes: string

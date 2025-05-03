@@ -2,7 +2,6 @@
 
 import type { Student } from '../../../types'
 import type { Service } from './SubscribedServices'
-import consola from 'consola'
 import { Bus, Utensils } from 'lucide-react'
 import { MedicalInfo } from './MedicalInfo'
 import { PersonalInfo } from './PersonalInfo'
@@ -14,25 +13,20 @@ interface ProfileTabProps {
 }
 
 export function ProfileTab({ student, isLoading }: ProfileTabProps) {
-  // Mock data - Replace with actual data fetching
   const services: Service[] = [
     {
       id: 'transport',
       name: 'Transport Scolaire',
       icon: <Bus className="h-5 w-5 text-muted-foreground" />,
-      isActive: false,
-      onToggle: (checked: boolean) => {
-        consola.log('Transport toggled:', checked)
-      },
+      isActive: student.hasSubscribedTransportationService,
+      onToggle: () => {},
     },
     {
       id: 'cafeteria',
       name: 'Cantine',
       icon: <Utensils className="h-5 w-5 text-muted-foreground" />,
-      isActive: true,
-      onToggle: (checked: boolean) => {
-        consola.log('Cafeteria toggled:', checked)
-      },
+      isActive: student.hasSubscribedCanteenService,
+      onToggle: () => {},
     },
   ]
 
@@ -55,7 +49,6 @@ export function ProfileTab({ student, isLoading }: ProfileTabProps) {
 }
 
 export { MedicalInfo } from './MedicalInfo'
-// Re-export sub-components for direct access if needed
 export { PersonalInfo } from './PersonalInfo'
 export { SubscribedServices } from './SubscribedServices'
 export type { Service } from './SubscribedServices'

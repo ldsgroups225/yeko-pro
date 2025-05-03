@@ -3,7 +3,6 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Switch } from '@/components/ui/switch'
-import consola from 'consola'
 import { Bus, Utensils } from 'lucide-react'
 
 export interface Service {
@@ -30,6 +29,7 @@ function ServiceRow({ service }: { service: Service }) {
         checked={service.isActive}
         onCheckedChange={service.onToggle}
         aria-label={`Toggle ${service.name}`}
+        disabled
       />
     </div>
   )
@@ -59,14 +59,14 @@ export function SubscribedServices({ services, isLoading }: SubscribedServicesPr
       name: 'Transport Scolaire',
       icon: <Bus className="h-5 w-5 text-muted-foreground" />,
       isActive: false,
-      onToggle: () => consola.log('Transport toggled'),
+      onToggle: () => {},
     },
     {
       id: 'cafeteria',
       name: 'Cantine',
       icon: <Utensils className="h-5 w-5 text-muted-foreground" />,
       isActive: false,
-      onToggle: () => consola.log('Cafeteria toggled'),
+      onToggle: () => {},
     },
   ]
 

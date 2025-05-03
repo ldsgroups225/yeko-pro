@@ -11,6 +11,9 @@ export interface Student {
   avatarUrl?: string
   medicalCondition: MedicalCondition[]
   isGouvernentAffected: boolean
+  isOrphan: boolean
+  hasSubscribedTransportationService: boolean
+  hasSubscribedCanteenService: boolean
   classroom?: {
     id: string
     name: string
@@ -45,6 +48,9 @@ export function transformStudentDTO(dto: IStudentDTO): Student {
     address: dto.address || undefined,
     avatarUrl: dto.avatarUrl || undefined,
     isGouvernentAffected: dto.isGouvernentAffected ?? false,
+    isOrphan: dto.isOrphan ?? false,
+    hasSubscribedTransportationService: dto.hasSubscribedTransportationService ?? false,
+    hasSubscribedCanteenService: dto.hasSubscribedCanteenService ?? false,
     medicalCondition: dto.medicalCondition || [],
     classroom: dto.classroom
       ? {
