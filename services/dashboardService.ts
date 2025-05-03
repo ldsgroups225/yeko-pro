@@ -22,9 +22,9 @@ interface DashboardMetrics {
     pendingApplications: number
     withoutClass: number
   }
-  payments: {
-    onTimeRate: number
-    improvement: number
+  attendance: {
+    lateCount: number
+    absencesCount: number
   }
 }
 
@@ -141,11 +141,12 @@ async function getTeachingStaff(client: SupabaseClient, schoolId: string): Promi
   }
 }
 
-async function getPayments(client: SupabaseClient, schoolId: string): Promise<{ onTimeRate: number, improvement: number }> {
+async function getSummaryAttendance(client: SupabaseClient, _schoolId: string): Promise<{ lateCount: number, absencesCount: number }> {
   const { data, error } = await client
-    .from('payment_plans')
-    .select('total_amount, amount_paid, student: student_school_class(school_id)')
-    .eq('student.school_id', schoolId)
+    .from('attendances')
+    .select('status')
+    // TODO: .eq('student.school_id', schoolId)
+    .or('status.eq.late,status.eq.absent')
     .throwOnError()
 
   if (error) {
@@ -153,13 +154,10 @@ async function getPayments(client: SupabaseClient, schoolId: string): Promise<{ 
     throw new Error('Failed to fetch payments')
   }
 
-  const totalPayment = data?.reduce((acc, p) => acc + p.total_amount, 0) ?? 0
-  const totalPaid = data?.reduce((acc, p) => acc + p.amount_paid, 0) ?? 0
+  const lateCount = data?.reduce((acc, p) => acc + (p.status === 'late' ? 1 : 0), 0) ?? 0
+  const absencesCount = data?.reduce((acc, p) => acc + (p.status === 'absent' ? 1 : 0), 0) ?? 0
 
-  const onTimeRate = totalPaid / totalPayment
-  const improvement = (totalPayment - totalPaid) / totalPayment // TODO: implement yearOverYearGrowth calculation
-
-  return { onTimeRate, improvement }
+  return { lateCount, absencesCount }
 }
 
 interface NoteDetail {
@@ -262,9 +260,9 @@ export async function getDashboardMetrics(): Promise<DashboardMetrics> {
   const studentPopulation = await getStudentPopulation(supabase, schoolId)
   const studentFiles = await getStudentFiles(supabase, schoolId)
   const teachingStaff = await getTeachingStaff(supabase, schoolId)
-  const payments = await getPayments(supabase, schoolId)
+  const attendance = await getSummaryAttendance(supabase, schoolId)
 
-  return { payments, studentPopulation, studentFiles, teachingStaff }
+  return { attendance, studentPopulation, studentFiles, teachingStaff }
 }
 
 export async function getPonctualiteData(): Promise<IPonctualite[]> {

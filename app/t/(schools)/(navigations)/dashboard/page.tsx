@@ -1,5 +1,5 @@
 import { getCandidatures, getDashboardMetrics, getPonctualiteData } from '@/services/dashboardService'
-import { CreditCard, School, Users, UserX } from 'lucide-react'
+import { BatteryPlus, School, Users, UserX } from 'lucide-react'
 import { Applications, Chart, GradesTable, MetricCard } from './_components'
 
 export default async function DashboardPage() {
@@ -48,13 +48,16 @@ export default async function DashboardPage() {
           </div>
         </MetricCard>
 
-        <MetricCard title="Paiements Scolarité" icon={<CreditCard className="h-6 w-6" />} variant="success">
-          <div className="text-3xl font-bold text-emerald-600 dark:text-white">
-            {metrics?.payments.onTimeRate.toFixed(2) || '-'}
-            %
-          </div>
-          <div className="text-sm text-emerald-600 font-medium mt-2">
-            ▲ 8% de paiements à temps vs mois dernier
+        <MetricCard title="Assiduité" icon={<BatteryPlus className="h-6 w-6" />} variant="success">
+          <div className="space-y-2 text-emerald-600 dark:text-white">
+            <div className="flex justify-between items-center">
+              <span className="text-sm">Absences:</span>
+              <span className="font-bold">{metrics?.attendance.absencesCount || '-'}</span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-sm">Retards:</span>
+              <span className="font-bold">{metrics?.attendance.lateCount || '-'}</span>
+            </div>
           </div>
         </MetricCard>
       </div>
