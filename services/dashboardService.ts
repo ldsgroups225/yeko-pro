@@ -493,19 +493,70 @@ export async function handleCandidature(
   }
 }
 
-export async function getClassesByGrade(gradeId: number): Promise<{ id: string, name: string }[]> {
-  const supabase = await createClient()
+export async function getClassesByGrade(gradeId: number): Promise<{ id: string, name: string, remainingSeats: number }[]> {
+  try {
+    const supabase = await createClient()
+    const userId = await checkAuthUserId(supabase)
 
-  const { data, error } = await supabase
-    .from('classes')
-    .select('id, name')
-    .eq('grade_id', gradeId)
-    .throwOnError()
+    // Fetch current school year and user's school ID in parallel
+    const [{ data: schoolYear, error: schoolYearError }, schoolId] = await Promise.all([
+      supabase
+        .from('school_years')
+        .select('id')
+        .eq('is_current', true)
+        .single(),
+      getDirectorSchoolId(supabase, userId),
+    ])
 
-  if (error) {
-    console.error('Error fetching classes by grade:', error)
-    throw new Error('Échec de la récupération des classes')
+    if (schoolYearError || !schoolYear) {
+      throw new Error('Impossible de charger l\'année scolaire')
+    }
+
+    if (!schoolId) {
+      throw new Error('Impossible de déterminer l\'école')
+    }
+
+    // Fetch classes with their associated students
+    const { data, error } = await supabase
+      .from('classes')
+      .select(`
+        id,
+        name,
+        max_student,
+        student_school_class!inner(id)
+      `)
+      .eq('grade_id', gradeId)
+      .eq('school_id', schoolId)
+      .eq('student_school_class.school_year_id', schoolYear.id)
+      .eq('student_school_class.enrollment_status', 'accepted')
+      .is('student_school_class.is_active', true)
+
+    if (error) {
+      throw new Error('Échec de la récupération des classes')
+    }
+
+    if (!data) {
+      return []
+    }
+
+    // Process the results to calculate remaining seats
+    const classes = data.map((classData) => {
+      const totalStudents = Array.isArray(classData.student_school_class)
+        ? classData.student_school_class.length
+        : 0
+
+      return {
+        id: classData.id,
+        name: classData.name,
+        remainingSeats: Math.max(0, (classData.max_student || 0) - totalStudents),
+      }
+    })
+
+    // return classes with available seats
+    return classes.filter(c => c.remainingSeats > 0)
   }
-
-  return data
+  catch (error) {
+    console.error('Error in getClassesByGrade:', error)
+    throw error
+  }
 }

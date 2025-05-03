@@ -33,7 +33,7 @@ function StudentClassSelectionDialog({
   onConfirm,
 }: StudentClassSelectionDialogProps) {
   const [selectedClassId, setSelectedClassId] = useState<string>('')
-  const [classes, setClasses] = useState<Array<{ id: string, name: string }>>([])
+  const [classes, setClasses] = useState<Array<{ id: string, name: string, remainingSeats: number }>>([])
   const [isLoading, setIsLoading] = useState(false)
 
   useEffect(() => {
@@ -75,6 +75,7 @@ function StudentClassSelectionDialog({
         <DialogHeader>
           <DialogTitle>
             Choisir une classe pour
+            {' '}
             {student.name}
           </DialogTitle>
         </DialogHeader>
@@ -85,8 +86,11 @@ function StudentClassSelectionDialog({
             </SelectTrigger>
             <SelectContent>
               {classes.map(c => (
-                <SelectItem key={c.id} value={c.id}>
-                  {c.name}
+                <SelectItem key={c.id} value={c.id} className="flex justify-between w-full">
+                  <span>{c.name}</span>
+                  <span className="ml-4 text-xs text-muted-foreground">
+                    {c.remainingSeats > 1 ? `(${c.remainingSeats} places restantes)` : '(Dernière place)'}
+                  </span>
                 </SelectItem>
               ))}
             </SelectContent>
