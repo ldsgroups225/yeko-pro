@@ -1,3 +1,5 @@
+// app/t/(schools)/(navigations)/settings/tabs/TuitionSettingsTab.tsx
+
 'use client'
 
 import type { TuitionSettings } from '@/validations'
@@ -9,7 +11,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { saveRecordIfDirty } from '@/lib/utils'
 import useGradeStore from '@/store/gradeStore'
 import useTuitionStore from '@/store/tuitionStore'
@@ -52,7 +54,7 @@ export default function TuitionSettingsPage() {
     }, {} as Record<number, TuitionSettings>),
   )
 
-  const fetchTuitionSettings = async () => {
+  const fetchTuitionSettings = useCallback(async () => {
     try {
       await fetchTuitions()
     }
@@ -60,7 +62,7 @@ export default function TuitionSettingsPage() {
       console.error('Error fetching tuition settings:', error)
       toast.error(error.message)
     }
-  }
+  }, [])
 
   useEffect(() => {
     let mounted = true
@@ -115,14 +117,17 @@ export default function TuitionSettingsPage() {
         title="Configuration scolarité"
         description="Gérez les paramètres de scolarité de votre établissement"
       >
-        <div className="rounded-md border">
+        <div className="rounded-md border overflow-x-auto">
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="w-[100px]">Niveau</TableHead>
-                <TableHead className="w-[220px]">Frais annuels</TableHead>
-                <TableHead className="w-[210px]">Remise d'État (%)</TableHead>
-                <TableHead className="w-[150px]">Modifié le</TableHead>
+                <TableHead className="min-w-[80px]">Niveau</TableHead>
+                <TableHead className="min-w-[150px]">Frais Annuels</TableHead>
+                <TableHead className="min-w-[150px]">Frais État</TableHead>
+                <TableHead className="min-w-[150px]">Reduction Orphelin</TableHead>
+                <TableHead className="min-w-[150px]">Frais Cantine</TableHead>
+                <TableHead className="min-w-[150px]">Frais Transport</TableHead>
+                <TableHead className="min-w-[100px]">Modifié le</TableHead>
                 <TableHead className="w-[30px]"></TableHead>
               </TableRow>
             </TableHeader>
@@ -142,7 +147,7 @@ export default function TuitionSettingsPage() {
         </div>
         <div className="mt-4 flex items-center justify-end space-x-2 text-sm text-muted-foreground">
           <span>• Tout les frais sont en FCFA</span>
-          <span>• La remise d'État = élèves affectés d'état</span>
+          <span>• Frais État = élèves affectés d'état</span>
         </div>
       </SettingsSection>
 
@@ -152,20 +157,22 @@ export default function TuitionSettingsPage() {
         actions={
           showPaymentPlan
             ? (
-                <Tooltip delayDuration={500}>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      onClick={() => setShowAddTemplateModal(true)}
-                    >
-                      <PlusCircle className="h-4 w-4" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    Ajouter une tranche de paiement
-                  </TooltipContent>
-                </Tooltip>
+                <TooltipProvider>
+                  <Tooltip delayDuration={500}>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={() => setShowAddTemplateModal(true)}
+                      >
+                        <PlusCircle className="h-4 w-4" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      Ajouter une tranche de paiement
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               )
             : <div className="w-9 h-9" />
         }
@@ -180,7 +187,7 @@ export default function TuitionSettingsPage() {
             )
           : (
               <div className="text-center text-sm text-muted-foreground">
-                Cliquez sur l&apos;icône œil pour voir les tranches de paiement.
+                Cliquez sur l'icône œil pour voir les tranches de paiement.
               </div>
             )}
       </SettingsSection>
