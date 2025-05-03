@@ -5,7 +5,8 @@
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
-import { useEffect, useState } from 'react'
+import { formatCurrency } from '@/lib/utils'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { fetchTuitionFees } from '../../actions'
 
 interface Step4TuitionDisplayProps {
@@ -14,12 +15,24 @@ interface Step4TuitionDisplayProps {
   onTermFeeSet: (fee: number) => void
   gradeId: number | null
   isStateAssigned: boolean
+  isOrphan: boolean
+  hasCanteenSubscription: boolean
+  hasTransportSubscription: boolean
 }
 
 interface TuitionFee {
   id: string
   annualFee: number
-  governmentDiscountPercentage: number
+  governmentAnnualFee: number
+  orphanDiscountAmount: number
+  canteenFee: number
+  transportationFee: number
+}
+
+interface TuitionFeeState {
+  data: TuitionFee | null
+  isLoading: boolean
+  error: string | null
 }
 
 export function Step4TuitionDisplay({
@@ -28,18 +41,36 @@ export function Step4TuitionDisplay({
   onTermFeeSet,
   gradeId,
   isStateAssigned,
+  isOrphan,
+  hasCanteenSubscription,
+  hasTransportSubscription,
 }: Step4TuitionDisplayProps) {
-  const [tuitionFees, setTuitionFees] = useState<TuitionFee[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const [tuitionFeeState, setTuitionFeeState] = useState<TuitionFeeState>({
+    data: null,
+    isLoading: true,
+    error: null,
+  })
+
+  // Use this ref to track if we need to reset state on grade change
+  const prevGradeIdRef = useRef<number | null>(gradeId)
 
   useEffect(() => {
     let mounted = true
 
+    // If gradeId changed, we'll handle it in the next render
+    if (prevGradeIdRef.current !== gradeId) {
+      prevGradeIdRef.current = gradeId
+      return
+    }
+
     async function loadTuitionFees() {
       if (!gradeId) {
         if (mounted) {
-          setIsLoading(false)
+          setTuitionFeeState(prev => ({
+            ...prev,
+            isLoading: false,
+            error: 'Veuillez sélectionner un niveau scolaire.',
+          }))
         }
         return
       }
@@ -47,164 +78,242 @@ export function Step4TuitionDisplay({
       try {
         const data = await fetchTuitionFees(gradeId)
         if (mounted) {
-          setTuitionFees(data)
-          setIsLoading(false)
+          if (data && data.length > 0) {
+            setTuitionFeeState(prev => ({
+              ...prev,
+              data: data[0],
+              isLoading: false,
+              error: null,
+            }))
+          }
+          else {
+            setTuitionFeeState(prev => ({
+              ...prev,
+              isLoading: false,
+              error: 'Aucun frais de scolarité trouvé pour ce niveau.',
+            }))
+          }
         }
       }
-      catch {
+      catch (err) {
+        console.error('Failed to fetch tuition fees:', err)
         if (mounted) {
-          setError('Impossible de charger les frais de scolarité')
-          setIsLoading(false)
+          setTuitionFeeState(prev => ({
+            ...prev,
+            isLoading: false,
+            error: 'Impossible de charger les frais de scolarité. Veuillez réessayer.',
+          }))
         }
       }
     }
 
     loadTuitionFees()
+
     return () => {
       mounted = false
     }
   }, [gradeId])
 
-  const tuitionFee = tuitionFees[0] // We expect only one fee configuration per grade
-  const annualFee = tuitionFee?.annualFee ?? 0
-  const discountedAnnualFee = isStateAssigned && tuitionFee
-    ? Math.round(annualFee * (1 - tuitionFee.governmentDiscountPercentage / 100))
-    : annualFee
-  const discountedTermFee = Math.round(discountedAnnualFee / 3)
+  // Handle state update when gradeId changes
+  if (prevGradeIdRef.current !== gradeId) {
+    // Update the ref to current gradeId
+    prevGradeIdRef.current = gradeId
 
+    // Update state - this happens during render, not in useEffect
+    setTuitionFeeState(prev => ({
+      ...prev,
+      isLoading: true,
+      error: null,
+    }))
+  }
+
+  const { data: tuitionFeeConfig, isLoading, error } = tuitionFeeState
+
+  // --- Fee Calculation Logic ---
+  const calculatedFees = useMemo(() => {
+    if (!tuitionFeeConfig) {
+      return {
+        baseAnnualTuition: 0,
+        orphanDiscountApplied: 0,
+        canteenFeeApplied: 0,
+        transportFeeApplied: 0,
+        finalAnnualFee: 0,
+        finalTermFee: 0, // Still calculate for the prop
+      }
+    }
+
+    // 1. Determine Base Tuition Fee
+    const baseAnnualTuition = isStateAssigned
+      ? tuitionFeeConfig.governmentAnnualFee
+      : tuitionFeeConfig.annualFee
+
+    let currentTotal = baseAnnualTuition
+
+    // 2. Apply Orphan Discount
+    let orphanDiscountApplied = 0
+    if (isOrphan && tuitionFeeConfig.orphanDiscountAmount > 0) {
+      orphanDiscountApplied = Math.min(currentTotal, tuitionFeeConfig.orphanDiscountAmount)
+      currentTotal -= orphanDiscountApplied
+    }
+
+    // 3. Add Canteen Fee
+    let canteenFeeApplied = 0
+    if (hasCanteenSubscription && tuitionFeeConfig.canteenFee > 0) {
+      canteenFeeApplied = tuitionFeeConfig.canteenFee
+      currentTotal += canteenFeeApplied
+    }
+
+    // 4. Add Transport Fee
+    let transportFeeApplied = 0
+    if (hasTransportSubscription && tuitionFeeConfig.transportationFee > 0) {
+      transportFeeApplied = tuitionFeeConfig.transportationFee
+      currentTotal += transportFeeApplied
+    }
+
+    // 5. Calculate Final Annual and Term Fees
+    const finalAnnualFee = Math.max(0, currentTotal) // Ensure fee is not negative
+    const finalTermFee = Math.round(finalAnnualFee / 3) // Calculate term fee for the prop
+
+    return {
+      baseAnnualTuition,
+      orphanDiscountApplied,
+      canteenFeeApplied,
+      transportFeeApplied,
+      finalAnnualFee,
+      finalTermFee, // Include in return object
+    }
+  }, [tuitionFeeConfig, isStateAssigned, isOrphan, hasCanteenSubscription, hasTransportSubscription])
+
+  // Update parent component with the calculated term fee (even if not displayed)
   useEffect(() => {
-    onTermFeeSet(discountedTermFee)
-  }, [discountedTermFee, onTermFeeSet])
+    onTermFeeSet(calculatedFees.finalTermFee)
+  }, [calculatedFees.finalTermFee, onTermFeeSet])
 
   if (isLoading) {
-    return <div>Chargement des frais de scolarité...</div>
+    return <div>Chargement du récapitulatif des frais...</div>
   }
 
   if (error) {
     return <div className="text-destructive">{error}</div>
   }
 
-  if (tuitionFees.length === 0) {
-    return <div>Aucun frais de scolarité n'a été configuré pour ce niveau.</div>
+  if (!tuitionFeeConfig) {
+    return <div>Configuration des frais de scolarité non disponible.</div>
   }
+
+  const {
+    baseAnnualTuition,
+    orphanDiscountApplied,
+    canteenFeeApplied,
+    transportFeeApplied,
+    finalAnnualFee,
+    // finalTermFee is calculated but not used in the UI below
+  } = calculatedFees
 
   return (
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle>Frais de scolarité</CardTitle>
-          {isStateAssigned && (
-            <p className="text-sm text-muted-foreground">
-              Une réduction de
-              {' '}
-              {tuitionFee.governmentDiscountPercentage}
-              % est appliquée sur les frais de scolarité.
-            </p>
-          )}
+          <CardTitle>Récapitulatif des Frais Annuels</CardTitle>
+          <p className="text-sm text-muted-foreground">
+            Voici le détail des frais calculés pour l'année scolaire.
+          </p>
         </CardHeader>
-        <CardContent className="space-y-6">
-          {/* Annual Fee */}
+        <CardContent className="space-y-4">
+          {/* Fee Breakdown Section */}
           <div>
-            <h3 className="font-semibold mb-4">Frais annuels</h3>
-            <div className="space-y-4">
-              <div className="flex justify-between items-center">
-                <div>
-                  <p className="font-medium">Frais de scolarité annuels</p>
-                  <p className="text-sm text-muted-foreground">Montant total pour l'année scolaire</p>
-                </div>
-                <p className="font-semibold">
-                  {annualFee.toLocaleString('fr-FR')}
-                  {' '}
-                  FCFA
-                </p>
-              </div>
-              {isStateAssigned && (
-                <div className="flex justify-between items-center">
-                  <div>
-                    <p className="font-medium">Réduction de l'État</p>
-                    <p className="text-sm text-muted-foreground">
-                      {tuitionFee.governmentDiscountPercentage}
-                      % du montant total
-                    </p>
-                  </div>
-                  <p className="font-semibold text-green-600">
-                    -
-                    {(annualFee - discountedAnnualFee).toLocaleString('fr-FR')}
-                    {' '}
-                    FCFA
-                  </p>
-                </div>
-              )}
-            </div>
-            <Separator className="my-4" />
-            <div className="flex justify-between items-center font-bold">
-              <p>
-                Total annuel
-                {isStateAssigned ? 'après réduction' : ''}
-              </p>
-              <p>
-                {discountedAnnualFee.toLocaleString('fr-FR')}
-                {' '}
-                FCFA
-              </p>
-            </div>
-          </div>
-
-          {/* Term Fee */}
-          <div>
-            <h3 className="font-semibold mb-4">Frais par trimestre</h3>
-            <div className="flex justify-between items-center">
+            {/* Base Tuition */}
+            <div className="flex justify-between items-center py-2">
               <div>
-                <p className="font-medium">Frais de scolarité trimestriels</p>
-                <p className="text-sm text-muted-foreground">Montant à payer par trimestre</p>
+                <p className="font-medium">
+                  Frais de scolarité annuels de base
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  {isStateAssigned ? 'Tarif subventionné par l\'État' : 'Tarif standard'}
+                </p>
               </div>
               <p className="font-semibold">
-                {discountedTermFee.toLocaleString('fr-FR')}
-                {' '}
-                FCFA
+                {formatCurrency(baseAnnualTuition)}
+              </p>
+            </div>
+
+            <Separator className="my-1" />
+
+            {/* Orphan Discount */}
+            <div className={`flex justify-between items-center py-2 ${orphanDiscountApplied > 0 ? '' : 'text-muted-foreground'}`}>
+              <div>
+                <p className="font-medium">Réduction Orphelin</p>
+                <p className="text-sm">
+                  {isOrphan ? `Montant appliqué: ${formatCurrency(orphanDiscountApplied)}` : 'Non applicable'}
+                </p>
+              </div>
+              {isOrphan && orphanDiscountApplied > 0 && (
+                <p className="font-semibold text-green-600">
+                  -
+                  {' '}
+                  {formatCurrency(orphanDiscountApplied)}
+                </p>
+              )}
+              {!isOrphan && (
+                <p className="font-semibold">{formatCurrency(0)}</p>
+              )}
+            </div>
+
+            <Separator className="my-1" />
+
+            {/* Canteen Fee */}
+            <div className={`flex justify-between items-center py-2 ${hasCanteenSubscription ? '' : 'text-muted-foreground'}`}>
+              <div>
+                <p className="font-medium">Frais de cantine annuels</p>
+                <p className="text-sm">
+                  {hasCanteenSubscription ? `Montant appliqué: ${formatCurrency(canteenFeeApplied)}` : 'Non souscrit'}
+                </p>
+              </div>
+              {hasCanteenSubscription && canteenFeeApplied >= 0 && ( // Show even if 0 but subscribed
+                <p className="font-semibold">
+                  +
+                  {' '}
+                  {formatCurrency(canteenFeeApplied)}
+                </p>
+              )}
+              {!hasCanteenSubscription && (
+                <p className="font-semibold">{formatCurrency(0)}</p>
+              )}
+            </div>
+
+            <Separator className="my-1" />
+
+            {/* Transport Fee */}
+            <div className={`flex justify-between items-center py-2 ${hasTransportSubscription ? '' : 'text-muted-foreground'}`}>
+              <div>
+                <p className="font-medium">Frais de transport annuels</p>
+                <p className="text-sm">
+                  {hasTransportSubscription ? `Montant appliqué: ${formatCurrency(transportFeeApplied)}` : 'Non souscrit'}
+                </p>
+              </div>
+              {hasTransportSubscription && transportFeeApplied >= 0 && ( // Show even if 0 but subscribed
+                <p className="font-semibold">
+                  +
+                  {' '}
+                  {formatCurrency(transportFeeApplied)}
+                </p>
+              )}
+              {!hasTransportSubscription && (
+                <p className="font-semibold">{formatCurrency(0)}</p>
+              )}
+            </div>
+
+            <Separator className="my-3 border-t-2" />
+
+            {/* Final Annual Total */}
+            <div className="flex justify-between items-center font-bold text-lg py-2">
+              <p>Total Annuel à Payer</p>
+              <p>
+                {formatCurrency(finalAnnualFee)}
               </p>
             </div>
           </div>
 
-          {/* Payment Schedule */}
-          <div>
-            <h3 className="font-semibold mb-4">Échéancier de paiement</h3>
-            <div className="space-y-4">
-              <div className="flex justify-between items-center">
-                <div>
-                  <p className="font-medium">1er trimestre</p>
-                  <p className="text-sm text-muted-foreground">À l'inscription</p>
-                </div>
-                <p className="font-semibold">
-                  {discountedTermFee.toLocaleString('fr-FR')}
-                  {' '}
-                  FCFA
-                </p>
-              </div>
-              <div className="flex justify-between items-center">
-                <div>
-                  <p className="font-medium">2ème trimestre</p>
-                  <p className="text-sm text-muted-foreground">Janvier</p>
-                </div>
-                <p className="font-semibold">
-                  {discountedTermFee.toLocaleString('fr-FR')}
-                  {' '}
-                  FCFA
-                </p>
-              </div>
-              <div className="flex justify-between items-center">
-                <div>
-                  <p className="font-medium">3ème trimestre</p>
-                  <p className="text-sm text-muted-foreground">Avril</p>
-                </div>
-                <p className="font-semibold">
-                  {discountedTermFee.toLocaleString('fr-FR')}
-                  {' '}
-                  FCFA
-                </p>
-              </div>
-            </div>
-          </div>
         </CardContent>
       </Card>
 
@@ -212,8 +321,8 @@ export function Step4TuitionDisplay({
         <Button variant="outline" onClick={onBack}>
           Retour
         </Button>
-        <Button onClick={onComplete}>
-          Continuer
+        <Button onClick={onComplete} disabled={isLoading || !!error || !tuitionFeeConfig}>
+          Confirmer et Continuer
         </Button>
       </div>
     </div>

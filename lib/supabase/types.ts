@@ -1919,6 +1919,9 @@ export interface Database {
           id: string
           is_active: boolean
           is_government_affected: boolean
+          is_orphan: boolean
+          is_subscribed_to_canteen: boolean
+          is_subscribed_to_transportation: boolean
           school_id: string
           school_year_id: number
           student_id: string
@@ -1933,6 +1936,9 @@ export interface Database {
           id?: string
           is_active?: boolean
           is_government_affected?: boolean
+          is_orphan?: boolean
+          is_subscribed_to_canteen?: boolean
+          is_subscribed_to_transportation?: boolean
           school_id: string
           school_year_id: number
           student_id: string
@@ -1947,6 +1953,9 @@ export interface Database {
           id?: string
           is_active?: boolean
           is_government_affected?: boolean
+          is_orphan?: boolean
+          is_subscribed_to_canteen?: boolean
+          is_subscribed_to_transportation?: boolean
           school_id?: string
           school_year_id?: number
           student_id?: string
@@ -2255,30 +2264,45 @@ export interface Database {
       }
       tuition_settings: {
         Row: {
+          additional_criteria: Json | null
           annual_fee: number
+          canteen_fee: number
           created_at: string | null
-          government_discount_percentage: number
+          government_annual_fee: number
           grade_id: number
           id: string
+          orphan_discount: number
+          orphan_discount_amount: number
           school_id: string
+          transportation_fee: number
           updated_at: string | null
         }
         Insert: {
+          additional_criteria?: Json | null
           annual_fee: number
+          canteen_fee?: number
           created_at?: string | null
-          government_discount_percentage?: number
+          government_annual_fee?: number
           grade_id: number
           id?: string
+          orphan_discount?: number
+          orphan_discount_amount?: number
           school_id: string
+          transportation_fee?: number
           updated_at?: string | null
         }
         Update: {
+          additional_criteria?: Json | null
           annual_fee?: number
+          canteen_fee?: number
           created_at?: string | null
-          government_discount_percentage?: number
+          government_annual_fee?: number
           grade_id?: number
           id?: string
+          orphan_discount?: number
+          orphan_discount_amount?: number
           school_id?: string
+          transportation_fee?: number
           updated_at?: string | null
         }
         Relationships: [
@@ -2790,7 +2814,15 @@ export interface Database {
         Returns: undefined
       }
       calculate_tuition_fees: {
-        Args: { p_grade_id: number, p_is_government_affected: boolean }
+        Args: {
+          p_grade_id: number
+          p_school_id: string
+          p_is_government_affected: boolean
+          p_is_orphan: boolean
+          p_is_subscribed_to_transportation: boolean
+          p_is_subscribed_to_canteen: boolean
+          p_additional_params?: Json
+        }
         Returns: number
       }
       create_attendance_and_participator_and_homework: {

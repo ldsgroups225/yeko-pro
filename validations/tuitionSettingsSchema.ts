@@ -23,9 +23,21 @@ const tuitionSettingsSchema = z.object({
    */
   annualFee: z.number().nonnegative(),
   /**
-   * Percentage of government discount applicable to the tuition fee. Must be between 0 and 100 inclusive.
+   * Government affected case applicable to the tuition fee. Must be a non-negative number.
    */
-  governmentDiscountPercentage: z.number().min(0).max(100),
+  governmentAnnualFee: z.number().nonnegative(),
+  /**
+   * Orphan discount amount applicable to the tuition fee. Must be a non-negative number.
+   */
+  orphanDiscountAmount: z.number().nonnegative(),
+  /**
+   * Canteen fee applicable to the tuition fee. Must be a non-negative number.
+   */
+  canteenFee: z.number().nonnegative(),
+  /**
+   * Transportation fee applicable to the tuition fee. Must be a non-negative number.
+   */
+  transportationFee: z.number().nonnegative(),
   /**
    * Timestamp indicating when the tuition setting was created. Automatically generated and in datetime format. Optional as it's set by the database.
    */
@@ -63,7 +75,10 @@ export function serializeTuition(data: Partial<TuitionSettings>): TuitionSetting
     grade_id: data.gradeId!,
     school_id: data.schoolId!,
     annual_fee: data.annualFee!,
-    government_discount_percentage: data.governmentDiscountPercentage,
+    government_annual_fee: data.governmentAnnualFee,
+    orphan_discount_amount: data.orphanDiscountAmount,
+    canteen_fee: data.canteenFee,
+    transportation_fee: data.transportationFee,
   }
 }
 
@@ -80,9 +95,12 @@ export function deserializeTuition(data: TuitionSettingsRead): TuitionSettings {
     gradeId: data.grade_id,
     schoolId: data.school_id,
     annualFee: data.annual_fee,
+    governmentAnnualFee: data.government_annual_fee,
+    orphanDiscountAmount: data.orphan_discount_amount,
+    canteenFee: data.canteen_fee,
+    transportationFee: data.transportation_fee,
     createdAt: data.created_at!,
     updatedAt: data.updated_at!,
-    governmentDiscountPercentage: data.government_discount_percentage,
   }
 }
 

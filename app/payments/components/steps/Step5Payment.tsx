@@ -64,6 +64,9 @@ interface Step5PaymentProps {
   schoolId: string
   gradeId: number
   isStateAssigned: boolean
+  isOrphan: boolean
+  hasCanteenSubscription: boolean
+  hasTransportSubscription: boolean
   studentName: string
   schoolName: string
 }
@@ -76,6 +79,9 @@ export function Step5Payment({
   schoolId,
   gradeId,
   isStateAssigned,
+  isOrphan,
+  hasCanteenSubscription,
+  hasTransportSubscription,
   studentName,
   schoolName,
 }: Step5PaymentProps) {
@@ -100,6 +106,9 @@ export function Step5Payment({
         schoolId,
         gradeId,
         isStateAssigned,
+        isOrphan,
+        hasCanteenSubscription,
+        hasTransportSubscription,
       })
 
       // TODO: Implement payment processing with selected method
@@ -108,7 +117,7 @@ export function Step5Payment({
     }
     catch (error) {
       console.error('Payment processing failed:', error)
-      setError('Une erreur est survenue lors du paiement')
+      setError((error as Error).message)
     }
     finally {
       setIsProcessing(false)

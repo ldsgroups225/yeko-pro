@@ -22,10 +22,18 @@ export function RegistrationStepper({ steps }: RegistrationStepperProps) {
   const [student, setStudent] = useState<IStudent | null>(null)
   const [selectedGradeId, setSelectedGradeId] = useState<number | null>(null)
   const [isStateAssigned, setIsStateAssigned] = useState(false)
+  const [isOrphan, setIsOrphan] = useState(false)
+  const [hasCanteenSubscription, setHasCanteenSubscription] = useState(false)
+  const [hasTransportSubscription, setHasTransportSubscription] = useState(false)
   const [searchAttempts, setSearchAttempts] = useState(0)
   const [termFee, setTermFee] = useState<number>(0)
 
   const handleStepComplete = (step: number) => {
+    if (step === 5) {
+      setCurrentStep(0)
+      return
+    }
+
     if (step < steps.length - 1) {
       setCurrentStep(step + 1)
     }
@@ -69,8 +77,14 @@ export function RegistrationStepper({ steps }: RegistrationStepperProps) {
             onBack={handleStepBack}
             onGradeSelect={setSelectedGradeId}
             onStateAssignedChange={setIsStateAssigned}
+            onOrphanChange={setIsOrphan}
+            onCanteenSubscriptionChange={setHasCanteenSubscription}
+            onTransportSubscriptionChange={setHasTransportSubscription}
             selectedGradeId={selectedGradeId}
             isStateAssigned={isStateAssigned}
+            isOrphan={isOrphan}
+            hasCanteenSubscription={hasCanteenSubscription}
+            hasTransportSubscription={hasTransportSubscription}
             schoolId={school?.id ?? ''}
           />
         )
@@ -82,6 +96,9 @@ export function RegistrationStepper({ steps }: RegistrationStepperProps) {
             onTermFeeSet={handleTermFeeSet}
             gradeId={selectedGradeId}
             isStateAssigned={isStateAssigned}
+            isOrphan={isOrphan}
+            hasCanteenSubscription={hasCanteenSubscription}
+            hasTransportSubscription={hasTransportSubscription}
           />
         )
       case 4:
@@ -95,6 +112,9 @@ export function RegistrationStepper({ steps }: RegistrationStepperProps) {
                 schoolId={school.id}
                 gradeId={selectedGradeId!}
                 isStateAssigned={isStateAssigned}
+                isOrphan={isOrphan}
+                hasCanteenSubscription={hasCanteenSubscription}
+                hasTransportSubscription={hasTransportSubscription}
                 studentName={`${student.firstName} ${student.lastName}`}
                 schoolName={school.name}
               />

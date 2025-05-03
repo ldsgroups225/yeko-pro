@@ -188,7 +188,7 @@ export async function fetchTuitionFees(gradeId: number) {
   try {
     const client = await createClient()
     const { data, error } = await client.from('tuition_settings')
-      .select('id, annual_fee, government_discount_percentage')
+      .select('id, annual_fee, government_annual_fee, orphan_discount_amount, canteen_fee, transportation_fee')
       .eq('grade_id', gradeId)
 
     if (error) {
@@ -199,7 +199,10 @@ export async function fetchTuitionFees(gradeId: number) {
     return data.map(fee => ({
       id: fee.id,
       annualFee: fee.annual_fee,
-      governmentDiscountPercentage: fee.government_discount_percentage,
+      governmentAnnualFee: fee.government_annual_fee,
+      orphanDiscountAmount: fee.orphan_discount_amount,
+      canteenFee: fee.canteen_fee,
+      transportationFee: fee.transportation_fee,
     }))
   }
   catch (error) {
@@ -345,12 +348,18 @@ export async function enrollStudent({
   schoolId,
   gradeId,
   isStateAssigned,
+  isOrphan,
+  hasCanteenSubscription,
+  hasTransportSubscription,
   otp,
 }: {
   studentId: string
   schoolId: string
   gradeId: number
   isStateAssigned: boolean
+  isOrphan: boolean
+  hasCanteenSubscription: boolean
+  hasTransportSubscription: boolean
   otp?: string
 }): Promise<void> {
   const client = await createClient()
@@ -373,10 +382,16 @@ export async function enrollStudent({
       grade_id: gradeId,
       school_year_id: schoolYearData.id,
       is_government_affected: isStateAssigned,
+      is_orphan: isOrphan,
+      is_subscribed_to_canteen: hasCanteenSubscription,
+      is_subscribed_to_transportation: hasTransportSubscription,
     })
 
   if (enrollmentError) {
     console.error('Error creating enrollment:', enrollmentError)
+    if (enrollmentError.message === 'duplicate key value violates unique constraint "unique_academic_year"') {
+      throw new Error('Cet élève est déjà inscrit au cours de cette année scolaire, rendez-vous dans l\'école en question pour d\'ample modification')
+    }
     throw new Error('Impossible de créer l\'inscription')
   }
 
