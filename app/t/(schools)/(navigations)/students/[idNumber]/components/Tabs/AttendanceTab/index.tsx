@@ -84,7 +84,6 @@ export function AttendanceTab({ student, isLoading: initialLoading }: Attendance
           stats={stats || {
             totalDaysAbsent: 0,
             totalLateArrivals: 0,
-            attendanceRate: 100,
             justifiedAbsences: 0,
             unjustifiedAbsences: 0,
           }}

@@ -7,7 +7,6 @@ import { createClient } from '@/lib/supabase/server'
 export interface AttendanceStats {
   totalDaysAbsent: number
   totalLateArrivals: number
-  attendanceRate: number
   justifiedAbsences: number
   unjustifiedAbsences: number
 }
@@ -30,7 +29,6 @@ export async function getStudentAttendanceStats(studentId: string): Promise<Atte
       .select('*')
       .eq('student_id', studentId)
       .order('month', { ascending: false })
-      .limit(1)
 
     if (reportError)
       throw reportError
@@ -39,7 +37,6 @@ export async function getStudentAttendanceStats(studentId: string): Promise<Atte
       return {
         totalDaysAbsent: 0,
         totalLateArrivals: 0,
-        attendanceRate: 100,
         justifiedAbsences: 0,
         unjustifiedAbsences: 0,
       }
@@ -55,23 +52,12 @@ export async function getStudentAttendanceStats(studentId: string): Promise<Atte
     if (justifiedError)
       throw justifiedError
 
-    const { count: totalDays, error: totalError } = await supabase
-      .from('attendances')
-      .select('*', { count: 'exact', head: true })
-      .eq('student_id', studentId)
-
-    if (totalError)
-      throw totalError
-
-    const totalAbsences = reportData[0]?.absences || 0
-    const attendanceRate = totalDays
-      ? ((totalDays - totalAbsences) / totalDays) * 100
-      : 100
+    const totalAbsences = reportData.reduce((acc, curr) => acc + (curr.absences || 0), 0)
+    const totalLateArrivals = reportData.reduce((acc, curr) => acc + (curr.lates || 0), 0)
 
     return {
       totalDaysAbsent: totalAbsences,
-      totalLateArrivals: reportData[0]?.lates || 0,
-      attendanceRate,
+      totalLateArrivals,
       justifiedAbsences: justifiedCount || 0,
       unjustifiedAbsences: totalAbsences - (justifiedCount || 0),
     }

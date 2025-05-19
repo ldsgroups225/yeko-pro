@@ -8,7 +8,6 @@ import { Skeleton } from '@/components/ui/skeleton'
 export interface AttendanceStats {
   totalDaysAbsent: number
   totalLateArrivals: number
-  attendanceRate: number
   justifiedAbsences: number
   unjustifiedAbsences: number
 }
@@ -85,22 +84,6 @@ export function AttendanceSummary({ stats, isLoading }: AttendanceSummaryProps) 
             <StatRow
               label="Retards"
               value={stats.totalLateArrivals}
-            />
-            <StatRow
-              label="Taux de présence"
-              value={(
-                <div className="flex items-center gap-2">
-                  <Badge variant="outline">
-                    {stats.attendanceRate.toFixed(2)}
-                    %
-                  </Badge>
-                  <Progress
-                    value={stats.attendanceRate}
-                    className="w-20"
-                    aria-label="Taux de présence"
-                  />
-                </div>
-              )}
             />
           </div>
 
