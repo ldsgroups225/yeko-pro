@@ -148,54 +148,6 @@ export default async function NoteDetailsPage({ params }: PageProps) {
                     </TableCell>
                   </TableRow>
                 ))}
-                {note.details.map(detail => (
-                  <TableRow key={detail.studentId}>
-                    <TableCell>
-                      {detail.studentLastName}
-                      {' '}
-                      {detail.studentFirstName}
-                    </TableCell>
-                    <TableCell className="text-right font-medium">
-                      {detail.note !== null ? `${detail.note}/20` : '—'}
-                    </TableCell>
-                  </TableRow>
-                ))}
-                {note.details.map(detail => (
-                  <TableRow key={detail.studentId}>
-                    <TableCell>
-                      {detail.studentLastName}
-                      {' '}
-                      {detail.studentFirstName}
-                    </TableCell>
-                    <TableCell className="text-right font-medium">
-                      {detail.note !== null ? `${detail.note}/20` : '—'}
-                    </TableCell>
-                  </TableRow>
-                ))}
-                {note.details.map(detail => (
-                  <TableRow key={detail.studentId}>
-                    <TableCell>
-                      {detail.studentLastName}
-                      {' '}
-                      {detail.studentFirstName}
-                    </TableCell>
-                    <TableCell className="text-right font-medium">
-                      {detail.note !== null ? `${detail.note}/20` : '—'}
-                    </TableCell>
-                  </TableRow>
-                ))}
-                {note.details.map(detail => (
-                  <TableRow key={detail.studentId}>
-                    <TableCell>
-                      {detail.studentLastName}
-                      {' '}
-                      {detail.studentFirstName}
-                    </TableCell>
-                    <TableCell className="text-right font-medium">
-                      {detail.note !== null ? `${detail.note}/20` : '—'}
-                    </TableCell>
-                  </TableRow>
-                ))}
               </TableBody>
             </Table>
           </ScrollArea>
