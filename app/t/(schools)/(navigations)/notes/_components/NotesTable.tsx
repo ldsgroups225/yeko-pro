@@ -18,6 +18,7 @@ interface StructuredNoteInfo {
   title: string | null
   createdAt: string
   noteValue: number | null
+  weight: number | null
 }
 
 interface StudentNotesRow {
@@ -147,6 +148,7 @@ export function NotesTable({ searchParams }: NotesTableProps) {
                 title: note.title,
                 createdAt: note.createdAt,
                 noteValue: note.noteValue,
+                weight: note.weight,
               }
             }
           }
@@ -253,8 +255,14 @@ export function NotesTable({ searchParams }: NotesTableProps) {
                         </TableCell>
                         <TableCell>{student.participationSum || ''}</TableCell>
                         {columnHeaders.map(header => (
-                          <TableCell key={header}>
+                          <TableCell key={header} className="relative group border border-transparent hover:border-primary transition-colors duration-200">
                             {student.notes[header]?.noteValue ?? ''}
+                            {student.notes[header] && (
+                              <div className="absolute bottom-0 right-0 w-4 h-4 bg-muted text-muted-foreground rounded-full text-xs flex items-center justify-center font-thin hidden group-hover:block">
+                                x
+                                {student.notes[header].weight}
+                              </div>
+                            )}
                           </TableCell>
                         ))}
                       </TableRow>
