@@ -2422,6 +2422,7 @@ export interface Database {
           absences: number | null
           lates: number | null
           month: string | null
+          month_numeric: number | null
           school_years_id: number | null
           student_id: string | null
         }

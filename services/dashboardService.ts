@@ -273,21 +273,32 @@ export async function getPonctualiteData(): Promise<IPonctualite[]> {
 
   const { data, error } = await supabase
     .from('attendances_report_view')
-    .select('month, absences, lates')
+    .select('month, month_numeric, absences, lates')
   // TODO: .eq('student_id', 'student-uuid')
   // TODO: .eq('school_years_id', 2023)  // Filter by school year
-    .order('month', { ascending: true })
+    .order('month_numeric', { ascending: true })
 
   if (error) {
     console.error('Error fetching ponctualite data:', error.message)
     return []
   }
 
-  return data?.map(d => ({
-    month: d.month!,
-    absences: d.absences!,
-    lates: d.lates!,
-  } satisfies IPonctualite)) ?? []
+  const groupedData = data?.reduce((acc, curr) => {
+    const month = curr.month_numeric!
+    if (!acc[month]) {
+      acc[month] = { absences: 0, lates: 0, monthLabel: '' }
+    }
+    acc[month].absences += curr.absences!
+    acc[month].lates += curr.lates!
+    acc[month].monthLabel = curr.month!
+    return acc
+  }, {} as Record<number, { absences: number, lates: number, monthLabel: string }>)
+
+  return Object.entries(groupedData).map(([_, data]) => ({
+    month: data.monthLabel,
+    absences: data.absences,
+    lates: data.lates,
+  })) satisfies IPonctualite[] ?? []
 }
 
 export async function getCandidatures(): Promise<ICandidature[]> {
