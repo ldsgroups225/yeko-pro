@@ -537,8 +537,8 @@ export async function getStudentStats(studentId: string): Promise<StudentStats> 
 
   // 3. Get Academic Average
   const { data: average } = await supabase
-    .from('average_grades_view_with_rank')
-    .select('average_grade')
+    .from('student_semester_average_view')
+    .select('semester_average')
     .eq('student_id', studentId)
     .eq('school_year_id', currentYear.id)
     .eq('semester_id', currentSemester.id)
@@ -569,9 +569,8 @@ export async function getStudentStats(studentId: string): Promise<StudentStats> 
     .eq('note_details.student_id', studentId)
 
   // Calculate attendance percentage
-  const totalAttendances = attendances?.length || 0
-  const presentAttendances = attendances?.filter(a => a.status === 'present').length || 0
-  const attendancePercentage = totalAttendances ? (presentAttendances / totalAttendances) * 100 : 100
+  const lateCount = attendances?.filter(a => a.status === 'late').length || 0
+  const absencesCount = attendances?.filter(a => a.status === 'absent').length || 0
 
   // Calculate payment percentage and status
   const paymentPercentage = payment?.total_amount
@@ -609,8 +608,11 @@ export async function getStudentStats(studentId: string): Promise<StudentStats> 
   }
 
   return {
-    attendance: Math.round(attendancePercentage),
-    average: Number(average?.average_grade?.toFixed(1)) || 0,
+    attendance: {
+      lateCount,
+      absencesCount,
+    },
+    average: Number(average?.semester_average) || 0,
     payment: {
       status: paymentStatus,
       percentage: Math.round(paymentPercentage),

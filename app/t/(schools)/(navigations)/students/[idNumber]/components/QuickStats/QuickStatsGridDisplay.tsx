@@ -19,14 +19,14 @@ export function QuickStatsGridDisplay({ stats, className = '' }: QuickStatsGridD
   const statCards = [
     {
       title: 'Assiduité',
-      value: `${stats.attendance}%`,
-      progress: stats.attendance,
+      value: `${stats.attendance.absencesCount} abs - ${stats.attendance.lateCount} ret`,
+      progress: 100,
       icon: Clock,
       iconColor: 'text-blue-500',
     },
     {
       title: 'Moyenne Générale',
-      value: `${stats.average.toFixed(1)}/20`,
+      value: `${stats.average.toFixed(2).endsWith('.00') ? stats.average : stats.average.toFixed(2)}/20`,
       progress: (stats.average / 20) * 100,
       icon: BookOpen,
       iconColor: 'text-green-500',

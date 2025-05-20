@@ -9,7 +9,6 @@ import {
 } from './components/QuickStats'
 import { StudentHeader } from './components/StudentHeader'
 // Tab Components
-import { AcademicTab } from './components/Tabs/AcademicTab'
 import { AttendanceTab } from './components/Tabs/AttendanceTab'
 // import { HealthTab } from './components/Tabs/HealthTab'
 import { ParentsTab } from './components/Tabs/ParentsTab'
@@ -33,12 +32,12 @@ const tabs: TabConfig[] = [
     description: 'Informations personnelles et services souscrits',
     component: ProfileTab,
   },
-  {
-    id: 'academic',
-    label: 'Scolarité',
-    description: 'Résultats et progression académique',
-    component: AcademicTab,
-  },
+  // {
+  //   id: 'academic',
+  //   label: 'Scolarité',
+  //   description: 'Résultats et progression académique',
+  //   component: AcademicTab,
+  // },
   {
     id: 'attendance',
     label: 'Présence',

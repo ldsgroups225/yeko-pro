@@ -11,24 +11,38 @@ export async function getStudentPerformanceMetrics(studentId: string): Promise<P
   const supabase = await createClient()
   try {
     // Get current semester's average grade
-    const { data: averageData, error: averageError } = await supabase
+    const averageDataQs = supabase
       .from('average_grades_view_with_rank')
-      .select('average_grade, conduite')
+      .select('average_grade, conduite, semester_id, school_year_id')
       .eq('student_id', studentId)
       .order('semester_id', { ascending: false })
       .limit(2)
 
-    if (averageError)
-      throw averageError
+    const semesterAverageDataQs = supabase
+      .from('student_semester_average_view')
+      .select('semester_average')
+      .eq('student_id', studentId)
+      .order('semester_id', { ascending: false })
+      .single()
 
     // Get participation data
-    const { count: participationCount, error: participationError } = await supabase
+    const participationCountQs = supabase
       .from('participations')
-      .select('*', { count: 'exact', head: true })
+      .select('id', { count: 'exact', head: true })
       .eq('student_id', studentId)
 
-    if (participationError)
-      throw participationError
+    const [
+      { data: averageData, error: averageError },
+      { data: semesterAverageData, error: semesterAverageError },
+      { count: participationCount, error: participationError },
+    ] = await Promise.all([
+      averageDataQs,
+      semesterAverageDataQs,
+      participationCountQs,
+    ])
+
+    if (averageError || semesterAverageError || participationError)
+      throw averageError || semesterAverageError || participationError
 
     const currentAverage = averageData[0]?.average_grade || 0
     const previousAverage = averageData[1]?.average_grade || 0
@@ -39,7 +53,7 @@ export async function getStudentPerformanceMetrics(studentId: string): Promise<P
       {
         id: 'average',
         name: 'Moyenne Générale',
-        currentValue: currentAverage,
+        currentValue: semesterAverageData?.semester_average || 0,
         previousValue: previousAverage,
         maxValue: 20,
         trend: currentAverage > previousAverage ? 'up' : currentAverage < previousAverage ? 'down' : 'stable',

@@ -20,7 +20,7 @@ export function AverageGradeMetrics({ stats }: AverageGradeMetricsProps) {
           <div>
             <p className="text-sm text-muted-foreground">Moyenne Générale</p>
             <p className="text-2xl font-bold">
-              {stats.averageGrade.toFixed(1)}
+              {stats.averageGrade.toFixed(2).endsWith('.00') ? stats.averageGrade : stats.averageGrade.toFixed(2)}
               /20
             </p>
           </div>

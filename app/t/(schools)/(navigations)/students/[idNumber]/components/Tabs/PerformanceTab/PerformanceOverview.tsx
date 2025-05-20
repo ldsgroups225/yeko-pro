@@ -50,7 +50,7 @@ function MetricCard({ metric }: { metric: PerformanceMetric }) {
               {metric.name}
             </div>
             <div className="text-2xl font-bold">
-              {metric.currentValue.toFixed(1)}
+              {metric.currentValue.toFixed(2).endsWith('.00') ? metric.currentValue : metric.currentValue.toFixed(2)}
               /
               {metric.maxValue}
             </div>
@@ -62,7 +62,7 @@ function MetricCard({ metric }: { metric: PerformanceMetric }) {
                 <span className="text-sm text-muted-foreground">
                   vs
                   {' '}
-                  {metric.previousValue.toFixed(1)}
+                  {metric.previousValue.toFixed(2).endsWith('.00') ? metric.previousValue : metric.previousValue.toFixed(2)}
                 </span>
               )}
             </div>

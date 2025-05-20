@@ -58,7 +58,7 @@ function SubjectCard({ subject }: { subject: SubjectPerformanceData }) {
             </div>
             <div className="flex items-baseline gap-2 mt-1">
               <span className="text-2xl font-bold">
-                {subject.currentGrade.toFixed(1)}
+                {subject.currentGrade.toFixed(2).endsWith('.00') ? subject.currentGrade : subject.currentGrade.toFixed(2)}
               </span>
               <span className="text-sm text-muted-foreground">
                 /

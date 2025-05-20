@@ -22,7 +22,10 @@ export interface Student {
 }
 
 export interface StudentStats {
-  attendance: number
+  attendance: {
+    lateCount: number
+    absencesCount: number
+  }
   average: number
   payment: {
     status: 'up_to_date' | 'pending' | 'late'
