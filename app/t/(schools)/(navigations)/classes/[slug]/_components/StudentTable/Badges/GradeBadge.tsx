@@ -13,7 +13,7 @@ export function GradeBadge({ grade }: { grade: number }) {
 
   return (
     <Badge variant="outline" className={getBadgeClass()}>
-      {grade.toFixed(1)}
+      {grade.toFixed(2).endsWith('.00') ? grade : grade.toFixed(2)}
     </Badge>
   )
 }

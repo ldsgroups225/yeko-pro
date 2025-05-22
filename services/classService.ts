@@ -665,13 +665,13 @@ export async function getClassStudents({
       className: enrollment.class_name,
       dateJoined: enrollment.created_at,
       isGouvernentAffected: enrollment.is_government_affected || false,
-      gradeAverage: Number(gradeAverage.toFixed(2)), // Ensure formatting
+      gradeAverage,
       absentCount,
       lateCount,
       lastEvaluation,
-      teacherNotes: '', // Placeholder
-      status: 'active', // Placeholder
-      rank, // Use rank from view
+      teacherNotes: '', // TODO: Placeholder
+      status: 'active', // TODO: Placeholder
+      rank,
     }
   }).filter((s): s is ClassDetailsStudent => s !== null) // Filter out any nulls if handled that way
 
