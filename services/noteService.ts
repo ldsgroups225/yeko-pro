@@ -150,6 +150,7 @@ export async function getStudentSubjectPerformance(studentId: string): Promise<S
         average_grade,
         subject_id,
         rank,
+        classes!inner(id, grade_id, series),
         semester_id,
         subjects (
           name
@@ -161,6 +162,16 @@ export async function getStudentSubjectPerformance(studentId: string): Promise<S
 
     if (gradesError)
       throw gradesError
+
+    let coefficientQs = supabase.from('coefficients').select('subject_id, coefficient')
+
+    const classData = gradesData.length > 0 ? gradesData[0].classes : null
+    classData?.grade_id !== -1 && (coefficientQs = coefficientQs.eq('grade_id', classData!.grade_id))
+    classData?.series !== null && (coefficientQs = coefficientQs.eq('series', classData!.series))
+
+    const { data: coefficients, error: coefficientsError } = await coefficientQs
+    if (coefficientsError)
+      throw coefficientsError
 
     // Filter out entries with null subject_id
     const validGradesData = gradesData.filter(
@@ -194,7 +205,7 @@ export async function getStudentSubjectPerformance(studentId: string): Promise<S
         maxGrade: 20,
         trend: currentGrade > previousGrade ? 'up' : currentGrade < previousGrade ? 'down' : 'stable',
         classAverage: 0, // We'll need to calculate this separately
-        coefficient: 1, // This should come from coefficients table
+        coefficient: coefficients.find(c => c.subject_id === subjectId)?.coefficient || 0,
         isStrength: currentGrade >= 14,
         needsImprovement: currentGrade < 10,
         teacherComment: grades[0]?.rank ? `Rang: ${grades[0].rank}` : undefined,
