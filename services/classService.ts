@@ -448,13 +448,43 @@ export async function getClassDetailsStats({ schoolId, classId, schoolYearId, se
   }
 
   // Get basic student counts
-  const { data: studentCounts } = await supabase
+  const studentCountsQs = supabase
     .from('students')
     .select('id, gender, student_enrollment_view!inner(school_id, class_id, enrollment_status)')
     .eq('student_enrollment_view.class_id', classId)
     .eq('student_enrollment_view.school_id', schoolId)
 
-  if (!studentCounts) {
+  // Get attendance statistics
+  let attendanceQs = supabase
+    .from('attendances')
+    .select('status, created_date')
+    .eq('class_id', classId)
+    .eq('school_years_id', schoolYearId)
+    .is('is_excused', false)
+
+  if (semesterId) {
+    attendanceQs = attendanceQs.eq('semesters_id', semesterId)
+  }
+
+  // Get grades and calculate average
+  const classAverageQs = supabase
+    .from('class_year_average_view')
+    .select('year_average')
+    .eq('class_id', classId)
+    .eq('school_year_id', schoolYearId)
+    .single()
+
+  const [
+    { data: studentCounts },
+    { data: attendanceData },
+    { data: classAverage },
+  ] = await Promise.all([
+    studentCountsQs,
+    attendanceQs,
+    classAverageQs,
+  ])
+
+  if (!studentCounts || !attendanceData || !classAverage) {
     throw new Error('Failed to fetch student data')
   }
 
@@ -464,37 +494,8 @@ export async function getClassDetailsStats({ schoolId, classId, schoolYearId, se
   const activeStudents = totalStudents // You might need to add an is_active column to students table
   const inactiveStudents = 0 // Same as above
 
-  // Get attendance statistics
-  let attendanceQs = supabase
-    .from('attendances')
-    .select('status, created_date')
-    .eq('class_id', classId)
-    .eq('school_years_id', schoolYearId)
-
-  if (semesterId) {
-    attendanceQs = attendanceQs.eq('semesters_id', semesterId)
-  }
-
-  const { data: attendanceData } = await attendanceQs
-
-  if (!attendanceData) {
-    throw new Error('Failed to fetch attendance data')
-  }
-
   const absentCount = attendanceData.filter(a => a.status === 'absent').length
   const lateCount = attendanceData.filter(a => a.status === 'late').length
-
-  // Get grades and calculate average
-  const { data: classAverage, error: classAverageError } = await supabase
-    .from('class_year_average_view')
-    .select('year_average')
-    .eq('class_id', classId)
-    .eq('school_year_id', schoolYearId)
-    .single()
-
-  if (classAverageError || !classAverage) {
-    throw new Error('Failed to fetch class average data')
-  }
 
   // // Calculate subject performance
   // const subjectPerformance = Object.values(
@@ -587,6 +588,8 @@ export async function getClassStudents({
         student_enrollment_view!inner(school_id, class_id, enrollment_status, created_at, is_government_affected, class_name),
         attendances(
           status,
+          class_id,
+          is_excused,
           created_at,
           school_years_id,
           semesters_id
@@ -627,7 +630,9 @@ export async function getClassStudents({
     // Filter attendance for current school year and semester
     const currentAttendance = student.attendances.filter(attendance =>
       attendance.school_years_id === schoolYearId
-      && attendance.semesters_id === semesterId,
+      && attendance.semesters_id === semesterId
+      && attendance.class_id === classId
+      && attendance.is_excused === false,
     )
 
     // Count absences and lates
