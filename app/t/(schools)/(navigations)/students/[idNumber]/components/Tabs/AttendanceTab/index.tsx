@@ -1,17 +1,17 @@
 'use client'
 
 import type { Student } from '../../../types'
-import type { Absence } from './AbsenceHistory'
+import type { Attendance } from './AttendanceHistory'
 import type { AttendanceStats } from './AttendanceSummary'
 
 import { Card } from '@/components/ui/card'
 import {
-  getStudentAbsenceHistory,
+  getStudentAttendanceHistory,
   getStudentAttendanceStats,
 } from '@/services/attendanceService'
 import { useEffect, useState } from 'react'
 
-import { AbsenceHistory } from './AbsenceHistory'
+import { AttendanceHistory } from './AttendanceHistory'
 import { AttendanceSummary } from './AttendanceSummary'
 
 interface AttendanceTabProps {
@@ -21,7 +21,7 @@ interface AttendanceTabProps {
 
 export function AttendanceTab({ student, isLoading: initialLoading }: AttendanceTabProps) {
   const [stats, setStats] = useState<AttendanceStats | null>(null)
-  const [absences, setAbsences] = useState<Absence[]>([])
+  const [attendances, setAttendances] = useState<Attendance[]>([])
   const [isLoading, setIsLoading] = useState(initialLoading)
   const [error, setError] = useState<string | null>(null)
 
@@ -34,14 +34,14 @@ export function AttendanceTab({ student, isLoading: initialLoading }: Attendance
 
       try {
         setIsLoading(true)
-        const [attendanceStats, absenceHistory] = await Promise.all([
+        const [attendanceStats, attendanceHistory] = await Promise.all([
           getStudentAttendanceStats(student.id),
-          getStudentAbsenceHistory(student.id),
+          getStudentAttendanceHistory(student.id),
         ])
 
         if (mounted) {
           setStats(attendanceStats)
-          setAbsences(absenceHistory)
+          setAttendances(attendanceHistory)
           setError(null)
         }
       }
@@ -90,8 +90,8 @@ export function AttendanceTab({ student, isLoading: initialLoading }: Attendance
           isLoading={isLoading}
         />
 
-        <AbsenceHistory
-          absences={absences}
+        <AttendanceHistory
+          attendances={attendances}
           isLoading={isLoading}
         />
       </div>
@@ -99,7 +99,7 @@ export function AttendanceTab({ student, isLoading: initialLoading }: Attendance
   )
 }
 
-export { AbsenceHistory } from './AbsenceHistory'
-export type { Absence } from './AbsenceHistory'
+export { AttendanceHistory as AbsenceHistory } from './AttendanceHistory'
+export type { Attendance as Absence } from './AttendanceHistory'
 export { AttendanceSummary } from './AttendanceSummary'
 export type { AttendanceStats } from './AttendanceSummary'

@@ -11,9 +11,10 @@ export interface AttendanceStats {
   unjustifiedAbsences: number
 }
 
-export interface Absence {
+export interface Attendance {
   id: string
   date: string
+  semester: number
   type: 'late' | 'absence'
   status: 'justified' | 'unjustified'
   reason?: string
@@ -68,7 +69,7 @@ export async function getStudentAttendanceStats(studentId: string): Promise<Atte
   }
 }
 
-export async function getStudentAbsenceHistory(studentId: string): Promise<Absence[]> {
+export async function getStudentAttendanceHistory(studentId: string): Promise<Attendance[]> {
   try {
     const supabase = await createClient()
 
@@ -81,7 +82,8 @@ export async function getStudentAbsenceHistory(studentId: string): Promise<Absen
         is_excused,
         reason,
         starts_at,
-        ends_at
+        ends_at,
+        semesters_id
       `)
       .eq('student_id', studentId)
       .order('created_date', { ascending: false })
@@ -95,6 +97,7 @@ export async function getStudentAbsenceHistory(studentId: string): Promise<Absen
       type: record.status === 'late' ? 'late' : 'absence',
       status: record.is_excused ? 'justified' : 'unjustified',
       reason: record.reason || undefined,
+      semester: record.semesters_id ?? -1,
       duration: record.status === 'late'
         ? calculateDuration(record.starts_at, record.ends_at)
         : undefined,
