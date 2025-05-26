@@ -19,7 +19,7 @@ export async function GET(
   }
 
   try {
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || req.nextUrl.origin
+    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || req.nextUrl.origin
     const reportPagePath = `/report-card-template/${studentIdNumber}`
     const reportUrl = `${baseUrl}${reportPagePath}`
 
