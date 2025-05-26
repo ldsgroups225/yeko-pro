@@ -1,4 +1,5 @@
 /* app/report-card/report.module.css */
+
 .bulletin {
   width: 210mm;
   margin: 12px auto;
@@ -271,25 +272,4 @@
   font-size: 9px;
   text-align: center;
   border-top: 1px solid #000;
-}
-
-/* Styles for Puppeteer PDF generation */
-@media print {
-  body {
-    padding: 0;
-    background-color: white !important;
-    -webkit-print-color-adjust: exact; /* Important for Chrome/Puppeteer */
-    print-color-adjust: exact;
-  }
-  .bulletin {
-    box-shadow: none;
-    border: 1px solid #000;
-    width: 100%;
-    margin: 0;
-  }
-  /* Hide any non-essential elements for print */
-  .printButton {
-    /* Example if you had a print button on the template page */
-    display: none !important;
-  }
 }

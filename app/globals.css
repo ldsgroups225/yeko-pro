@@ -224,3 +224,20 @@
 .scrollable-div::-webkit-scrollbar-corner {
   background-color: transparent;
 }
+
+/* Print styles for body */
+@media print {
+  body {
+    padding: 0;
+    background-color: white !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  /* You might want to add other global print styles here,
+     for example, to hide navigation or footers that are part of the main layout */
+  /* Example:
+  header, footer, nav {
+    display: none !important;
+  }
+  */
+}
