@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { useStudentStore } from '@/store'
-import { Edit, Eye, FileText, Mail, MoreHorizontal, UserMinus } from 'lucide-react'
+import { Edit, Eye, FileText, Loader2, Mail, MoreHorizontal, UserMinus } from 'lucide-react'
 
 import { useState } from 'react'
 import { toast } from 'sonner'
@@ -22,6 +22,7 @@ export function StudentActions({ student }: StudentActionsProps) {
   const [showProfileModal, setShowProfileModal] = useState(false)
   const [showEditModal, setShowEditModal] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isGeneratingReport, setIsGeneratingReport] = useState(false)
 
   const { updateStudent, error } = useStudentStore()
 
@@ -86,6 +87,41 @@ export function StudentActions({ student }: StudentActionsProps) {
     setShowEditModal(false)
   }
 
+  const handleGenerateReportCard = async () => {
+    if (!student.idNumber) {
+      toast.error('Matricule de l\'élève non disponible.')
+      return
+    }
+    setIsGeneratingReport(true)
+    toast.info('Génération du bulletin en cours...')
+    try {
+      // const semesterId = "current"; // Or get this from a selector
+      const response = await fetch(`/api/generate-report-pdf/${student.idNumber}`) // ?semesterId=${semesterId}
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.details || `Erreur ${response.status} lors de la génération du bulletin.`)
+      }
+
+      const blob = await response.blob()
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      document.body.appendChild(a)
+      a.click()
+      a.remove()
+      window.URL.revokeObjectURL(url)
+      toast.success('Bulletin téléchargé avec succès !')
+    }
+    catch (err) {
+      console.error('Erreur lors de la génération du bulletin:', err)
+      toast.error((err as Error).message || 'Impossible de générer le bulletin.')
+    }
+    finally {
+      setIsGeneratingReport(false)
+    }
+  }
+
   return (
     <>
       <Dialog open={showProfileModal} onOpenChange={setShowProfileModal}>
@@ -123,30 +159,36 @@ export function StudentActions({ student }: StudentActionsProps) {
 
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="ghost" size="icon">
+          <Button variant="ghost" size="icon" disabled={isGeneratingReport}>
             <MoreHorizontal className="h-4 w-4" />
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
-          <DropdownMenuItem onClick={() => setShowProfileModal(true)}>
+          <DropdownMenuItem onClick={() => setShowProfileModal(true)} disabled={isGeneratingReport}>
             <Eye className="h-4 w-4 mr-2" />
             Voir le profil
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => setShowEditModal(true)}>
+          <DropdownMenuItem onClick={() => setShowEditModal(true)} disabled={isGeneratingReport}>
             <Edit className="h-4 w-4 mr-2" />
             Modifier
           </DropdownMenuItem>
-          <DropdownMenuItem>
-            <FileText className="h-4 w-4 mr-2" />
+          <DropdownMenuItem onClick={handleGenerateReportCard} disabled={isGeneratingReport}>
+            {isGeneratingReport
+              ? (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                )
+              : (
+                  <FileText className="h-4 w-4 mr-2" />
+                )}
             Bulletin
           </DropdownMenuItem>
           <DropdownMenuSeparator />
-          <DropdownMenuItem>
+          <DropdownMenuItem disabled={isGeneratingReport}>
             <Mail className="h-4 w-4 mr-2" />
             Contacter parents
           </DropdownMenuItem>
           <DropdownMenuSeparator />
-          <DropdownMenuItem className="text-destructive">
+          <DropdownMenuItem className="text-destructive" disabled={isGeneratingReport}>
             <UserMinus className="h-4 w-4 mr-2" />
             Retirer de la classe
           </DropdownMenuItem>

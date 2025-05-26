@@ -1,0 +1,295 @@
+/* app/report-card/report.module.css */
+.bulletin {
+  width: 210mm;
+  margin: 12px auto;
+  background-color: white;
+  border: 1px solid #000;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+  font-size: 11px;
+  print-color-adjust: exact;
+  font-family: Arial, sans-serif;
+}
+
+.pageHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px;
+  border-bottom: 1px solid #000;
+}
+
+.headerLeft,
+.headerRight,
+.headerCenter {
+  flex: 1;
+  text-align: center;
+}
+
+.headerLeft,
+.headerRight {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-size: 11px;
+}
+
+.headerLeft {
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+.headerCenter h1 {
+  font-size: 16px;
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+.headerCenter p {
+  font-weight: bold;
+}
+
+.headerRight {
+  text-align: right;
+}
+
+.schoolInfo {
+  display: flex;
+  justify-content: space-between;
+  border-bottom: 1px solid #000;
+}
+
+.schoolInfoLeft {
+  display: flex;
+  padding: 10px;
+  border-right: 1px solid #000;
+  width: 75%;
+}
+
+.schoolLogo {
+  width: 60px;
+  height: 60px;
+  background-color: #f0f0f0;
+  margin-right: 10px;
+  display: block;
+}
+
+.schoolDetails {
+  width: 100%;
+}
+
+.collegeName {
+  font-weight: bold;
+  margin-bottom: 5px;
+}
+
+.schoolInfoRight {
+  padding: 10px;
+  width: 25%;
+}
+
+.studentInfo {
+  display: flex;
+  border-bottom: 1px solid #000;
+}
+
+.studentFullname {
+  font-weight: bold;
+  text-transform: uppercase;
+  font-size: 1.2em;
+}
+
+.studentInfoLeft {
+  display: flex;
+  padding: 10px;
+  width: 100%;
+  justify-content: space-between;
+}
+
+.studentInfoColumn {
+  width: 33%;
+}
+
+.gradesTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 11px;
+}
+
+.gradesTable th,
+.gradesTable td {
+  border: 1px solid #000;
+  padding: 4px;
+  height: 14px;
+}
+
+.gradesTableCenter {
+  text-align: center;
+}
+
+.gradesTable th {
+  font-weight: bold;
+  text-transform: uppercase;
+  background-color: #f0f0f0;
+}
+
+.truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.discipline {
+  text-align: left;
+  font-weight: bold;
+}
+
+.totalRow {
+  font-weight: bold;
+  background-color: #f0f0f0;
+}
+
+.bilanRow {
+  background-color: #f0f0f0;
+  font-weight: bold;
+}
+
+.summary {
+  display: flex;
+  border-bottom: 1px solid #000;
+}
+
+.summaryLeft,
+.summaryRight {
+  width: 50%;
+  padding: 10px;
+}
+
+.summaryLeft {
+  border-right: 1px solid #000;
+}
+
+.summaryTable {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 8px;
+}
+
+.summaryTable td {
+  border: 1px solid #000;
+  padding: 3px 5px;
+  height: 2px;
+}
+
+.summaryTable .headerCell {
+  font-weight: bold;
+  text-align: center;
+  background-color: #f0f0f0;
+}
+
+.summaryTable .dataCell {
+  text-align: center;
+}
+
+.resultTable {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 8px;
+}
+
+.resultTable td {
+  padding: 2px 5px;
+}
+
+.resultLabel {
+  font-weight: bold;
+}
+
+.mention {
+  display: flex;
+  border-bottom: 1px solid #000;
+}
+
+.mentionLeft,
+.mentionRight {
+  width: 50%;
+  padding: 10px;
+  vertical-align: top;
+}
+
+.mentionLeft {
+  border-right: 1px solid #000;
+}
+
+.checkbox {
+  display: inline-block;
+  width: 11px;
+  height: 11px;
+  border: 1px solid #000;
+  margin-right: 5px;
+  position: relative;
+  vertical-align: middle;
+}
+
+.checkboxChecked::after {
+  content: 'X';
+  position: absolute;
+  top: -3px;
+  left: 1px;
+  font-size: 11px;
+  font-weight: bold;
+}
+
+.sectionHeader {
+  font-weight: bold;
+  margin-bottom: 5px;
+  font-size: 12px;
+}
+
+.signatureSpace {
+  height: 60px;
+  border: 1px solid #000;
+  margin: 10px 0;
+}
+
+.infoPair {
+  display: flex;
+  margin-bottom: 3px;
+}
+
+.infoLabel {
+  font-weight: bold;
+  margin-right: 5px;
+  min-width: 95px;
+}
+
+.infoValue {
+  flex: 1;
+}
+
+.pageFooter {
+  padding: 10px;
+  font-size: 9px;
+  text-align: center;
+  border-top: 1px solid #000;
+}
+
+/* Styles for Puppeteer PDF generation */
+@media print {
+  body {
+    padding: 0;
+    background-color: white !important;
+    -webkit-print-color-adjust: exact; /* Important for Chrome/Puppeteer */
+    print-color-adjust: exact;
+  }
+  .bulletin {
+    box-shadow: none;
+    border: 1px solid #000;
+    width: 100%;
+    margin: 0;
+  }
+  /* Hide any non-essential elements for print */
+  .printButton {
+    /* Example if you had a print button on the template page */
+    display: none !important;
+  }
+}
