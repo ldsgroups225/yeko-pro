@@ -1732,6 +1732,7 @@ export interface Database {
           name: string
           phone: string
           state_id: number | null
+          status: Database['public']['Enums']['school_status_enum']
           updated_at: string | null
           updated_by: string | null
         }
@@ -1749,6 +1750,7 @@ export interface Database {
           name: string
           phone: string
           state_id?: number | null
+          status?: Database['public']['Enums']['school_status_enum']
           updated_at?: string | null
           updated_by?: string | null
         }
@@ -1766,6 +1768,7 @@ export interface Database {
           name?: string
           phone?: string
           state_id?: number | null
+          status?: Database['public']['Enums']['school_status_enum']
           updated_at?: string | null
           updated_by?: string | null
         }
@@ -1920,6 +1923,7 @@ export interface Database {
           is_active: boolean
           is_government_affected: boolean
           is_orphan: boolean
+          is_redoublement: boolean
           is_subscribed_to_canteen: boolean
           is_subscribed_to_transportation: boolean
           school_id: string
@@ -1937,6 +1941,7 @@ export interface Database {
           is_active?: boolean
           is_government_affected?: boolean
           is_orphan?: boolean
+          is_redoublement?: boolean
           is_subscribed_to_canteen?: boolean
           is_subscribed_to_transportation?: boolean
           school_id: string
@@ -1954,6 +1959,7 @@ export interface Database {
           is_active?: boolean
           is_government_affected?: boolean
           is_orphan?: boolean
+          is_redoublement?: boolean
           is_subscribed_to_canteen?: boolean
           is_subscribed_to_transportation?: boolean
           school_id?: string
@@ -2039,6 +2045,7 @@ export interface Database {
         Row: {
           address: string | null
           avatar_url: string | null
+          birth_place: string | null
           created_at: string | null
           created_by: string | null
           date_of_birth: string | null
@@ -2048,6 +2055,7 @@ export interface Database {
           id_number: string
           last_name: string
           medical_condition: Json | null
+          nationality: string
           parent_id: string
           updated_at: string | null
           updated_by: string | null
@@ -2055,6 +2063,7 @@ export interface Database {
         Insert: {
           address?: string | null
           avatar_url?: string | null
+          birth_place?: string | null
           created_at?: string | null
           created_by?: string | null
           date_of_birth?: string | null
@@ -2064,6 +2073,7 @@ export interface Database {
           id_number: string
           last_name: string
           medical_condition?: Json | null
+          nationality?: string
           parent_id: string
           updated_at?: string | null
           updated_by?: string | null
@@ -2071,6 +2081,7 @@ export interface Database {
         Update: {
           address?: string | null
           avatar_url?: string | null
+          birth_place?: string | null
           created_at?: string | null
           created_by?: string | null
           date_of_birth?: string | null
@@ -2080,6 +2091,7 @@ export interface Database {
           id_number?: string
           last_name?: string
           medical_condition?: Json | null
+          nationality?: string
           parent_id?: string
           updated_at?: string | null
           updated_by?: string | null
@@ -2100,6 +2112,7 @@ export interface Database {
           id: string
           name: string
           order: number | null
+          short_name: string | null
           updated_at: string | null
         }
         Insert: {
@@ -2107,6 +2120,7 @@ export interface Database {
           id?: string
           name: string
           order?: number | null
+          short_name?: string | null
           updated_at?: string | null
         }
         Update: {
@@ -2114,6 +2128,7 @@ export interface Database {
           id?: string
           name?: string
           order?: number | null
+          short_name?: string | null
           updated_at?: string | null
         }
         Relationships: []
@@ -2966,6 +2981,7 @@ export interface Database {
       }
     }
     Enums: {
+      school_status_enum: 'private' | 'public'
       status_enum: 'pending' | 'accepted' | 'rejected'
     }
     CompositeTypes: {
@@ -3082,6 +3098,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      school_status_enum: ['private', 'public'],
       status_enum: ['pending', 'accepted', 'rejected'],
     },
   },

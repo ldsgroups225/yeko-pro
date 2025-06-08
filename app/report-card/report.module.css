@@ -1,18 +1,20 @@
 /* app/report-card/report.module.css */
 
 .bulletin {
-  width: 210mm;
-  margin: 12px auto;
+  width: 210mm; /* A4 width */
+  height: 100vh;
+  margin: 0 auto; /* Centering without vertical margin */
   background-color: white;
   border: 1px solid #000;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
   font-size: 11px;
   print-color-adjust: exact;
   font-family: Arial, sans-serif;
+  /* Removed box-shadow to eliminate the shadow effect */
 }
 
 .pageHeader {
   display: flex;
+  width: 100%;
   justify-content: space-between;
   align-items: center;
   padding: 12px;
@@ -69,7 +71,7 @@
 .schoolLogo {
   width: 60px;
   height: 60px;
-  background-color: #f0f0f0;
+  /* Removed background-color from logo placeholder */
   margin-right: 10px;
   display: block;
 }
@@ -119,8 +121,8 @@
 .gradesTable th,
 .gradesTable td {
   border: 1px solid #000;
-  padding: 4px;
-  height: 14px;
+  padding: 3px;
+  height: 12px;
 }
 
 .gradesTableCenter {
@@ -130,7 +132,7 @@
 .gradesTable th {
   font-weight: bold;
   text-transform: uppercase;
-  background-color: #f0f0f0;
+  /* Removed background-color to make header transparent */
 }
 
 .truncate {
@@ -146,12 +148,11 @@
 
 .totalRow {
   font-weight: bold;
-  background-color: #f0f0f0;
+  /* Removed background-color */
 }
 
 .bilanRow {
-  background-color: #f0f0f0;
-  font-weight: bold;
+  /* Removed background-color and font-weight to make it look like a regular row */
 }
 
 .summary {
@@ -184,7 +185,7 @@
 .summaryTable .headerCell {
   font-weight: bold;
   text-align: center;
-  background-color: #f0f0f0;
+  /* Removed background-color */
 }
 
 .summaryTable .dataCell {

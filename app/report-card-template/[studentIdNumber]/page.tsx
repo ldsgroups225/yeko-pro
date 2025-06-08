@@ -1,7 +1,7 @@
 // app/report-card-template/[studentIdNumber]/page.tsx
 
 import ReportCardDisplay from '@/app/report-card/ReportCardDisplay'
-import { getReportCardDataForStudent } from '@/app/report-card/types'
+import { getReportCardDataForStudent } from '@/services'
 import { notFound } from 'next/navigation'
 
 interface ReportCardTemplatePageProps {

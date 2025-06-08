@@ -12,7 +12,7 @@ interface ReportCardDisplayProps {
 const ReportCardDisplay: React.FC<ReportCardDisplayProps> = ({ data }) => {
   return (
     <div className={styles.bulletin} id="bulletin-content">
-      <header className="pageHeader">
+      <header className={styles.pageHeader}>
         <div className={styles.headerLeft}>
           <p>{data.ministere}</p>
         </div>

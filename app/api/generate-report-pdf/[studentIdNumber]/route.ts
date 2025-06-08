@@ -83,7 +83,7 @@ export async function GET(
     return new NextResponse(pdfBuffer, {
       headers: {
         'Content-Type': 'application/pdf',
-        'Content-Disposition': `attachment; filename="bulletin_${studentName}_${termName}.pdf"`,
+        'Content-Disposition': `inline; filename="bulletin_${studentName}_${termName}.pdf"`,
       },
     })
   }
