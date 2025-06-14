@@ -3,7 +3,6 @@
 import type { FinancialMetrics, FinancialStatistic } from '@/types/accounting'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
-import { useUser } from '@/hooks'
 import { formatCurrency } from '@/lib/utils'
 import { getFinancialMetrics } from '@/services/accountingService'
 import { CheckCircle, Percent, Users } from 'lucide-react'
@@ -48,8 +47,6 @@ function StatisticCardSkeleton() {
 }
 
 export function FinancialStatistics() {
-  const { user } = useUser()
-
   const [metrics, setMetrics] = useState<FinancialMetrics | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -59,7 +56,7 @@ export function FinancialStatistics() {
       try {
         setIsLoading(true)
         setError(null)
-        const data = await getFinancialMetrics(user!.school.id)
+        const data = await getFinancialMetrics()
         setMetrics(data)
       }
       catch (err) {
@@ -72,7 +69,7 @@ export function FinancialStatistics() {
     }
 
     fetchMetrics()
-  }, [user])
+  }, [])
 
   if (error) {
     return (
@@ -95,14 +92,14 @@ export function FinancialStatistics() {
   const stats: FinancialStatistic[] = metrics
     ? [
         {
-          title: 'Revenue',
+          title: 'Chiffre attendu (ans)',
           value: formatCurrency(metrics.revenue.total, false),
           description: `${metrics.revenue.previousMonthPercentage > 0 ? '+' : ''}${metrics.revenue.previousMonthPercentage.toFixed(1)}% du mois dernier`,
           icon: 'F CFA',
           // icon: <DollarSign className="h-4 w-4 text-muted-foreground" />,
         },
         {
-          title: 'Impayée',
+          title: 'Tranche Impayée',
           value: formatCurrency(metrics.unpaidAmount.total, false),
           description: `De ${metrics.unpaidAmount.studentCount} élèves`,
           icon: 'F CFA',
@@ -115,13 +112,13 @@ export function FinancialStatistics() {
           icon: <Percent className="h-4 w-4 text-muted-foreground" />,
         },
         {
-          title: 'Paiements à jour',
+          title: 'Élèves à jour',
           value: metrics.upToDatePayments.studentCount,
           description: 'Étudiants à jour',
           icon: <CheckCircle className="h-4 w-4 text-green-500" />,
         },
         {
-          title: 'Retard de Paiement',
+          title: 'Élèves en retard',
           value: metrics.latePayments.studentCount,
           description: 'Étudiants avec des paiements en retard',
           icon: <Users className="h-4 w-4 text-yellow-500" />,

@@ -8,6 +8,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import { formatCurrency } from '@/lib/utils'
 
 interface StudentPaymentsTableProps {
   students: StudentWithPaymentStatus[]
@@ -33,7 +34,12 @@ export function StudentPaymentsTable({ students }: StudentPaymentsTableProps) {
                   <TableCell className="text-center">{student.idNumber}</TableCell>
                   <TableCell className="text-center">{student.classroom}</TableCell>
                   <TableCell className="text-end">
-                    <Badge variant={student.paymentStatus === 'paid' ? 'success' : 'outline'}>{student.paymentStatus === 'paid' ? 'A jour' : 'En retard'}</Badge>
+                    <Badge
+                      variant={student.paymentStatus === 'paid' ? 'success' : 'outline'}
+                      className={student.paymentStatus !== 'paid' ? 'text-white bg-red-500 border-red-500' : ''}
+                    >
+                      {student.paymentStatus === 'paid' ? 'A jour' : `-${formatCurrency(student.remainingAmount, true)}`}
+                    </Badge>
                   </TableCell>
                 </TableRow>
               ))

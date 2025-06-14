@@ -60,4 +60,5 @@ export interface StudentWithPaymentStatus {
   idNumber: string
   classroom: string
   paymentStatus: 'paid' | 'overdue'
+  remainingAmount: number
 }
