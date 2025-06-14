@@ -1,6 +1,6 @@
 'use server'
 
-import type { CollectionRateData, FinancialMetrics, RevenueVsCostData } from '@/types/accounting'
+import type { CollectionRateData, FinancialMetrics, RevenueVsCostData, StudentWithPaymentStatus } from '@/types/accounting'
 import { createClient } from '@/lib/supabase/server'
 
 export async function getFinancialMetrics(schoolId: string): Promise<FinancialMetrics> {
@@ -197,4 +197,56 @@ export async function getCollectionRateData(
   })
 
   return Array.from(monthlyData.values())
+}
+
+export async function getStudentsWithPaymentStatus(
+  filters: { status?: 'paid' | 'overdue', searchTerm?: string },
+): Promise<StudentWithPaymentStatus[]> {
+  // Dummy data for now
+  const students: StudentWithPaymentStatus[] = [
+    {
+      id: '1',
+      name: 'John Doe',
+      idNumber: '111156',
+      classroom: '5ème 6',
+      paymentStatus: 'paid',
+    },
+    {
+      id: '2',
+      name: 'Jane Doe',
+      idNumber: '122256',
+      classroom: 'Tle A',
+      paymentStatus: 'overdue',
+    },
+    {
+      id: '3',
+      name: 'Peter Jones',
+      idNumber: '123356',
+      classroom: '6ème 1',
+      paymentStatus: 'paid',
+    },
+    {
+      id: '4',
+      name: 'Mary Jane',
+      idNumber: '123456',
+      classroom: '1ere D',
+      paymentStatus: 'overdue',
+    },
+  ]
+
+  // Simulate filtering
+  let filteredStudents = students
+
+  if (filters.status) {
+    filteredStudents = filteredStudents.filter(
+      student => student.paymentStatus === filters.status,
+    )
+  }
+
+  if (filters.searchTerm) {
+    const term = filters.searchTerm.toLowerCase()
+    filteredStudents = filteredStudents.filter(student => student.name.toLowerCase().includes(term) || student.idNumber.toLowerCase().includes(term))
+  }
+
+  return filteredStudents
 }

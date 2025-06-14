@@ -53,3 +53,11 @@ export interface MonthlyFinancialMetrics {
     rate: number
   }
 }
+
+export interface StudentWithPaymentStatus {
+  id: string
+  name: string
+  idNumber: string
+  classroom: string
+  paymentStatus: 'paid' | 'overdue'
+}
