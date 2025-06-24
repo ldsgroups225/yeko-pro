@@ -51,8 +51,11 @@ function MetricCard({ metric }: { metric: PerformanceMetric }) {
             </div>
             <div className="text-2xl font-bold">
               {metric.currentValue.toFixed(2).endsWith('.00') ? metric.currentValue : metric.currentValue.toFixed(2)}
-              /
-              {metric.maxValue}
+              {
+                metric.name !== 'Participation'
+                  ? `/${metric.maxValue}`
+                  : ''
+              }
             </div>
           </div>
           {metric.trend && (
