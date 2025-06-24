@@ -29,9 +29,12 @@ export async function getStudentPerformanceMetrics(studentId: string): Promise<P
 
     // Get participation data
     const participationCountQs = supabase
-      .from('participations')
-      .select('id', { count: 'exact', head: true })
+      .from('note_details')
+      .select('notes!inner(note_type)', { count: 'exact', head: true })
       .eq('student_id', studentId)
+      .eq('notes.note_type', NOTE_TYPE.PARTICIPATION)
+      // TODO: If you have a semesterId, you can add this filter:
+      // .eq('notes.semester_id', semesterId)
 
     const [
       { data: averageData, error: averageError },
