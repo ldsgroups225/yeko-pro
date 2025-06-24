@@ -1,4 +1,5 @@
 'use client'
+import type { DateRange } from 'react-day-picker'
 import { Button } from '@/components/ui/button'
 import { Calendar } from '@/components/ui/calendar'
 import { Input } from '@/components/ui/input'
@@ -17,8 +18,9 @@ import { getPaymentHistory } from '@/services/paymentService'
 import { useTransactionsStore } from '@/store/transactionStore'
 import { format } from 'date-fns'
 import { CalendarIcon, Loader2, Printer, Search, X } from 'lucide-react'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
+import { useDebounce } from 'use-debounce'
 
 interface Transaction {
   id: string
@@ -36,41 +38,34 @@ export function TransactionsHistory() {
   const [isPrinting, setIsPrinting] = useState('')
 
   const [searchMatricule, setSearchMatricule] = useState('')
-  const [filterDate, setFilterDate] = useState<Date | undefined>(undefined)
-
-  const fetchTransactions = async () => {
-    if (!isHistoricOpen)
-      return
-
-    setIsLoading(true)
-    const fetchedTransactions = await getPaymentHistory()
-
-    setTransactions(fetchedTransactions)
-    setIsLoading(false)
-  }
+  const [debouncedSearch] = useDebounce(searchMatricule, 500)
+  const [filterDate, setFilterDate] = useState<DateRange | undefined>(undefined)
 
   useEffect(() => {
     if (!isHistoricOpen)
       return
 
+    const fetchTransactions = async () => {
+      setIsLoading(true)
+      try {
+        const fetchedTransactions = await getPaymentHistory({
+          searchTerm: debouncedSearch,
+          startDate: filterDate?.from?.toISOString(),
+          endDate: filterDate?.to?.toISOString(),
+        })
+        setTransactions(fetchedTransactions)
+      }
+      catch (error) {
+        toast.error('Échec de la récupération des transactions.')
+        console.error(error)
+      }
+      finally {
+        setIsLoading(false)
+      }
+    }
+
     fetchTransactions()
-  }, [isHistoricOpen])
-
-  const filteredTransactions = useMemo(() => {
-    return transactions.filter((transaction) => {
-      const matchesMatricule = searchMatricule
-        ? transaction.matriculation
-            .toLowerCase()
-            .includes(searchMatricule.toLowerCase())
-        : true
-
-      const matchesDate = !filterDate
-        || (transaction.paymentDate
-          && transaction.paymentDate.toDateString() === filterDate.toDateString())
-
-      return matchesMatricule && matchesDate
-    }).slice(0, 10)
-  }, [transactions, searchMatricule, filterDate])
+  }, [isHistoricOpen, debouncedSearch, filterDate])
 
   const handlePrintReceipt = async (studentIdNumber: string, id: string) => {
     try {
@@ -110,7 +105,7 @@ export function TransactionsHistory() {
           <div className="relative flex-grow">
             <Search className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-400" />
             <Input
-              placeholder="Rechercher par matricule"
+              placeholder="Rechercher par nom ou matricule"
               value={searchMatricule}
               onChange={e => setSearchMatricule(e.target.value)}
               className="pl-8"
@@ -137,36 +132,66 @@ export function TransactionsHistory() {
                 )}
               >
                 <CalendarIcon className="mr-2 h-4 w-4" />
-                {filterDate ? format(filterDate, 'PPP') : <span>Filtrer par date</span>}
+                {filterDate?.from
+                  ? (
+                      filterDate.to
+                        ? (
+                            <>
+                              {format(filterDate.from, 'LLL dd, y')}
+                              {' '}
+                              -
+                              {' '}
+                              {format(filterDate.to, 'LLL dd, y')}
+                            </>
+                          )
+                        : (
+                            format(filterDate.from, 'LLL dd, y')
+                          )
+                    )
+                  : (
+                      <span>Filtrer par date</span>
+                    )}
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0">
               <Calendar
-                mode="single"
+                initialFocus
+                mode="range"
+                defaultMonth={filterDate?.from}
                 selected={filterDate}
                 onSelect={setFilterDate}
-                initialFocus
+                numberOfMonths={2}
               />
+              {filterDate && (
+                <div className="p-2 border-t flex justify-center">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="w-full"
+                    onClick={() => setFilterDate(undefined)}
+                  >
+                    Effacer la sélection
+                  </Button>
+                </div>
+              )}
             </PopoverContent>
           </Popover>
         </div>
 
         <div className="rounded-md border">
           {isLoading && (
-            <div className="flex items-center justify-center h-8">
-              <Loader2 className="animate-spin" />
+            <div className="flex items-center justify-center h-48">
+              <Loader2 className="animate-spin h-8 w-8 text-primary" />
             </div>
           )}
           {!isLoading && (
             <div className="px-2">
               <p className="text-sm text-muted-foreground mb-4">
-                Affichage de
-                {' '}
-                {filteredTransactions.length}
-                {' '}
-                transactions sur
+                Affichage des
                 {' '}
                 {transactions.length}
+                {' '}
+                derniers résultats
               </p>
               <Table>
                 <TableHeader>

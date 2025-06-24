@@ -15,6 +15,12 @@ interface Transaction {
   amount: number
 }
 
+interface GetPaymentHistoryParams {
+  searchTerm?: string
+  startDate?: string
+  endDate?: string
+}
+
 /**
  * Retrieves the authenticated user's ID using the provided Supabase client.
  * This function verifies user authentication and is used as a prerequisite for other operations.
@@ -116,20 +122,36 @@ export async function createPayment(
   return data
 }
 
-export async function getPaymentHistory(): Promise<any> {
+export async function getPaymentHistory(params: GetPaymentHistoryParams = {}): Promise<Transaction[]> {
   const client = await createClient()
 
   // Verify the authenticated director and retrieve their school
   const userId = await checkAuthUserId(client)
   const schoolId = await getDirectorSchoolId(client, userId)
 
-  const { data, error } = await client.from('payment_details_view')
+  let query = client.from('payment_details_view')
     .select(`
       first_name, last_name, id_number,
       payment_date, payment_amount
     `)
     .eq('school_id', schoolId)
-    .order('payment_date', { ascending: false })
+
+  if (params.searchTerm) {
+    const searchTerm = `%${params.searchTerm}%`
+    query = query.or(`first_name.ilike.${searchTerm},last_name.ilike.${searchTerm},id_number.ilike.${searchTerm}`)
+  }
+
+  if (params.startDate) {
+    query = query.gte('payment_date', params.startDate)
+  }
+
+  if (params.endDate) {
+    const to = new Date(params.endDate)
+    to.setHours(23, 59, 59, 999) // Include the entire end day
+    query = query.lte('payment_date', to.toISOString())
+  }
+
+  const { data, error } = await query.order('payment_date', { ascending: false })
 
   if (error) {
     console.error('Error fetching payment history:', error)
