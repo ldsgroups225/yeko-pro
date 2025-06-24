@@ -1,16 +1,39 @@
 'use client'
 
 import { Button } from '@/components/ui/button'
+import { notifyAllParents } from '@/services/accountingService'
 import { useTransactionsStore } from '@/store/transactionStore'
 import { Bell, History, Plus } from 'lucide-react'
 import { useState } from 'react'
+import { toast } from 'sonner'
 
 export function ActionButtons() {
-  const [isReminderEnabled, _setIsReminderEnabled] = useState(true) // TODO: Calculate based on reminder configuration
+  const [isReminderEnabled, setIsReminderEnabled] = useState(true)
   const { setHistoricTransactionsOpen, setNewTransaction } = useTransactionsStore()
 
   const handleSendReminder = async () => {
-    // TODO: Implement send reminder logic
+    try {
+      setIsReminderEnabled(false)
+      const result = await notifyAllParents()
+
+      switch (result.status) {
+        case 'error':
+          throw new Error(result.message)
+        case 'warning':
+          toast.warning(result.message)
+          break
+        case 'success':
+          toast.success(result.message)
+          break
+      }
+    }
+    catch (error) {
+      console.error(`Failed to notify individual parent: ${error}`)
+      toast.error((error as Error).message)
+    }
+    finally {
+      setIsReminderEnabled(true)
+    }
   }
 
   return (

@@ -40,18 +40,21 @@ async function checkAuthUserId(client: SupabaseClient): Promise<string> {
  *  - Will throw an error if there is an issue fetching the school ID from the database.
  *  - Will throw an error if the user is not associated with any school.
  */
-async function getDirectorSchoolId(client: SupabaseClient, userId: string): Promise<string> {
+async function getDirectorSchoolId(client: SupabaseClient, userId: string): Promise<{ schoolId: string, schoolName: string }> {
   const { data: userSchool, error } = await client
     .from('users')
-    .select('school_id, user_roles(role_id)')
+    .select('school: schools!users_school_id_foreign(id, name), user_roles(role_id)')
     .eq('id', userId)
     .eq('user_roles.role_id', ERole.DIRECTOR)
     .single()
-  if (error || !userSchool?.school_id) {
+  if (error || !userSchool?.school) {
     console.error('Error fetching user school:', error)
     throw new Error('Seul un directeur peut accéder à cette page')
   }
-  return userSchool.school_id
+  return {
+    schoolId: userSchool.school.id,
+    schoolName: userSchool.school.name,
+  }
 }
 
 export async function getFinancialMetrics(): Promise<FinancialMetrics> {
@@ -61,7 +64,7 @@ export async function getFinancialMetrics(): Promise<FinancialMetrics> {
   const firstDayOfPreviousMonth = new Date(today.getFullYear(), today.getMonth() - 1, 1)
 
   const userId = await checkAuthUserId(supabase)
-  const schoolId = await getDirectorSchoolId(supabase, userId)
+  const { schoolId } = await getDirectorSchoolId(supabase, userId)
 
   // Get current school year
   const { data: currentSchoolYear, error: schoolYearError } = await supabase
@@ -245,7 +248,7 @@ export async function getStudentsWithPaymentStatus(
   const supabase = await createClient()
 
   const userId = await checkAuthUserId(supabase)
-  const schoolId = await getDirectorSchoolId(supabase, userId)
+  const { schoolId } = await getDirectorSchoolId(supabase, userId)
 
   const { data: currentSchoolYear, error: schoolYearError } = await supabase
     .from('school_years')
@@ -291,11 +294,11 @@ export async function getStudentsWithPaymentStatus(
   )
 }
 
-export async function notifyIndividualParent({ schoolName, fullName, studentClassroom, studentId }: { schoolName: string, fullName: string, studentClassroom: string, studentId: string }): Promise<void> {
+export async function notifyIndividualParent({ fullName, studentClassroom, studentId }: { fullName: string, studentClassroom: string, studentId: string }): Promise<void> {
   const supabase = await createClient()
 
   const userId = await checkAuthUserId(supabase)
-  await getDirectorSchoolId(supabase, userId)
+  const { schoolName } = await getDirectorSchoolId(supabase, userId)
 
   const {
     data: studentParent,
@@ -340,4 +343,111 @@ export async function notifyIndividualParent({ schoolName, fullName, studentClas
     console.error('Error sending notification:', sendingError)
     throw new Error('Une erreur est survenue lors de la l\'envoie de la notification.')
   }
+}
+
+export async function notifyAllParents(): Promise<{ status: 'success' | 'error' | 'warning', message: string }> {
+  const supabase = await createClient()
+
+  const userId = await checkAuthUserId(supabase)
+  const { schoolId, schoolName } = await getDirectorSchoolId(supabase, userId)
+
+  // Récupérer l'année scolaire actuelle
+  const { data: currentSchoolYear, error: schoolYearError } = await supabase
+    .from('school_years')
+    .select('id')
+    .eq('is_current', true)
+    .single()
+
+  if (schoolYearError || !currentSchoolYear) {
+    console.error('Error fetching current school year:', schoolYearError)
+    throw new Error('Une erreur est survenue lors de la l\'envoie des notifications.')
+  }
+
+  // Récupérer tous les étudiants avec des paiements en retard
+  const { data: overdueStudents, error: concernedStudentsError } = await supabase
+    .from('student_payment_status_view')
+    .select('student_id, first_name, last_name, classroom')
+    .eq('school_id', schoolId)
+    .eq('school_year_id', currentSchoolYear.id)
+    .eq('is_up_to_date', false)
+
+  if (concernedStudentsError) {
+    console.error('Error fetching students with payment status:', concernedStudentsError)
+    throw new Error('Une erreur est survenue lors de la l\'envoie de la notification.')
+  }
+
+  if (!overdueStudents || overdueStudents.length === 0) {
+    return { status: 'warning', message: 'Aucun élève en retard de paiement à notifier.' }
+  }
+
+  // Récupérer les informations des parents pour tous les élèves concernés
+  const studentIds = overdueStudents.map(student => student.student_id!)
+  const { data: studentsWithParents, error: parentsError } = await supabase
+    .from('students')
+    .select('id, parent:users(id, first_name, last_name, email)')
+    .in('id', studentIds)
+
+  if (parentsError) {
+    console.error('Error fetching parents information:', parentsError)
+    throw new Error('Une erreur est survenue lors de la l\'envoie de la notification.')
+  }
+
+  // Créer une map pour un accès facile aux informations du parent par student_id
+  const parentMap = new Map(studentsWithParents?.map(s => [s.id, s.parent]))
+
+  // Construire toutes les notifications
+  const notificationsToInsert = overdueStudents.map((student) => {
+    const parent = parentMap.get(student.student_id!)
+    if (!parent || !parent.id) {
+      console.warn(`Parent non trouvé pour l'élève ID: ${student.student_id}. Notification ignorée.`)
+      return null
+    }
+
+    const studentFullName = formatFullName(student.first_name, student.last_name)
+    const parentFullName = formatFullName(parent.first_name, parent.last_name, parent.email)
+    const msgTitle = 'Retards de paiement'
+    const msgBody = `Bonjour ${parentFullName},
+
+      Votre enfant ${studentFullName} en classe de ${student.classroom || 'N/A'} a des retards de paiement.
+
+      Merci de bien vouloir effectuer le paiement dans les plus brefs délais.
+
+      Cordialement,
+      L'équipe de ${schoolName}
+    `
+
+    return {
+      title: msgTitle,
+      body: msgBody,
+      user_id: parent.id,
+    }
+  }).filter(Boolean)
+
+  if (notificationsToInsert.length === 0) {
+    return { status: 'warning', message: 'Aucune notification à envoyer.' }
+  }
+
+  // Diviser en lots et envoyer en parallèle
+  const CHUNK_SIZE = 100
+  const notificationChunks = []
+  for (let i = 0; i < notificationsToInsert.length; i += CHUNK_SIZE) {
+    notificationChunks.push(notificationsToInsert.slice(i, i + CHUNK_SIZE))
+  }
+
+  const insertPromises = notificationChunks.map(chunk =>
+    supabase.from('notifications').insert(chunk as any),
+  )
+
+  const results = await Promise.allSettled(insertPromises)
+
+  // Vérifier et journaliser les erreurs
+  const failedChunks = results.filter(r => r.status === 'rejected')
+  if (failedChunks.length > 0) {
+    failedChunks.forEach((result, index) => {
+      console.error(`Erreur lors de l'envoi du lot de notifications ${index + 1}:`, (result as PromiseRejectedResult).reason)
+    })
+    throw new Error('Certaines notifications n\'ont pas pu être envoyées. Veuillez vérifier les logs du serveur.')
+  }
+
+  return { status: 'success', message: `${notificationsToInsert.length} notifications envoyées avec succès.` }
 }

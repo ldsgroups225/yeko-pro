@@ -1,6 +1,5 @@
 'use client'
 
-import { useUser } from '@/hooks'
 import { notifyIndividualParent } from '@/services/accountingService'
 import { BellRing } from 'lucide-react'
 import { toast } from 'sonner'
@@ -12,16 +11,9 @@ interface Props {
 }
 
 export function NotifyIndividualParentButton({ studentId, studentName, studentClassroom }: Props) {
-  const { user } = useUser()
-
   const handleNotifyIndividualParent = async (): Promise<void> => {
     try {
-      if (!user) {
-        toast.error('Vous devez être connecté pour envoyer une notification.')
-        return
-      }
-
-      await notifyIndividualParent({ studentId, schoolName: user!.school.name, fullName: studentName, studentClassroom })
+      await notifyIndividualParent({ studentId, fullName: studentName, studentClassroom })
       toast.success('Notification envoyée avec succès.')
     }
     catch (error) {
