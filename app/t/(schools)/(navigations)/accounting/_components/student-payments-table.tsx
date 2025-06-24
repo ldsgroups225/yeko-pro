@@ -1,51 +1,69 @@
 import type { StudentWithPaymentStatus } from '@/types/accounting'
 import { Badge } from '@/components/ui/badge'
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table'
-import { formatCurrency } from '@/lib/utils'
+import { cn, formatCurrency } from '@/lib/utils'
+import { NotifyIndividualParentButton } from './notify-individual-parent-button'
 
 interface StudentPaymentsTableProps {
   students: StudentWithPaymentStatus[]
 }
 
 export function StudentPaymentsTable({ students }: StudentPaymentsTableProps) {
+  const trStyle = 'border-b transition-colors'
+  const thStyle = 'h-10 px-2 align-middle font-medium text-muted-foreground [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]'
+  const tdStyle = 'p-1 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]'
+
+  if (!students || students.length === 0) {
+    return (
+      <div className="flex items-center justify-center h-32 text-center text-muted-foreground">
+        Aucun élève trouvé.
+      </div>
+    )
+  }
+
   return (
-    <Table>
-      <TableHeader>
-        <TableRow>
-          <TableHead className="text-left">Nom</TableHead>
-          <TableHead className="text-center">Matricule</TableHead>
-          <TableHead className="text-center">Classe</TableHead>
-          <TableHead className="text-end">Statut</TableHead>
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {students.length > 0
-          ? (
-              students.map(student => (
-                <TableRow key={student.id}>
-                  <TableCell className="text-left">{student.name}</TableCell>
-                  <TableCell className="text-center">{student.idNumber}</TableCell>
-                  <TableCell className="text-center">{student.classroom}</TableCell>
-                  <TableCell className="text-end">
-                    <Badge
-                      variant={student.paymentStatus === 'paid' ? 'success' : 'outline'}
-                      className={student.paymentStatus !== 'paid' ? 'text-white bg-red-500 border-red-500' : ''}
-                    >
-                      {student.paymentStatus === 'paid' ? 'A jour' : `-${formatCurrency(student.remainingAmount, true)}`}
-                    </Badge>
-                  </TableCell>
-                </TableRow>
-              ))
-            )
-          : (<TableRow><TableCell colSpan={4} className="h-24 text-center">Aucun élève trouvé.</TableCell></TableRow>)}
-      </TableBody>
-    </Table>
+    <table className="w-full caption-bottom text-sm text-muted-foreground ">
+      <thead className="[&_tr]:border-b">
+        <tr className={trStyle}>
+          <th className={cn(thStyle, 'text-left')}>Nom</th>
+          <th className={cn(thStyle, 'text-center')}>Matricule</th>
+          <th className={cn(thStyle, 'text-center')}>Classe</th>
+          <th className={cn(thStyle, 'text-end')}>Statut</th>
+          <th className={cn(thStyle, 'text-end')}>Actions</th>
+        </tr>
+      </thead>
+      <tbody className="[&_tr:last-child]:border-0">
+        {(
+          (
+            students.map(student => (
+              <tr key={student.id} className={trStyle}>
+                <td className={cn(tdStyle, 'text-left')}>{student.name}</td>
+                <td className={cn(tdStyle, 'text-center')}>{student.idNumber}</td>
+                <td className={cn(tdStyle, 'text-center')}>{student.classroom}</td>
+                <td className={cn(tdStyle, 'text-end')}>{student.classroom}</td>
+                <td className={cn(tdStyle, 'text-end')}>
+                  <Badge
+                    variant={student.paymentStatus === 'paid' ? 'success' : 'outline'}
+                    className={student.paymentStatus !== 'paid' ? 'text-white bg-red-500 border-red-500' : ''}
+                  >
+                    {student.paymentStatus === 'paid' ? 'A jour' : `-${formatCurrency(student.remainingAmount, true)}`}
+                  </Badge>
+                </td>
+                <td className={cn(tdStyle, 'text-end')}>
+                  {
+                    student.paymentStatus !== 'paid' && (
+                      <NotifyIndividualParentButton
+                        studentId={student.id}
+                        studentName={student.name}
+                        studentClassroom={student.classroom}
+                      />
+                    )
+                  }
+                </td>
+              </tr>
+            ))
+          )
+        )}
+      </tbody>
+    </table>
   )
 }

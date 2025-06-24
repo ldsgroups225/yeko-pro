@@ -96,11 +96,20 @@ module.exports = {
   				to: {
   					height: '0'
   				}
-  			}
+  			},
+				ring: {
+          '0%, 100%': { transform: 'rotate(0)' },
+          '10%': { transform: 'rotate(15deg)' },
+          '20%': { transform: 'rotate(-10deg)' },
+          '30%': { transform: 'rotate(5deg)' },
+          '40%': { transform: 'rotate(-5deg)' },
+          '50%': { transform: 'rotate(0)' },
+        }
   		},
   		animation: {
   			'accordion-down': 'accordion-down 0.2s ease-out',
-  			'accordion-up': 'accordion-up 0.2s ease-out'
+  			'accordion-up': 'accordion-up 0.2s ease-out',
+				'ring': 'ring 0.5s ease-in-out',
   		}
   	}
   },

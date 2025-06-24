@@ -290,3 +290,54 @@ export async function getStudentsWithPaymentStatus(
     })) || []
   )
 }
+
+export async function notifyIndividualParent({ schoolName, fullName, studentClassroom, studentId }: { schoolName: string, fullName: string, studentClassroom: string, studentId: string }): Promise<void> {
+  const supabase = await createClient()
+
+  const userId = await checkAuthUserId(supabase)
+  await getDirectorSchoolId(supabase, userId)
+
+  const {
+    data: studentParent,
+    error: studentParentError,
+  } = await supabase
+    .from('students')
+    .select('parent:users(id, email, first_name, last_name)')
+    .eq('id', studentId)
+    .single()
+
+  if (studentParentError) {
+    console.error('Error fetching student parent ID:', studentParentError)
+    throw new Error('Une erreur est survenue lors de la l\'envoie de la notification.')
+  }
+
+  if (!studentParent) {
+    throw new Error('Le parent de l\'étudiant n\'a pas été trouvé.')
+  }
+
+  const { id, email, first_name, last_name } = studentParent.parent
+
+  const msgTitle = 'Retards de paiement'
+  const msgBody = `Bonjour ${formatFullName(first_name, last_name, email)},
+  
+  Votre enfant ${fullName} en classe de ${studentClassroom} a des retards de paiement.
+  
+  Merci de bien vouloir effectuer le paiement dans les plus brefs délais.
+  
+  Cordialement,
+  
+  L'équipe de ${schoolName}`
+
+  const { error: sendingError } = await supabase
+    .from('notifications')
+    .insert({
+      title: msgTitle,
+      body: msgBody,
+      user_id: id,
+    })
+
+  if (sendingError) {
+    console.error('Error sending notification:', sendingError)
+    throw new Error('Une erreur est survenue lors de la l\'envoie de la notification.')
+  }
+}

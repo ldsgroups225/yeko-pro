@@ -37,12 +37,26 @@ export function StudentPaymentsFilters() {
   return (
     <>
       <div className="flex justify-between items-center">
-        <h2 className="font-bold tracking-tight dark:text-black/80">
+        <h2 className="font-bold tracking-tight dark:text-black/70">
           Status de paiement
         </h2>
         <div className="flex space-x-2">
-          <Button size="sm" variant={currentStatus === 'paid' ? 'default' : 'outline'} onClick={() => handleStatusFilter(currentStatus === 'paid' ? 'all' : 'paid')}>A jour</Button>
-          <Button size="sm" variant={currentStatus === 'overdue' ? 'destructive' : 'outline'} onClick={() => handleStatusFilter(currentStatus === 'overdue' ? 'all' : 'overdue')}>En retard</Button>
+          <Button
+            size="sm"
+            variant={currentStatus === 'paid' ? 'default' : 'outline'}
+            onClick={() => handleStatusFilter(currentStatus === 'paid' ? 'all' : 'paid')}
+            className="dark:text-muted-foreground"
+          >
+            A jour
+          </Button>
+          <Button
+            size="sm"
+            variant={currentStatus === 'overdue' ? 'destructive' : 'outline'}
+            onClick={() => handleStatusFilter(currentStatus === 'overdue' ? 'all' : 'overdue')}
+            className="dark:text-muted-foreground"
+          >
+            En retard
+          </Button>
         </div>
       </div>
       <div className="mt-4">
@@ -50,6 +64,7 @@ export function StudentPaymentsFilters() {
           placeholder="Rechercher par nom ou matricule"
           defaultValue={searchParams.get('search')?.toString()}
           onChange={e => handleSearch(e.target.value)}
+          className="dark:text-muted-foreground"
         />
       </div>
     </>
