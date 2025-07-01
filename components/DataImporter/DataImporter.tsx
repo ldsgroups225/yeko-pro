@@ -52,6 +52,7 @@ const DEFAULT_DESCRIPTION = 'Importer des données CSV ou Excel'
 
 interface DownloadTemplateConfig {
   buttonText?: string
+  exportName: string
 }
 
 export interface DataImporterProps<T extends z.ZodType> {
@@ -111,7 +112,7 @@ export function DataImporter<T extends z.ZodType>({
       const workbook = XLSX.utils.book_new()
       const worksheet = XLSX.utils.aoa_to_sheet([headers])
       XLSX.utils.book_append_sheet(workbook, worksheet, 'Template')
-      XLSX.writeFile(workbook, 'emploi_du_temps.xlsx')
+      XLSX.writeFile(workbook, `${(downloadTemplate! as DownloadTemplateConfig).exportName}.xlsx`)
     }
     catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Erreur inconnue'

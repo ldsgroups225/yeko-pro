@@ -159,7 +159,10 @@ export function ImportProgressReportsDialog({
           previewRowCount={5}
           title="Importer les Suivis"
           description="Glissez/déposez ou sélectionnez un fichier."
-          downloadTemplate={{ buttonText: 'Télécharger Template' }}
+          downloadTemplate={{
+            buttonText: 'Télécharger Template',
+            exportName: 'suivis_pedagogiques',
+          }}
           onError={errorMessage => toast.error(errorMessage)}
         />
         {/* Display mapping errors specifically */}

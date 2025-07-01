@@ -196,6 +196,7 @@ function ImportSchedulePage() {
         previewRowCount={5}
         downloadTemplate={{
           buttonText: 'Télécharger le template',
+          exportName: 'emploi_du_temps',
         }}
       />
 
