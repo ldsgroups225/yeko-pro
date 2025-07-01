@@ -34,6 +34,7 @@ import React, { useCallback, useState } from 'react'
 import { useDropzone } from 'react-dropzone'
 import * as XLSX from 'xlsx'
 import { z } from 'zod'
+import { getSchemaShape } from './getSchemaShape'
 
 export interface ValidationError {
   row: number
@@ -64,6 +65,7 @@ export interface DataImporterProps<T extends z.ZodType> {
   title?: string
   description?: string
   downloadTemplate?: boolean | DownloadTemplateConfig
+  templateHeaders?: string[] // Optional explicit headers
 }
 
 export function DataImporter<T extends z.ZodType>({
@@ -77,6 +79,7 @@ export function DataImporter<T extends z.ZodType>({
   title = DEFAULT_TITLE,
   description = DEFAULT_DESCRIPTION,
   downloadTemplate,
+  templateHeaders,
 }: DataImporterProps<T>) {
   const [file, setFile] = useState<File | null>(null)
   const [parsedData, setParsedData] = useState<any[]>([])
@@ -95,10 +98,16 @@ export function DataImporter<T extends z.ZodType>({
   // Gérer le téléchargement du template Excel
   const handleDownloadTemplate = () => {
     try {
-      const shape = (schema as any)._def.shape?.()
-      if (!shape)
-        throw new Error('Le schéma doit avoir des champs définis')
-      const headers = Object.keys(shape)
+      let headers: string[] | null = null
+      if (templateHeaders && templateHeaders.length > 0) {
+        headers = templateHeaders
+      }
+      else {
+        const shape = getSchemaShape(schema)
+        if (!shape)
+          throw new Error('Le schéma doit avoir des champs définis')
+        headers = Object.keys(shape)
+      }
       const workbook = XLSX.utils.book_new()
       const worksheet = XLSX.utils.aoa_to_sheet([headers])
       XLSX.utils.book_append_sheet(workbook, worksheet, 'Template')

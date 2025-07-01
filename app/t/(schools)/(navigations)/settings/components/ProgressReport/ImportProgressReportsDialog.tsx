@@ -159,8 +159,8 @@ export function ImportProgressReportsDialog({
           previewRowCount={5}
           title="Importer les Suivis"
           description="Glissez/déposez ou sélectionnez un fichier."
-          downloadTemplate={{ buttonText: 'Télécharger Template' }} // Optional: Generate template based on importSchema
-          onError={errorMessage => toast.error(errorMessage)} // Handle DataImporter specific errors
+          downloadTemplate={{ buttonText: 'Télécharger Template' }}
+          onError={errorMessage => toast.error(errorMessage)}
         />
         {/* Display mapping errors specifically */}
         {importErrors.length > 0 && (
