@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { getClasses, getSemesters, getSubjects } from '@/services/noteService'
+import { getClassesForNotes, getSemesters, getSubjects } from '@/services/noteService'
 import { Suspense } from 'react'
 import { NotesFilters, NotesTable, NotesTableSkeleton } from './_components'
 
@@ -21,7 +21,7 @@ interface NotesPageProps {
 
 async function getInitialData() {
   const [classes, subjects, semesters] = await Promise.all([
-    getClasses(),
+    getClassesForNotes(),
     getSubjects(),
     getSemesters(),
   ])

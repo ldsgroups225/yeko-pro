@@ -232,6 +232,13 @@ export interface ClassDetailsStudent {
   gradeAverage: number
   lastEvaluation: string
   dateJoined: string | null
+  parent?: {
+    id: string
+    fullName: string
+    email: string
+    phone: string
+    avatarUrl: string | null
+  }
 }
 
 export interface IStudentsQueryParams {

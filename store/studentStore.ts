@@ -208,14 +208,14 @@ export const useStudentStore = create<StudentStore>((set, get) => {
             firstName: _student.firstName,
             lastName: _student.lastName,
             classId: _class?.id,
-            class: _class,
+            gradeName: _class?.name,
             dateOfBirth: _student.dateOfBirth ? parseISO(_student.dateOfBirth) : null,
             avatarUrl: _student.avatarUrl ?? null,
             address: _student.address,
             gender: (_student as { gender: 'M' | 'F' | null }).gender,
           },
         })
-        await get().fetchStudents({ schoolId: student.schoolId! })
+        await get().fetchStudents({ schoolId: get().currentSchoolId! })
       }
       catch (error: any) {
         set({ error })

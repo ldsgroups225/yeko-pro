@@ -124,16 +124,26 @@ export async function getStudentById(id: string): Promise<IStudentDTO | null> {
   } satisfies IStudentDTO
 }
 
-export async function getStudentByIdNumberForEdit(idNumber: string): Promise<StudentFormValues> {
+export async function getStudentByIdNumberForEdit(idNumber: string) {
   const client = await createClient()
   const { data, error } = await client
     .from('students')
-    .select(`
-        id, id_number, first_name, last_name, date_of_birth, gender, avatar_url, address,
-        grade:grades(name)
-      `)
+    .select(
+      `
+        id, id_number, first_name, last_name, date_of_birth, gender, avatar_url, address
+      `,
+    )
     .eq('id_number', idNumber)
     .single()
+
+  if (error) {
+    console.error('Error fetching student for edit:', error.message)
+    throw new Error(`Erreur lors de la récupération des données de l'élève: ${error.message}`)
+  }
+
+  if (!data) {
+    throw new Error(`Aucun élève trouvé avec le matricule : ${idNumber}`)
+  }
 
   const {
     data: gradeData,
@@ -141,17 +151,16 @@ export async function getStudentByIdNumberForEdit(idNumber: string): Promise<Stu
   } = await client
     .from('student_school_class')
     .select('grade_id, grade:grades(name)')
-    .eq('student_id', data!.id)
+    .eq('student_id', data.id)
     .eq('enrollment_status', 'accepted')
     .is('is_active', true)
     .single()
 
-  if (error || gradeError) {
-    console.error('student to edit error fetch error', error || gradeError)
-    throw new Error('student to edit error fetch error')
+  if (gradeError) {
+    console.warn(`Could not fetch grade for student ${idNumber}:`, gradeError.message)
   }
 
-  const _grade = gradeData.grade ? { name: gradeData.grade.name } : undefined
+  const _grade = gradeData?.grade ? { name: gradeData.grade.name } : undefined
 
   return {
     id: data.id,

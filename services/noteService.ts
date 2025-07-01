@@ -272,7 +272,7 @@ export async function getNotes(params?: NotesQueryParams) {
   return notes
 }
 
-export async function getClasses() {
+export async function getClassesForNotes() {
   const supabase = await createClient()
 
   const { data: classes } = await supabase

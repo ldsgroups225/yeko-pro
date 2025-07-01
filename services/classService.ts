@@ -585,6 +585,7 @@ export async function getClassStudents({
         date_of_birth,
         avatar_url,
         address,
+        parent:users(id, first_name, last_name, email, phone, avatar_url),
         student_enrollment_view!inner(school_id, class_id, enrollment_status, created_at, is_government_affected, class_name),
         attendances(
           status,
@@ -657,6 +658,8 @@ export async function getClassStudents({
     const gradeAverage = item.semester_average ?? 0
     const rank = item.rank_in_class ?? 0
 
+    const parent = student.parent as any
+
     return {
       id: student.id,
       idNumber: student.id_number,
@@ -670,6 +673,9 @@ export async function getClassStudents({
       className: enrollment.class_name,
       dateJoined: enrollment.created_at,
       isGouvernentAffected: enrollment.is_government_affected || false,
+      isOrphan: false,
+      hasSubscribedTransportationService: false,
+      hasSubscribedCanteenService: false,
       gradeAverage,
       absentCount,
       lateCount,
@@ -677,8 +683,17 @@ export async function getClassStudents({
       teacherNotes: '', // TODO: Placeholder
       status: 'active', // TODO: Placeholder
       rank,
+      parent: parent
+        ? {
+            id: parent.id,
+            fullName: formatFullName(parent.first_name, parent.last_name, parent.email),
+            email: parent.email,
+            phone: parent.phone ?? 'N/A',
+            avatarUrl: parent.avatar_url ?? null,
+          }
+        : undefined,
     }
-  }).filter((s): s is ClassDetailsStudent => s !== null) // Filter out any nulls if handled that way
+  }).filter(s => s !== null) as ClassDetailsStudent[] // Filter out any nulls if handled that way
 
   // No need for manual sorting/ranking anymore
 
@@ -737,4 +752,9 @@ export async function filterStudentWhereNotInTheClass(
   }))
 
   return parsedData
+}
+
+export async function getClasses(_schoolId: string, _schoolYearId: string) {
+  // TODO: Implement this function
+  return []
 }

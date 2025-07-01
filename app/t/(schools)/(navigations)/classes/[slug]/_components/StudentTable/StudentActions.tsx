@@ -13,7 +13,7 @@ import { Edit, Eye, FileText, Mail, MoreHorizontal, UserMinus } from 'lucide-rea
 import { useState } from 'react'
 import { toast } from 'sonner'
 import { EditStudentForm } from './EditStudentForm'
-import { ReportCardSemesterDialog } from './ReportCardSemesterDialog'
+import { ParentContactDialog } from './ParentContactDialog'
 
 interface StudentActionsProps {
   student: ClassDetailsStudent & { classId: string }
@@ -22,7 +22,7 @@ interface StudentActionsProps {
 export function StudentActions({ student }: StudentActionsProps) {
   const [showProfileModal, setShowProfileModal] = useState(false)
   const [showEditModal, setShowEditModal] = useState(false)
-  const [isReportModalOpen, setIsReportModalOpen] = useState(false)
+  const [showParentContactModal, setShowParentContactModal] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   const { updateStudent, error } = useStudentStore()
@@ -88,6 +88,22 @@ export function StudentActions({ student }: StudentActionsProps) {
     setShowEditModal(false)
   }
 
+  const handleGenerateReportCard = () => {
+    if (!student.idNumber) {
+      toast.error('Matricule de l\'élève non disponible.')
+      return
+    }
+
+    // const semesterId = "current"; // Or get this from a selector
+    const reportUrl = `/api/generate-report-pdf/${student.idNumber}` // ?semesterId=${semesterId}
+
+    // Open the URL in a new blank page/tab
+    window.open(reportUrl, '_blank')
+
+    // Optional: provide user feedback that the action was initiated.
+    toast.info('Ouverture du bulletin dans un nouvel onglet...')
+  }
+
   return (
     <>
       <Dialog open={showProfileModal} onOpenChange={setShowProfileModal}>
@@ -111,7 +127,7 @@ export function StudentActions({ student }: StudentActionsProps) {
           <DialogHeader>
             <DialogTitle>Modifier le profil</DialogTitle>
             <DialogDescription>
-              Modifier les informations de l'élève. Cliquez sur enregistrer une fois terminé.
+              Modifier les informations de l&apos;élève. Cliquez sur enregistrer une fois terminé.
             </DialogDescription>
           </DialogHeader>
           <EditStudentForm
@@ -123,10 +139,11 @@ export function StudentActions({ student }: StudentActionsProps) {
         </DialogContent>
       </Dialog>
 
-      <ReportCardSemesterDialog
-        student={student}
-        isOpen={isReportModalOpen}
-        onClose={() => setIsReportModalOpen(false)}
+      <ParentContactDialog
+        isOpen={showParentContactModal}
+        onClose={() => setShowParentContactModal(false)}
+        parent={student.parent}
+        studentName={`${student.firstName} ${student.lastName}`}
       />
 
       <DropdownMenu>
@@ -144,12 +161,15 @@ export function StudentActions({ student }: StudentActionsProps) {
             <Edit className="h-4 w-4 mr-2" />
             Modifier
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => setIsReportModalOpen(true)}>
+          <DropdownMenuItem onClick={handleGenerateReportCard}>
             <FileText className="h-4 w-4 mr-2" />
             Bulletin
           </DropdownMenuItem>
           <DropdownMenuSeparator />
-          <DropdownMenuItem>
+          <DropdownMenuItem
+            onClick={() => setShowParentContactModal(true)}
+            disabled={!student.parent}
+          >
             <Mail className="h-4 w-4 mr-2" />
             Contacter parents
           </DropdownMenuItem>
