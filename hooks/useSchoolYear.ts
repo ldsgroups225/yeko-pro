@@ -6,6 +6,7 @@ interface ReturnType {
   error: string | null
   hasNoSchoolYears: boolean
   schoolYears: ISchoolYear[]
+  semesters: ISemester[]
   selectedSchoolYearId: number
   clearSchoolYears: () => void
   activeSemester: ISemester | null
@@ -32,6 +33,7 @@ export function useSchoolYear(): ReturnType {
   const {
     error,
     isLoading,
+    semesters,
     schoolYears,
     fetchSemesters,
     activeSemester,
@@ -69,6 +71,7 @@ export function useSchoolYear(): ReturnType {
     // Data
     error,
     isLoading,
+    semesters,
     schoolYears,
     activeSemester,
     hasNoSchoolYears,

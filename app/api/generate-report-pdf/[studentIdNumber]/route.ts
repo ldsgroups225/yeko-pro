@@ -8,11 +8,9 @@ import puppeteer from 'puppeteer-core'
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: Promise<{ studentIdNumber: string }> },
+  { params }: { params: Promise<{ studentIdNumber: string, semesterId: string }> },
 ) {
-  const { studentIdNumber } = await params
-
-  // const semesterId = req.nextUrl.searchParams.get('semesterId'); // Optionnel: si vous passez semesterId
+  const { studentIdNumber, semesterId } = await params
 
   if (!studentIdNumber) {
     return NextResponse.json({ error: 'Student ID is required' }, { status: 400 })
@@ -21,7 +19,11 @@ export async function GET(
   try {
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || req.nextUrl.origin
     const reportPagePath = `/report-card-template/${studentIdNumber}`
-    const reportUrl = `${baseUrl}${reportPagePath}`
+    const reportUrl = new URL(reportPagePath, baseUrl)
+
+    if (semesterId) {
+      reportUrl.searchParams.set('semesterId', semesterId)
+    }
 
     const browser = await puppeteer.launch({
       args: [
@@ -41,19 +43,19 @@ export async function GET(
       const puppeteerCookies: CookieData[] = requestCookies.map(cookie => ({
         name: cookie.name,
         value: cookie.value,
-        domain: new URL(reportUrl).hostname,
+        domain: new URL(reportUrl.toString()).hostname,
         path: '/',
         httpOnly: false,
-        secure: new URL(reportUrl).protocol === 'https:',
+        secure: new URL(reportUrl.toString()).protocol === 'https:',
         sameSite: 'Lax',
       }))
-      await browser.setCookie(...puppeteerCookies)
+      await page.setCookie(...puppeteerCookies)
     }
     else {
       console.warn('No cookies found in the incoming request to set for Puppeteer. The template page might require authentication.')
     }
 
-    await page.goto(reportUrl, { waitUntil: 'networkidle0', timeout: 60000 })
+    await page.goto(reportUrl.toString(), { waitUntil: 'networkidle0', timeout: 60000 })
 
     const finalUrl = page.url()
     if (finalUrl.includes('/sign-in') || finalUrl.includes('/login')) {
