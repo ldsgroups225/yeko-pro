@@ -29,6 +29,7 @@ import {
   Upload,
   XCircle,
 } from 'lucide-react'
+import { nanoid } from 'nanoid'
 import Papa from 'papaparse'
 import React, { useCallback, useState } from 'react'
 import { useDropzone } from 'react-dropzone'
@@ -57,7 +58,7 @@ interface DownloadTemplateConfig {
 
 export interface DataImporterProps<T extends z.ZodType> {
   schema: T
-  onDataImported?: (data: z.infer<T>[]) => void
+  onDataImported?: (data: z.infer<T>[]) => void | Promise<void>
   maxFileSize?: number // in bytes, default is 5MB
   allowedFileTypes?: string[] // default is ['.csv', '.xlsx', '.xls']
   previewRowCount?: number // Number of rows to show in preview, default is 5
@@ -88,13 +89,14 @@ export function DataImporter<T extends z.ZodType>({
   const [validatedData, setValidatedData] = useState<z.infer<T>[]>([])
   const [validationErrors, setValidationErrors] = useState<ValidationError[]>([])
   const [isProcessing, setIsProcessing] = useState<boolean>(false)
+  const [isImporting, setIsImporting] = useState<boolean>(false)
   const [processingProgress, setProcessingProgress] = useState<number>(0)
   const [status, setStatus] = useState<'idle' | 'validating' | 'validated' | 'error'>('idle')
 
   // Obtenir le texte du bouton du template
   const templateButtonText = typeof downloadTemplate === 'object'
-    ? downloadTemplate.buttonText || 'Download Template'
-    : 'Download Template'
+    ? downloadTemplate.buttonText || 'Télécharger le modèle'
+    : 'Télécharger le modèle'
 
   // Gérer le téléchargement du template Excel
   const handleDownloadTemplate = () => {
@@ -177,11 +179,24 @@ export function DataImporter<T extends z.ZodType>({
 
   // Process parsed results and validate against the schema
   const processParseResults = (data: any[], headers: string[]) => {
-    setParsedData(data)
+    // Filter out empty rows (all fields empty or null)
+    let filteredData = data
+    const shape = getSchemaShape(schema)
+    if (shape) {
+      const fieldNames = Object.keys(shape)
+      filteredData = data.filter((row) => {
+        // If at least one field is not empty/null/undefined, keep the row
+        return fieldNames.some((field) => {
+          const value = row[field]
+          return value !== undefined && value !== null && String(value).trim() !== ''
+        })
+      })
+    }
+    setParsedData(filteredData)
     setHeaders(headers)
 
     // Batch validation to avoid blocking the UI
-    validateDataBatches(data)
+    validateDataBatches(filteredData)
   }
 
   // Parse CSV files using PapaParse
@@ -196,7 +211,7 @@ export function DataImporter<T extends z.ZodType>({
       error: (error) => {
         setIsProcessing(false)
         if (onError)
-          onError(`CSV parsing error: ${error.message}`)
+          onError(`Erreur lors du parsing du CSV : ${error.message}`)
         setStatus('error')
       },
     })
@@ -313,9 +328,21 @@ export function DataImporter<T extends z.ZodType>({
   })
 
   // Handle import button click
-  const handleImport = () => {
+  const handleImport = async () => {
     if (onDataImported && validatedData.length > 0) {
-      onDataImported(validatedData)
+      setIsImporting(true)
+      try {
+        await onDataImported(validatedData)
+      }
+      catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'Une erreur est survenue lors de l\'importation.'
+        if (onError)
+          onError(`Échec de l'importation: ${errorMessage}`)
+        setStatus('error')
+      }
+      finally {
+        setIsImporting(false)
+      }
     }
   }
 
@@ -331,7 +358,7 @@ export function DataImporter<T extends z.ZodType>({
       return
 
     const csvContent = Papa.unparse({
-      fields: ['Row', 'Field', 'Error Message'],
+      fields: ['Ligne', 'Champ', 'Message d\'erreur'],
       data: validationErrors.map(err => [err.row, err.field, err.message]),
     })
 
@@ -339,7 +366,7 @@ export function DataImporter<T extends z.ZodType>({
     const url = URL.createObjectURL(blob)
     const link = document.createElement('a')
     link.href = url
-    link.setAttribute('download', `validation_errors_${new Date().toISOString()}.csv`)
+    link.setAttribute('download', `erreurs_validation_${new Date().toISOString()}.csv`)
     document.body.appendChild(link)
     link.click()
     document.body.removeChild(link)
@@ -418,6 +445,7 @@ export function DataImporter<T extends z.ZodType>({
               <Button
                 variant="ghost"
                 size="sm"
+                disabled={isProcessing || isImporting}
                 onClick={() => {
                   setFile(null)
                   setStatus('idle')
@@ -470,15 +498,15 @@ export function DataImporter<T extends z.ZodType>({
                     <AlertCircle className="h-4 w-4" />
                     <AlertTitle>Problèmes de validation</AlertTitle>
                     <AlertDescription>
-                      Found
+                      Trouvé
                       {' '}
                       {validationErrors.length}
                       {' '}
-                      errors across
+                      erreurs sur
                       {' '}
                       {uniqueErrorFields.size}
                       {' '}
-                      fields.
+                      champs.
                       <Button
                         variant="outline"
                         size="sm"
@@ -486,7 +514,7 @@ export function DataImporter<T extends z.ZodType>({
                         onClick={downloadErrorsCSV}
                       >
                         <Download className="h-3.5 w-3.5 mr-1" />
-                        Erreurs de téléchargement
+                        Télécharger les erreurs
                       </Button>
                     </AlertDescription>
                   </Alert>
@@ -514,7 +542,7 @@ export function DataImporter<T extends z.ZodType>({
                                 {header}
                               </TableHead>
                             ))}
-                            <TableHead className="w-20 text-right">Status</TableHead>
+                            <TableHead className="w-20 text-right">Statut</TableHead>
                           </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -524,7 +552,7 @@ export function DataImporter<T extends z.ZodType>({
                             const isValid = rowErrors.length === 0
 
                             return (
-                              <TableRow key={row}>
+                              <TableRow key={`preview-row-${nanoid()}`}>
                                 <TableCell className="font-mono text-xs text-muted-foreground">
                                   {rowIndex + 1}
                                 </TableCell>
@@ -534,7 +562,7 @@ export function DataImporter<T extends z.ZodType>({
 
                                   return (
                                     <TableCell
-                                      key={`${header}`}
+                                      key={`${header}-${nanoid()}`}
                                       className={hasError ? 'text-red-500' : ''}
                                     >
                                       {row[header] !== undefined && row[header] !== null
@@ -564,26 +592,26 @@ export function DataImporter<T extends z.ZodType>({
                 {validationErrors.length > 0 && (
                   <div className="border rounded-md">
                     <div className="text-sm font-medium p-3 border-b text-red-700 bg-red-50">
-                      Validation Errors (
+                      Erreurs de validation (
                       {Math.min(5, validationErrors.length)}
                       {' '}
-                      of
+                      sur
                       {' '}
                       {validationErrors.length}
                       )
                     </div>
-                    <div className="max-h-80 overflow-auto">
+                    <div className="max-h-32 overflow-auto">
                       <Table>
                         <TableHeader>
                           <TableRow>
                             <TableHead>Ligne</TableHead>
                             <TableHead>Champ</TableHead>
-                            <TableHead>Erreur</TableHead>
+                            <TableHead>Message d'erreur</TableHead>
                           </TableRow>
                         </TableHeader>
                         <TableBody>
                           {validationErrors.slice(0, 5).map(error => (
-                            <TableRow key={error.row}>
+                            <TableRow key={`error-${error.row}-${error.field}`}>
                               <TableCell className="font-mono">{error.row}</TableCell>
                               <TableCell>{error.field}</TableCell>
                               <TableCell>{error.message}</TableCell>
@@ -600,9 +628,9 @@ export function DataImporter<T extends z.ZodType>({
             {status === 'error' && (
               <Alert variant="destructive">
                 <AlertCircle className="h-4 w-4" />
-                <AlertTitle>Error</AlertTitle>
+                <AlertTitle>Erreur</AlertTitle>
                 <AlertDescription>
-                  There was an error processing your file. Please check the file format and try again.
+                  Une erreur est survenue lors du traitement de votre fichier. Veuillez vérifier le format du fichier et réessayer.
                 </AlertDescription>
               </Alert>
             )}
@@ -615,6 +643,7 @@ export function DataImporter<T extends z.ZodType>({
           <div className="flex gap-2 w-full justify-end">
             <Button
               variant="outline"
+              disabled={isImporting}
               onClick={() => {
                 setFile(null)
                 setStatus('idle')
@@ -624,25 +653,30 @@ export function DataImporter<T extends z.ZodType>({
                 setValidationErrors([])
               }}
             >
-              Cancel
+              Annuler
             </Button>
             <Button
               onClick={handleImport}
-              disabled={validRows === 0 || isProcessing}
+              disabled={validRows === 0 || isProcessing || isImporting}
             >
-              {isProcessing && (
-                <Loader2 className="h-4 w-4 animate-spin" />
+              {isImporting && (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
               )}
-              {validRows === totalRows ? 'Import Data' : `Import ${validRows} Valid Rows`}
+              {isImporting
+                ? 'Importation en cours...'
+                : validRows === totalRows
+                  ? 'Importer les données'
+                  : `Importer les ${validRows} lignes valides`}
             </Button>
           </div>
         )}
 
-        {(!file || status !== 'validated') && (
+        {(!file || (status !== 'validated' && status !== 'idle')) && (
           <div className="w-full flex justify-end">
             {file && (
               <Button
                 variant="outline"
+                disabled={isProcessing}
                 onClick={() => {
                   setFile(null)
                   setStatus('idle')
@@ -652,7 +686,7 @@ export function DataImporter<T extends z.ZodType>({
                   setValidationErrors([])
                 }}
               >
-                Cancel
+                Annuler
               </Button>
             )}
           </div>

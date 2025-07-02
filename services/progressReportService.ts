@@ -4,11 +4,18 @@ import type { SupabaseClient } from '@/lib/supabase/server'
 import type { Database } from '@/lib/supabase/types'
 import type { ILessonProgressReport, ILessonProgressReportConfig } from '@/types'
 import { createClient } from '@/lib/supabase/server'
+import { extractCompositeKey } from '@/lib/utils'
 import { ERole } from '@/types'
 import { getUserId } from './userService'
 
 export type LessonProgressReportConfig = Database['public']['Tables']['lessons_progress_reports_config']['Row']
 export type LessonProgressReportConfigInsert = Database['public']['Tables']['lessons_progress_reports_config']['Insert']
+export type LessonProgressReportConfigInsertWithErrorKeys = LessonProgressReportConfigInsert & {
+  errorKey: {
+    gradeName: string
+    subjectName: string
+  }
+}
 export type LessonProgressReportConfigUpdate = Database['public']['Tables']['lessons_progress_reports_config']['Update']
 
 export type LessonProgressReport = Database['public']['Tables']['lessons_progress_reports']['Row']
@@ -246,14 +253,20 @@ export async function deleteLessonProgressReportConfig(id: string): Promise<void
   }
 }
 
-export async function importLessonsProgressReportsConfig(reports: LessonProgressReportConfigInsert[]): Promise<{ successCount: number, errors: { row: number, error: string }[] }> {
+export async function importLessonsProgressReportsConfig(reports: LessonProgressReportConfigInsertWithErrorKeys[]): Promise<{ successCount: number, errors: { row: number, error: string }[] }> {
   const supabase = await createClient()
   const schoolId = await checkAuthAndGetSchoolId(supabase)
 
   const reportsWithSchoolId = reports.map(report => ({
-    ...report,
     school_id: schoolId,
-  }))
+    grade_id: report.grade_id,
+    lesson: report.lesson,
+    lesson_order: report.lesson_order,
+    school_year_id: report.school_year_id,
+    series: report.series,
+    sessions_count: report.sessions_count,
+    subject_id: report.subject_id,
+  } satisfies LessonProgressReportConfigInsert))
 
   const { data, error } = await supabase
     .from('lessons_progress_reports_config')
@@ -264,9 +277,16 @@ export async function importLessonsProgressReportsConfig(reports: LessonProgress
   const errors: { row: number, error: string }[] = []
 
   if (error) {
-    console.error('Erreur lors de l\'import de la configuration de progression de cours:', error)
+    if (error.code === '23505' && error.message.includes('lprc_unique_config')) { // Unique constraint violation
+      const compositeKey = extractCompositeKey(error.details, ['grade_id', 'subject_id', 'school_year_id', 'school_id', 'series', 'lesson_order'])
+      const errorRow = reports.findIndex(report => report.subject_id === compositeKey?.subject_id && report.grade_id === compositeKey?.grade_id && report.school_year_id === compositeKey?.school_year_id && report.series === compositeKey?.series && report.lesson_order === compositeKey?.lesson_order)
+      const customErrorMessage = `=>L'ordre "${compositeKey?.lesson_order}"<= de leçon pour la matière "${reports[errorRow].errorKey.subjectName}" et du niveau "${reports[errorRow].errorKey.gradeName} ${reports[errorRow].series ?? ''}" est déjà utilisé. Veuillez vérifier le fichier importé et réessayer.`
 
-    errors.push({ row: 0, error: `Erreur lors de l'import de la configuration de progression de cours: ${error.message}. Veuillez vérifier le fichier importé et réessayer.` })
+      errors.push({ row: errorRow, error: customErrorMessage })
+    }
+    else {
+      errors.push({ row: 0, error: `Erreur lors de l'import de la configuration de progression de cours: ${error.message}. Veuillez vérifier le fichier importé et réessayer.` })
+    }
   }
   else {
     successCount = data?.length || 0

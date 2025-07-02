@@ -1,6 +1,7 @@
 'use client'
 
 import type { ValidationError } from '@/components/DataImporter'
+import type { LessonProgressReportConfigInsertWithErrorKeys } from '@/services/progressReportService'
 import type { IGrade, ISubject } from '@/types'
 import { DataImporter } from '@/components/DataImporter'
 import {
@@ -26,19 +27,25 @@ interface ImportProgressReportsDialogProps {
 }
 
 // Define allowed series values
-const seriesEnum = z.enum(['A', 'C', 'D']).nullable()
+const seriesEnum = z.enum(['A', 'C', 'D'], {
+  invalid_type_error: 'Seulement A, C ou D sont autorisés',
+}).nullish()
 
 // Define the schema for the import file
 const importSchema = z.object({
   // Use names for user-friendliness in the import file
-  gradeName: z.string().min(1, 'Nom du niveau requis').transform(capitalize),
-  subjectName: z.string().min(1, 'Nom de la matière requis').transform(capitalize),
+  gradeName: z.string({
+    required_error: 'Nom du niveau requis',
+  }).min(1, 'Nom du niveau requis').transform(capitalize),
+  subjectName: z.string({
+    required_error: 'Nom de la matière requis',
+  }).min(1, 'Nom de la matière requis').transform(capitalize),
   lessonOrder: z.coerce.number().int().positive('Ordre invalide'),
   lesson: z.string().min(3, 'Titre de leçon trop court'),
   sessionsCount: z.coerce.number().int().positive('Nombre de séances invalide'),
   startedAt: z.string().refine(val => !Number.isNaN(Date.parse(val)), { message: 'Date de début invalide (AAAA-MM-JJ)' }),
   // Optional fields from the table, if needed in import
-  series: seriesEnum,
+  series: seriesEnum.transform(val => val ?? null),
 })
   .superRefine((vals, ctx) => {
     if (['2nde', '1ere', 'Tle'].includes(vals.gradeName ?? '') && !vals.series) {
@@ -67,40 +74,52 @@ export function ImportProgressReportsDialog({
     setImportErrors([]) // Clear previous errors
 
     // --- Data Mapping Logic ---
-    const mappedData = importedData.map((row, index): { data: any | null, error?: string, originalRow: number } => {
-      const grade = grades.find(g => g.name.toLowerCase() === row.gradeName?.toLowerCase())
-      const subject = subjects.find(s => s.name.toLowerCase() === row.subjectName?.toLowerCase())
-      // Find current school year (or allow selection if needed)
+    const mappedData = importedData.map(
+      (row, index): {
+        data: LessonProgressReportConfigInsertWithErrorKeys | null
+        error?: string
+        originalRow: number
+      } => {
+        const grade = grades.find(g => g.name.toLowerCase() === row.gradeName?.toLowerCase())
+        const subject = subjects.find(s => s.name.toLowerCase() === row.subjectName?.toLowerCase())
+        // Find current school year (or allow selection if needed)
 
-      if (!grade)
-        return { data: null, error: `Niveau '${row.gradeName}' non trouvé.`, originalRow: index + 1 }
-      if (!subject)
-        return { data: null, error: `Matière '${row.subjectName}' non trouvée.`, originalRow: index + 1 }
-      if (!schoolYearId)
-        return { data: null, error: `Année scolaire active non trouvée.`, originalRow: index + 1 }
+        if (!grade)
+          return { data: null, error: `Niveau '${row.gradeName}' non trouvé.`, originalRow: index + 1 }
+        if (!subject)
+          return { data: null, error: `Matière '${row.subjectName}' non trouvée.`, originalRow: index + 1 }
+        if (!schoolYearId)
+          return { data: null, error: `Année scolaire active non trouvée.`, originalRow: index + 1 }
 
-      try {
-        const startDate = new Date(row.startedAt)
-        if (Number.isNaN(startDate.getTime()))
-          throw new Error('Invalid Date')
+        try {
+          const startDate = new Date(row.startedAt)
+          if (Number.isNaN(startDate.getTime()))
+            throw new Error('Invalid Date')
 
-        return {
-          data: {
-            grade_id: grade.id,
-            subject_id: subject.id,
-            school_year_id: schoolYearId,
-            lesson_order: row.lessonOrder,
-            lesson: row.lesson,
-            sessions_count: row.sessionsCount,
-            series: row.series,
-          },
-          originalRow: index + 1,
+          return {
+            data: {
+              grade_id: grade.id,
+              subject_id: subject.id,
+              school_year_id: schoolYearId,
+              lesson_order: row.lessonOrder,
+              lesson: row.lesson,
+              sessions_count: row.sessionsCount,
+              series: row.series,
+              school_id: '',
+              errorKey: {
+                gradeName: row.gradeName!,
+                subjectName: row.subjectName!,
+              },
+            } satisfies LessonProgressReportConfigInsertWithErrorKeys,
+            originalRow: index + 1,
+            error: undefined,
+          }
         }
-      }
-      catch {
-        return { data: null, error: `Format de date invalide pour '${row.startedAt}'. Utilisez AAAA-MM-JJ.`, originalRow: index + 1 }
-      }
-    })
+        catch {
+          return { data: null, error: `Format de date invalide pour '${row.startedAt}'. Utilisez AAAA-MM-JJ.`, originalRow: index + 1 }
+        }
+      },
+    )
 
     const validReports = mappedData.filter(item => item.data !== null).map(item => item.data!)
     const mappingErrors = mappedData
@@ -144,7 +163,7 @@ export function ImportProgressReportsDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[625px]">
+      <DialogContent className="w-full sm:max-w-[800px] lg:max-w-[1000px] mx-auto">
         <DialogHeader>
           <DialogTitle>Importer Suivis Pédagogiques</DialogTitle>
           <DialogDescription>
