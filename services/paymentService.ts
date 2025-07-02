@@ -1,7 +1,9 @@
 // services/paymentService.ts
+
 'use server'
 
 import type { SupabaseClient } from '@/lib/supabase/server'
+import type { StudentForPayment } from '@/types/accounting'
 import { createClient } from '@/lib/supabase/server'
 import { formatFullName } from '@/lib/utils'
 import { ERole } from '@/types'
@@ -165,4 +167,115 @@ export async function getPaymentHistory(params: GetPaymentHistoryParams = {}): P
     paymentDate: new Date(payment.payment_date!),
     amount: payment.payment_amount!,
   } satisfies Transaction))
+}
+
+export async function getStudentPaymentDetailsByMatriculation(
+  matriculation: string,
+): Promise<StudentForPayment> {
+  const client = await createClient()
+
+  // Étape 1 : Paralléliser la récupération de l'année scolaire et de l'étudiant
+  const [schoolYearRes, studentRes] = await Promise.all([
+    client.from('school_years').select('id').eq('is_current', true).single(),
+    client
+      .from('students')
+      .select('id, first_name, last_name, avatar_url')
+      .eq('id_number', matriculation)
+      .single(),
+  ])
+
+  const currentSchoolYear = schoolYearRes.data
+  const student = studentRes.data
+
+  if (schoolYearRes.error || !currentSchoolYear) {
+    throw new Error('Erreur : impossible de récupérer l’année scolaire en cours.')
+  }
+
+  if (studentRes.error || !student) {
+    throw new Error('Erreur : étudiant introuvable avec cette matricule.')
+  }
+
+  // Étape 2 : Paralléliser récupération du statut de paiement et de l’inscription active
+  const [paymentStatusRes, enrollmentRes] = await Promise.all([
+    client
+      .from('student_payment_status_view')
+      .select('is_up_to_date, overdue_amount')
+      .eq('student_id', student.id)
+      .eq('school_year_id', currentSchoolYear.id),
+    client
+      .from('student_school_class')
+      .select('id')
+      .eq('student_id', student.id)
+      .eq('school_year_id', currentSchoolYear.id)
+      .eq('enrollment_status', 'accepted')
+      .is('is_active', true)
+      .single(),
+  ])
+
+  const paymentStatus = paymentStatusRes.data
+  const enrollment = enrollmentRes.data
+
+  if (paymentStatusRes.error) {
+    throw new Error('Erreur : échec de récupération du statut de paiement.')
+  }
+
+  if (!paymentStatus || paymentStatus.length === 0) {
+    throw new Error('Cet élève est à jour.')
+  }
+
+  if (enrollmentRes.error || !enrollment) {
+    throw new Error('Erreur : échec de récupération des données d’inscription.')
+  }
+
+  // Étape 3 : Paralléliser le dernier paiement et le plan de paiement
+  const [lastPaymentRes, paymentPlanRes] = await Promise.all([
+    client
+      .from('payments')
+      .select('amount, paid_at, payment_method')
+      .eq('enrollment_id', enrollment.id)
+      .order('paid_at', { ascending: false })
+      .limit(1)
+      .maybeSingle(),
+
+    client
+      .from('payment_plans')
+      .select(
+        'total_amount, amount_paid, installments: payment_installments(id, due_date, status, amount)',
+      )
+      .eq('enrollment_id', enrollment.id)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .single(),
+  ])
+
+  const lastPayment = lastPaymentRes.data
+  const paymentPlan = paymentPlanRes.data
+
+  if (lastPaymentRes.error) {
+    throw new Error('Erreur : échec de récupération du dernier paiement.')
+  }
+
+  if (paymentPlanRes.error || !paymentPlan) {
+    throw new Error('Erreur : échec de récupération du plan de paiement.')
+  }
+
+  // Retour structuré
+  return {
+    id: student.id,
+    photo: student.avatar_url ?? undefined,
+    fullName: formatFullName(student.first_name, student.last_name),
+    matriculation,
+    financialInfo: {
+      totalTuition: paymentPlan.total_amount,
+      remainingBalance: paymentPlan.total_amount - paymentPlan.amount_paid,
+      installmentAmount: paymentPlan.installments?.[0]?.amount ?? 0,
+      lastPayment: lastPayment
+        ? {
+            date: new Date(lastPayment.paid_at!),
+            amount: lastPayment.amount,
+            method: lastPayment.payment_method,
+          }
+        : null,
+    },
+  }
 }

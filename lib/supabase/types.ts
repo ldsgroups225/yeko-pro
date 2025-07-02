@@ -1330,137 +1330,6 @@ export interface Database {
         }
         Relationships: []
       }
-      participations: {
-        Row: {
-          class_id: string
-          created_at: string | null
-          created_by: string | null
-          id: string
-          school_years_id: number | null
-          semesters_id: number | null
-          student_id: string
-          subject_id: string
-          updated_at: string | null
-          updated_by: string | null
-        }
-        Insert: {
-          class_id: string
-          created_at?: string | null
-          created_by?: string | null
-          id?: string
-          school_years_id?: number | null
-          semesters_id?: number | null
-          student_id: string
-          subject_id: string
-          updated_at?: string | null
-          updated_by?: string | null
-        }
-        Update: {
-          class_id?: string
-          created_at?: string | null
-          created_by?: string | null
-          id?: string
-          school_years_id?: number | null
-          semesters_id?: number | null
-          student_id?: string
-          subject_id?: string
-          updated_at?: string | null
-          updated_by?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: 'participations_class_id_fkey'
-            columns: ['class_id']
-            isOneToOne: false
-            referencedRelation: 'class_year_average_view'
-            referencedColumns: ['class_id']
-          },
-          {
-            foreignKeyName: 'participations_class_id_fkey'
-            columns: ['class_id']
-            isOneToOne: false
-            referencedRelation: 'classes'
-            referencedColumns: ['id']
-          },
-          {
-            foreignKeyName: 'participations_school_years_foreign'
-            columns: ['school_years_id']
-            isOneToOne: false
-            referencedRelation: 'average_grades_view_with_rank'
-            referencedColumns: ['school_year_id']
-          },
-          {
-            foreignKeyName: 'participations_school_years_foreign'
-            columns: ['school_years_id']
-            isOneToOne: false
-            referencedRelation: 'school_years'
-            referencedColumns: ['id']
-          },
-          {
-            foreignKeyName: 'participations_school_years_foreign'
-            columns: ['school_years_id']
-            isOneToOne: false
-            referencedRelation: 'student_semester_average_view'
-            referencedColumns: ['school_year_id']
-          },
-          {
-            foreignKeyName: 'participations_semesters_foreign'
-            columns: ['semesters_id']
-            isOneToOne: false
-            referencedRelation: 'average_grades_view_with_rank'
-            referencedColumns: ['semester_id']
-          },
-          {
-            foreignKeyName: 'participations_semesters_foreign'
-            columns: ['semesters_id']
-            isOneToOne: false
-            referencedRelation: 'semesters'
-            referencedColumns: ['id']
-          },
-          {
-            foreignKeyName: 'participations_semesters_foreign'
-            columns: ['semesters_id']
-            isOneToOne: false
-            referencedRelation: 'student_semester_average_view'
-            referencedColumns: ['semester_id']
-          },
-          {
-            foreignKeyName: 'participations_student_id_fkey'
-            columns: ['student_id']
-            isOneToOne: false
-            referencedRelation: 'payment_details_view'
-            referencedColumns: ['student_id']
-          },
-          {
-            foreignKeyName: 'participations_student_id_fkey'
-            columns: ['student_id']
-            isOneToOne: false
-            referencedRelation: 'payment_view'
-            referencedColumns: ['student_id']
-          },
-          {
-            foreignKeyName: 'participations_student_id_fkey'
-            columns: ['student_id']
-            isOneToOne: false
-            referencedRelation: 'student_payment_status_view'
-            referencedColumns: ['student_id']
-          },
-          {
-            foreignKeyName: 'participations_student_id_fkey'
-            columns: ['student_id']
-            isOneToOne: false
-            referencedRelation: 'students'
-            referencedColumns: ['id']
-          },
-          {
-            foreignKeyName: 'participations_subject_id_fkey'
-            columns: ['subject_id']
-            isOneToOne: false
-            referencedRelation: 'subjects'
-            referencedColumns: ['id']
-          },
-        ]
-      }
       payment_installments: {
         Row: {
           amount: number
@@ -1554,6 +1423,13 @@ export interface Database {
             foreignKeyName: 'fk_enrollment'
             columns: ['enrollment_id']
             isOneToOne: false
+            referencedRelation: 'student_payment_status_view'
+            referencedColumns: ['enrollment_id']
+          },
+          {
+            foreignKeyName: 'fk_enrollment'
+            columns: ['enrollment_id']
+            isOneToOne: false
             referencedRelation: 'student_school_class'
             referencedColumns: ['id']
           },
@@ -1562,6 +1438,7 @@ export interface Database {
       payments: {
         Row: {
           amount: number
+          enrollment_id: string
           id: string
           installment_id: string
           paid_at: string | null
@@ -1571,6 +1448,7 @@ export interface Database {
         }
         Insert: {
           amount: number
+          enrollment_id: string
           id?: string
           installment_id: string
           paid_at?: string | null
@@ -1580,6 +1458,7 @@ export interface Database {
         }
         Update: {
           amount?: number
+          enrollment_id?: string
           id?: string
           installment_id?: string
           paid_at?: string | null
@@ -1588,6 +1467,41 @@ export interface Database {
           reference?: string
         }
         Relationships: [
+          {
+            foreignKeyName: 'fk_enrollment'
+            columns: ['enrollment_id']
+            isOneToOne: false
+            referencedRelation: 'payment_details_view'
+            referencedColumns: ['enrollment_id']
+          },
+          {
+            foreignKeyName: 'fk_enrollment'
+            columns: ['enrollment_id']
+            isOneToOne: false
+            referencedRelation: 'payment_view'
+            referencedColumns: ['enrollment_id']
+          },
+          {
+            foreignKeyName: 'fk_enrollment'
+            columns: ['enrollment_id']
+            isOneToOne: false
+            referencedRelation: 'student_enrollment_view'
+            referencedColumns: ['enrollment_id']
+          },
+          {
+            foreignKeyName: 'fk_enrollment'
+            columns: ['enrollment_id']
+            isOneToOne: false
+            referencedRelation: 'student_payment_status_view'
+            referencedColumns: ['enrollment_id']
+          },
+          {
+            foreignKeyName: 'fk_enrollment'
+            columns: ['enrollment_id']
+            isOneToOne: false
+            referencedRelation: 'student_school_class'
+            referencedColumns: ['id']
+          },
           {
             foreignKeyName: 'fk_installment'
             columns: ['installment_id']
@@ -2918,6 +2832,7 @@ export interface Database {
       student_payment_status_view: {
         Row: {
           classroom: string | null
+          enrollment_id: string | null
           first_name: string | null
           id_number: string | null
           is_up_to_date: boolean | null

@@ -1,26 +1,12 @@
+// app/t/(schools)/(navigations)/accounting/_components/student-information.tsx
+
+import type { StudentForPayment } from '@/types/accounting'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Card, CardContent } from '@/components/ui/card'
 import { formatCurrency, formatDate } from '@/lib/utils'
 
-interface StudentFinancialInfo {
-  totalTuition: number
-  remainingBalance: number
-  installmentAmount: number
-  lastPayment?: {
-    date: Date
-    amount: number
-    method: string
-  }
-}
-
 interface StudentInformationProps {
-  student: {
-    id: string
-    photo?: string
-    fullName: string
-    matriculation: string
-    financialInfo: StudentFinancialInfo
-  }
+  student: StudentForPayment
 }
 
 export function StudentInformation({ student }: StudentInformationProps) {

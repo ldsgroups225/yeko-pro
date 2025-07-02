@@ -1,3 +1,5 @@
+// types/accounting.ts
+
 import type { ReactNode } from 'react'
 
 export interface FinancialStatistic {
@@ -61,4 +63,21 @@ export interface StudentWithPaymentStatus {
   classroom: string
   paymentStatus: 'paid' | 'overdue'
   remainingAmount: number
+}
+
+export interface StudentForPayment {
+  id: string
+  photo?: string
+  fullName: string
+  matriculation: string
+  financialInfo: {
+    totalTuition: number
+    remainingBalance: number
+    installmentAmount: number
+    lastPayment?: {
+      date: Date
+      amount: number
+      method: string
+    } | null
+  }
 }
