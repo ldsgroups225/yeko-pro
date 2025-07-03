@@ -555,14 +555,10 @@ export async function getStudentStats(studentId: string): Promise<StudentStats> 
 
   // 4. Get Payment Status
   const { data: payment } = await supabase
-    .from('payment_details_view')
-    .select(`
-      total_amount,
-      payment_amount,
-      remaining_amount
-    `)
+    .from('student_payment_status_view')
+    .select('is_up_to_date')
     .eq('student_id', studentId)
-    .eq('school_year', currentYear.id)
+    .eq('school_year_id', currentYear.id)
     .single()
 
   // 5. Get Behavior Score
@@ -580,22 +576,6 @@ export async function getStudentStats(studentId: string): Promise<StudentStats> 
   // Calculate attendance percentage
   const lateCount = attendances?.filter(a => a.status === 'late').length || 0
   const absencesCount = attendances?.filter(a => a.status === 'absent').length || 0
-
-  // Calculate payment percentage and status
-  const paymentPercentage = payment?.total_amount
-    ? ((payment.payment_amount || 0) / payment.total_amount) * 100
-    : 0
-
-  let paymentStatus: 'up_to_date' | 'pending' | 'late' = 'pending'
-  if (paymentPercentage === 100) {
-    paymentStatus = 'up_to_date'
-  }
-  else if (paymentPercentage === 0) {
-    paymentStatus = 'pending'
-  }
-  else {
-    paymentStatus = 'late'
-  }
 
   // Calculate behavior score and status
   const behaviorScore = behavior?.length
@@ -623,8 +603,8 @@ export async function getStudentStats(studentId: string): Promise<StudentStats> 
     },
     average: Number(average?.semester_average) || 0,
     payment: {
-      status: paymentStatus,
-      percentage: Math.round(paymentPercentage),
+      status: payment?.is_up_to_date ? 'up_to_date' : 'pending',
+      percentage: payment?.is_up_to_date ? 100 : 0,
     },
     behavior: {
       status: getBehaviorStatus(behaviorScore),
