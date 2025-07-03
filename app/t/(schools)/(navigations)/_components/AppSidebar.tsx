@@ -76,7 +76,7 @@ export function AppSidebar({ className }: AppSidebarProps) {
                 className="mb-4"
                 aria-label={state === 'collapsed' ? 'Réduire le menu' : 'Développer le menu'}
               >
-                {state === 'collapsed' ? <ChevronLeft /> : <ChevronRight />}
+                {state !== 'collapsed' ? <ChevronLeft /> : <ChevronRight />}
               </Button>
             </div>
             <SidebarContent>
