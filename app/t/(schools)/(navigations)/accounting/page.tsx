@@ -5,7 +5,7 @@ import {
   CollectionRateChart,
   FinancialStatistics,
   NewPaymentDialog,
-  RevenueVsCostChart,
+  // RevenueVsCostChart,
   StudentPaymentsFilters,
   StudentPaymentsList,
   StudentPaymentsListSkeleton,
@@ -38,14 +38,14 @@ export default async function AccountingPage({ searchParams }: AccountingPagePro
       <Suspense fallback={<div>Chargement des statistiques...</div>}>
         <FinancialStatistics />
       </Suspense>
-      <div className="grid grid-cols-3 gap-6">
-        <div className="col-span-2 grid grid-cols-2 gap-6">
-          <RevenueVsCostChart />
+      <div className="grid grid-cols-5 gap-6">
+        <section className="col-span-2 grid gap-6">
+          {/* <RevenueVsCostChart /> */}
           <CollectionRateChart />
           <NewPaymentDialog />
           <TransactionsHistory />
-        </div>
-        <section>
+        </section>
+        <section className="col-span-3">
           <StudentPaymentsFilters />
           <div className="mt-4">
             <Suspense fallback={<StudentPaymentsListSkeleton />}>
