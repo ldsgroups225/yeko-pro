@@ -1,7 +1,7 @@
 // store/tuitionStore.ts
 
 import type { InstallmentTemplate as ITemplate, TuitionSettings as ITuition } from '@/validations'
-import { getInstallmentTemplates, getTuitions, updateInstallmentTemplate, updateTuition } from '@/services'
+import { deleteInstallmentTemplate, getInstallmentTemplates, getTuitions, updateInstallmentTemplate, updateTuition } from '@/services'
 import { create } from 'zustand'
 
 // Define the state interface
@@ -92,6 +92,15 @@ interface TuitionActions {
    * @returns {void}
    */
   setShowAddTemplateModal: (show: boolean) => void
+
+  /**
+   * Deletes an existing installment template.
+   *
+   * @param {string} id - The ID of the installment template to delete.
+   * @returns {Promise<void>} A promise that resolves when the installment template is deleted and the store is updated.
+   * @throws {Error} If there is an error during the deletion process.
+   */
+  deleteInstallmentTemplate: (id: string) => Promise<void>
 }
 
 /**
@@ -278,6 +287,33 @@ const useTuitionStore = create<TuitionState & TuitionActions>((set, get) => ({
    * @returns {void}
    */
   setShowAddTemplateModal: (show: boolean): void => set({ showAddTemplateModal: show }),
+
+  /**
+   * Action to delete an installment template.
+   * Sends delete request to the server and updates the installmentTemplates array in the store.
+   * @async
+   * @param {string} id - Installment template ID for which installment template is being deleted.
+   * @throws {Error} If deleting installment template fails.
+   */
+  deleteInstallmentTemplate: async (id: string): Promise<void> => {
+    set({ isLoading: true, error: null })
+    try {
+      await deleteInstallmentTemplate(id)
+      const { installmentTemplates } = get()
+      const updatedTemplates = installmentTemplates.filter(template => template.id !== id)
+      set({
+        isLoading: false,
+        error: null,
+        installmentTemplates: updatedTemplates,
+      })
+    }
+    catch (error) {
+      console.error('Error deleting installment template:', error)
+      const errorMessage = error instanceof Error ? error.message : 'Failed to delete installment template'
+      set({ error: errorMessage, isLoading: false })
+      throw error
+    }
+  },
 }))
 
 export default useTuitionStore

@@ -277,3 +277,25 @@ export async function updateInstallmentTemplate(data: Partial<InstallmentTemplat
     throw new Error(error.message)
   }
 }
+
+export async function deleteInstallmentTemplate(id: string): Promise<void> {
+  const supabase = await createClient()
+  try {
+    const userId = await checkAuthUserId(supabase)
+    const schoolId = await getDirectorSchoolId(supabase, userId)
+    const { error } = await supabase
+      .from('installment_templates')
+      .delete()
+      .eq('id', id)
+      .eq('school_id', schoolId)
+      .throwOnError()
+    if (error) {
+      console.error('Error deleting installment template:', error)
+      throw new Error('Erreur lors de la suppression du plan de paiement')
+    }
+  }
+  catch (error: any) {
+    console.error('Unexpected error in deleteInstallmentTemplate:', error)
+    throw new Error(error.message)
+  }
+}
