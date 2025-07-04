@@ -1,6 +1,7 @@
 import type { StudentWithPaymentStatus } from '@/types/accounting'
 import { Badge } from '@/components/ui/badge'
 import { cn, formatCurrency } from '@/lib/utils'
+import { CheckCircle2 } from 'lucide-react'
 import { NotifyIndividualParentButton } from './notify-individual-parent-button'
 
 interface StudentPaymentsTableProps {
@@ -27,6 +28,7 @@ export function StudentPaymentsTable({ students }: StudentPaymentsTableProps) {
           <th className={cn(thStyle, 'text-left')}>Nom</th>
           <th className={cn(thStyle, 'text-center')}>Matricule</th>
           <th className={cn(thStyle, 'text-center')}>Classe</th>
+          <th className={cn(thStyle, 'text-right')}>Reste à payer</th>
           <th className={cn(thStyle, 'text-end')}>Statut</th>
           <th className={cn(thStyle, 'text-end')}>Actions</th>
         </tr>
@@ -39,7 +41,17 @@ export function StudentPaymentsTable({ students }: StudentPaymentsTableProps) {
                 <td className={cn(tdStyle, 'text-left')}>{student.name}</td>
                 <td className={cn(tdStyle, 'text-center')}>{student.idNumber}</td>
                 <td className={cn(tdStyle, 'text-center')}>{student.classroom}</td>
-                <td className={cn(tdStyle, 'text-end')}>{student.classroom}</td>
+                <td className={cn(tdStyle, 'text-end')}>
+                  {
+                    student.remainingAmount === 0
+                      ? (
+                          <Badge variant="success">
+                            <CheckCircle2 className="w-4 h-4 text-green-500" />
+                          </Badge>
+                        )
+                      : `-${formatCurrency(student.remainingAmount, true)}`
+                  }
+                </td>
                 <td className={cn(tdStyle, 'text-end')}>
                   <Badge
                     variant={student.paymentStatus === 'paid' ? 'success' : 'outline'}
