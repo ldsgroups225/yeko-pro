@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
 import { useClassesData, useSearchParamsState } from '@/hooks'
 import { PlusIcon } from '@radix-ui/react-icons'
+import { useSearchParams } from 'next/navigation'
 import { useState } from 'react'
 import {
   ClassCreationOrUpdateDialog,
@@ -33,16 +34,20 @@ export default function ClassesPage() {
     teacher: undefined,
   })
 
+  const searchParams = useSearchParams()
+  const pageParam = searchParams.get('page')
+  const currentPage = pageParam ? Number.parseInt(pageParam, 10) : 1
+
   // Initialize classes data
   const {
     grades,
     results,
     status,
     pagination,
-    currentPage,
   } = useClassesData({
     initialItemsPerPage: ITEMS_PER_PAGE,
     filters: state,
+    page: currentPage,
   })
 
   // Handlers

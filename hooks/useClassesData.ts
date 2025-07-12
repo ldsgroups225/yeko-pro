@@ -15,6 +15,7 @@ interface Filters {
 interface UseClassesDataProps {
   initialItemsPerPage: number
   filters: Filters
+  page?: number // <-- Add page prop
 }
 
 interface UseClassesDataReturn {
@@ -41,6 +42,7 @@ interface UseClassesDataReturn {
 export function useClassesData({
   initialItemsPerPage,
   filters,
+  page = 1, // <-- Default to 1
 }: UseClassesDataProps): UseClassesDataReturn {
   const { user } = useUser()
   const { grades } = useGrade()
@@ -95,6 +97,11 @@ export function useClassesData({
       setPage(1)
     }
   }, [filters])
+
+  // Set page when page prop changes
+  useEffect(() => {
+    setPage(page)
+  }, [page])
 
   // useDebouncedCallback class load
   const _debouncedLoadClasses = useDebouncedCallback(async (schoolId: string) => {
