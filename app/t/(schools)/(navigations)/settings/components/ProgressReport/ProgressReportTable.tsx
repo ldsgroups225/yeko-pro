@@ -137,7 +137,7 @@ export function ProgressReportTable({
         </Table>
       </div>
       {totalPages > 1 && (
-        <Pagination currentPage={page} totalPages={totalPages} onPageChange={() => {}} />
+        <Pagination currentPage={page} totalPages={totalPages} />
       )}
     </div>
   )

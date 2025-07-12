@@ -62,12 +62,6 @@ export function TeachersTable({
     replace(`${pathname}?${params.toString()}`)
   }
 
-  const handlePageChange = (newPage: number) => {
-    const params = new URLSearchParams(searchParams)
-    params.set('page', newPage.toString())
-    replace(`${pathname}?${params.toString()}`)
-  }
-
   useEffect(() => {
     fetchTeachers()
   }, [
@@ -160,7 +154,6 @@ export function TeachersTable({
       <Pagination
         currentPage={page!}
         totalPages={totalPages}
-        onPageChange={handlePageChange}
       />
     </>
   )

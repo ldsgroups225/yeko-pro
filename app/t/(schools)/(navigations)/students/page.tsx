@@ -39,11 +39,9 @@ export default function StudentsPage() {
   const {
     error,
     status,
-    loadMore,
     students,
     pagination,
     currentPage,
-    setCurrentPage,
     groupedClasses,
   } = useStudentsData({
     initialItemsPerPage: ITEMS_PER_PAGE,
@@ -73,14 +71,6 @@ export default function StudentsPage() {
 
   const handleRefusedStudentsFilterChange = (refusedStudentsFilter: boolean) => {
     updateState({ refusedStudentsFilter })
-  }
-
-  const handlePageChange = (newPage: number) => {
-    if (newPage > currentPage) {
-      loadMore()
-    }
-    setCurrentPage(newPage)
-    // TODO: updateState({ page: newPage })
   }
 
   // Student management handlers
@@ -222,7 +212,6 @@ export default function StudentsPage() {
               <Pagination
                 currentPage={currentPage}
                 totalPages={pagination.totalPages}
-                onPageChange={handlePageChange}
               />
             </div>
           )}

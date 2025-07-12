@@ -8,12 +8,8 @@ interface StudentTableProps {
   selectedStudents: string[]
   onSelectAll: () => void
   onSelectStudent: (id: string) => void
-  onPageChange: (page: number) => void
-  pagination: {
-    hasNextPage: boolean
-    hasPreviousPage: boolean
-  }
   currentPage: number
+  totalPages: number
 }
 
 export function StudentTable({
@@ -21,9 +17,8 @@ export function StudentTable({
   selectedStudents,
   onSelectAll,
   onSelectStudent,
-  onPageChange,
-  pagination,
   currentPage,
+  totalPages,
 }: StudentTableProps) {
   if (students.length === 0)
     return <p>Empty</p>
@@ -62,10 +57,8 @@ export function StudentTable({
         </TableBody>
       </Table>
       <TablePagination
-        total={students.length}
         currentPage={currentPage}
-        pagination={pagination}
-        onPageChange={onPageChange}
+        totalPages={totalPages}
       />
     </>
   )

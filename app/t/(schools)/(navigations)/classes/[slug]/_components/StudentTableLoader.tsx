@@ -26,8 +26,6 @@ export async function StudentTableLoader({ classId }: StudentTableLoaderProps) {
       initialStudents={initialStudents}
       totalCount={totalCount}
       classId={classId}
-      schoolYearId={schoolYearId}
-      semesterId={semesterId}
       itemsPerPage={ITEMS_PER_PAGE}
     />
   )

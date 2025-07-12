@@ -38,10 +38,8 @@ export default function ClassesPage() {
     grades,
     results,
     status,
-    loadMore,
-    currentPage,
     pagination,
-    setCurrentPage,
+    currentPage,
   } = useClassesData({
     initialItemsPerPage: ITEMS_PER_PAGE,
     filters: state,
@@ -60,13 +58,6 @@ export default function ClassesPage() {
     const parsedClass = JSON.parse(classData)
     setClassToEdit(parsedClass)
     setShowClassModal(true)
-  }
-
-  const handlePageChange = (newPage: number) => {
-    if (newPage > currentPage) {
-      loadMore()
-    }
-    setCurrentPage(newPage)
   }
 
   return (
@@ -125,8 +116,7 @@ export default function ClassesPage() {
           {status !== 'idle' && status !== 'loading' && (
             <Pagination
               currentPage={currentPage}
-              totalPages={status === 'success' ? pagination.totalPages : pagination.totalPages + 1}
-              onPageChange={handlePageChange}
+              totalPages={pagination.totalPages}
             />
           )}
         </CardContent>
