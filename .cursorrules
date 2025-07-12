@@ -1,0 +1,68 @@
+# Project Structure & Conventions for yeko-pro
+
+## Components & Naming
+- Use functional components. Add `"use client"` directive when client-side interactivity is needed.
+- Name components in PascalCase.
+- Store shared components under `src/components/`. Route-specific components go under `app/route/_components/`.
+- Keep components focused and small. Type props using TypeScript interfaces.
+- Use Tailwind CSS for styling. For common UI elements like buttons, inputs, textareas, use the components provided in `components/ui/` (which are based on shadcn/ui and Radix UI).
+
+## Supabase (Backend & Database)
+- Database interactions should primarily go through Supabase client functions defined in services (e.g., `services/studentService.ts`).
+- Follow Supabase conventions for table/column naming (snake_case). Convert to camelCase in the application code (use helpers in `lib/utils/caseConverter.ts` if needed).
+- Use Supabase Studio or migrations for schema changes. Avoid direct database manipulation outside migrations.
+- Supabase client instances are created via `lib/supabase/client.ts` (client-side) and `lib/supabase/server.ts` (server-side).
+- Use context7 mcp server to get latest docs and best practices in web
+
+## Icons
+- Prefer using icons from the `lucide-react` library.
+- Name icon components in PascalCase.
+- Store any custom SVG icons in `src/components/icons/`.
+
+## Toast Notifications
+- Use the `sonner` library for toast notifications via the `useToast` hook (`components/ui/use-toast.ts`) and `Toaster` component (`components/ui/toaster.tsx`).
+- Use `toast.success()`, `toast.error()`, `toast.info()`, `toast.warning()`.
+
+## Next.js Structure
+- Use the App Router (`app/` directory). Server Components are the default.
+- Use `"use client"` for components requiring client-side interactivity or hooks (useState, useEffect, etc.).
+- Authentication is handled via Supabase Auth (`lib/supabase/middleware.ts`, `services/userService.ts`).
+- Store secrets and environment variables in `.env` files. Use `lib/utils/EnvClient.ts` and `lib/utils/EnvServer.ts` for type-safe access.
+- Use context7 mcp server to get latest docs and best practices in web
+
+## TypeScript & Syntax
+- Enable and adhere to strict mode in `tsconfig.json`.
+- Avoid using `any` type. Define specific types or use `unknown`.
+- Utilize optional chaining (`?.`) and nullish coalescing (`??`).
+- Use enums where appropriate (e.g., `ERole` in `types/index.ts`), but prefer union types for simple variant sets.
+
+## File & Folder Names
+- Next.js route segments (folders) should generally follow kebab-case or descriptive names (e.g., `app/(auth)/sign-in/page.tsx`, `app/t/(schools)/(navigations)/students/[idNumber]/page.tsx`). Page files are `page.tsx`, layouts are `layout.tsx`.
+- Store shared types in `src/types/index.ts` or feature-specific type files (e.g., `app/payments/types.ts`).
+- Organize imports: 1. React/Next imports, 2. External libraries, 3. Internal modules (`@/components`, `@/lib`, etc.), 4. Relative sibling imports (`./`, `../`), 5. Style imports.
+
+## Tailwind Usage
+- Use Tailwind CSS utility classes for styling.
+- Follow a mobile-first approach.
+- Use `dark:` prefix for dark mode styles (`darkMode: ["class"]` is configured).
+- Extend theme, colors, and fonts in `tailwind.config.js`.
+- Use Framer Motion (`framer-motion`) for complex animations. Use Tailwind's animation utilities for simple transitions.
+- Use context7 mcp server to get latest docs and best practices in web
+
+## State Management (Zustand)
+- Use Zustand for global state management.
+- Define stores in the `store/` directory (e.g., `store/userStore.ts`).
+- Separate state and actions within each store interface.
+- Use context7 mcp server to get latest docs and best practices in web
+
+## Reusable Logic
+- Place shared utility functions in `src/lib/utils/`. Create specific files for specific concerns (e.g., `dateTime.ts`, `formatting.ts`).
+- Server-specific utilities can go into `src/lib/utils/server.ts` if needed, client-specific into `src/lib/utils/client.ts`.
+
+## Workflow & Tooling
+- After making changes, run `npm run build` to check for build errors (ignore warnings unless critical).
+- Add a one-sentence summary of changes to `.cursor-updates` in markdown format after each interaction.
+- Commit changes using semantic commit messages: `git add . && git commit -m "feat: Add user profile component"`. Do not push automatically.
+- Use the `screenshot` tool to show UI changes.
+- For complex tasks, use the `architect` tool to get a plan first.
+- After complex tasks, use the `codeReview` tool to review the generated diff.
