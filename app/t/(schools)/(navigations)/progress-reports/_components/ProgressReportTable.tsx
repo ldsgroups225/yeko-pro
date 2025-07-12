@@ -127,7 +127,7 @@ export async function ProgressReportTable({
         </Table>
       </div>
       {totalPages > 1 && (
-        <Pagination currentPage={page} totalPages={totalPages} onPageChange={() => {}} /> // Client-side nav handled by filters component
+        <Pagination currentPage={page} totalPages={totalPages} />
       )}
     </div>
   )
