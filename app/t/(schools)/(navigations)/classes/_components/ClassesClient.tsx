@@ -1,10 +1,11 @@
 'use client'
 
 import type { IClass, IGrade } from '@/types'
+
 import { Pagination } from '@/components/Pagination'
 import { Button } from '@/components/ui/button'
 import { PlusIcon } from '@radix-ui/react-icons'
-import { useState } from 'react'
+import React, { useState } from 'react'
 import {
   ClassCreationOrUpdateDialog,
   ClassesFilters,
@@ -58,6 +59,7 @@ export default function ClassesClient({
         <Button
           variant="outline"
           aria-label="New Class"
+          data-testid="new-class-btn"
           onClick={() => setShowClassModal(true)}
         >
           <PlusIcon className="mr-2 h-4 w-4" />
@@ -76,6 +78,7 @@ export default function ClassesClient({
         onHasMainTeacherChange={handleTeacherChange}
         isTableViewMode={isTableViewMode}
         onToggleViewMode={() => setIsTableViewMode(!isTableViewMode)}
+        toggleViewModeTestId="toggle-view-mode-btn"
         onImportClick={() => setShowImportModal(true)}
         onExportClick={() => {}}
         onArchiveClick={() => {}}

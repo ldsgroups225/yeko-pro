@@ -10,6 +10,7 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { useRouter } from 'next/navigation'
+import React from 'react'
 import { ClassTableRowActions } from './ClassTableRowActions'
 
 interface ClassesTableProps {

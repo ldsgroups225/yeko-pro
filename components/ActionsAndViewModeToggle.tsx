@@ -22,6 +22,7 @@ interface ActionsAndViewModeToggleProps {
   onArchive?: () => void
   onDownload?: () => void
   onUpload?: () => void
+  toggleViewModeTestId?: string
 }
 
 /**
@@ -36,6 +37,7 @@ export const ActionsAndViewModeToggle: React.FC<ActionsAndViewModeToggleProps> =
   onArchive,
   onDownload,
   onUpload,
+  toggleViewModeTestId,
 }) => {
   return (
     <TooltipProvider>
@@ -47,6 +49,7 @@ export const ActionsAndViewModeToggle: React.FC<ActionsAndViewModeToggleProps> =
               size="icon"
               aria-label="Toggle View Mode"
               onClick={onToggleViewMode}
+              {...(toggleViewModeTestId ? { 'data-testid': toggleViewModeTestId } : {})}
             >
               {isTableViewMode
                 ? (

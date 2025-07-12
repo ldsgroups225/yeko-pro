@@ -3,6 +3,7 @@ import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useRouter } from 'next/navigation'
+import React from 'react'
 import { ClassTableRowActions } from './ClassTableRowActions'
 
 interface ClassesGridProps {

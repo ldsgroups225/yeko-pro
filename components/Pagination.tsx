@@ -3,6 +3,7 @@
 import { Button } from '@/components/ui/button'
 import { ChevronLeftIcon, ChevronRightIcon } from '@radix-ui/react-icons'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
+import React from 'react'
 
 interface PaginationProps {
   currentPage: number

@@ -25,6 +25,7 @@ interface ClassesFiltersProps {
   onImportClick: () => void
   onExportClick: () => void
   onArchiveClick: () => void
+  toggleViewModeTestId?: string
 }
 
 /**
@@ -48,6 +49,7 @@ export const ClassesFilters: React.FC<ClassesFiltersProps> = ({
   onImportClick,
   onExportClick,
   onArchiveClick,
+  toggleViewModeTestId,
 }) => {
   return (
     <>
@@ -166,6 +168,7 @@ export const ClassesFilters: React.FC<ClassesFiltersProps> = ({
             onArchive={onArchiveClick}
             onDownload={onExportClick}
             onUpload={onImportClick}
+            toggleViewModeTestId={toggleViewModeTestId}
           />
         </div>
       </div>
