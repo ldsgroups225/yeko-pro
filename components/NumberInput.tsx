@@ -22,21 +22,37 @@ export interface NumberInputProps
 }
 
 export function NumberInput({ ref, stepper, thousandSeparator, placeholder, defaultValue, min = -Infinity, max = Infinity, onValueChange, fixedDecimalScale = false, decimalScale = 0, suffix, prefix, value: controlledValue, ...props }: NumberInputProps & { ref: React.RefObject<HTMLInputElement> }) {
-  const [internalValue, setInternalValue] = useState<number | undefined>(controlledValue ?? defaultValue)
+  // Use controlled value if provided, otherwise fall back to internal state
+  const [internalValue, setInternalValue] = useState<number | undefined>(defaultValue)
+  const displayValue = controlledValue !== undefined ? controlledValue : internalValue
 
   const handleIncrement = useCallback(() => {
-    setInternalValue(prev =>
-      prev === undefined ? stepper ?? 1 : Math.min(prev + (stepper ?? 1), max),
-    )
-  }, [stepper, max])
+    const currentValue = controlledValue ?? internalValue ?? 0
+    const stepValue = stepper ?? 1
+    const newValue = Math.min(currentValue + stepValue, max)
+    
+    if (controlledValue === undefined) {
+      setInternalValue(newValue)
+    }
+    
+    if (onValueChange) {
+      onValueChange(newValue)
+    }
+  }, [stepper, max, controlledValue, internalValue, onValueChange, min])
 
   const handleDecrement = useCallback(() => {
-    setInternalValue(prev =>
-      prev === undefined
-        ? -(stepper ?? 1)
-        : Math.max(prev - (stepper ?? 1), min),
-    )
-  }, [stepper, min])
+    const currentValue = controlledValue ?? internalValue ?? 0
+    const stepValue = stepper ?? 1
+    const newValue = Math.max(currentValue - stepValue, min)
+    
+    if (controlledValue === undefined) {
+      setInternalValue(newValue)
+    }
+    
+    if (onValueChange) {
+      onValueChange(newValue)
+    }
+  }, [stepper, min, controlledValue, internalValue, onValueChange])
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -65,7 +81,13 @@ export function NumberInput({ ref, stepper, thousandSeparator, placeholder, defa
     floatValue: number | undefined
   }) => {
     const newValue = values.floatValue === undefined ? undefined : values.floatValue
-    setInternalValue(newValue)
+    
+    // Only update internal state if not controlled
+    if (controlledValue === undefined) {
+      setInternalValue(newValue)
+    }
+    
+    // Always call onValueChange if provided
     if (onValueChange) {
       onValueChange(newValue)
     }
@@ -87,8 +109,7 @@ export function NumberInput({ ref, stepper, thousandSeparator, placeholder, defa
   return (
     <div className="flex items-center">
       <NumericFormat
-        key={controlledValue}
-        value={controlledValue ?? internalValue}
+        value={displayValue}
         onValueChange={handleChange}
         thousandSeparator={thousandSeparator}
         decimalScale={decimalScale}
@@ -104,6 +125,7 @@ export function NumberInput({ ref, stepper, thousandSeparator, placeholder, defa
         placeholder={placeholder}
         className="[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none rounded-r-none relative"
         getInputRef={ref}
+        allowLeadingZeros
         {...props}
       />
 
