@@ -1,3 +1,4 @@
+import { DotsHorizontalIcon, Link1Icon, Pencil1Icon, PersonIcon } from '@radix-ui/react-icons'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -5,7 +6,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { DotsHorizontalIcon, Link1Icon, Pencil1Icon, PersonIcon } from '@radix-ui/react-icons'
 
 interface StudentTableRowActionsProps {
   editButtonClicked: () => void

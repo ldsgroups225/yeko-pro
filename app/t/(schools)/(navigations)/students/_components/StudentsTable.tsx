@@ -1,32 +1,26 @@
 import type { IStudentDTO } from '@/types'
-import {
-  Avatar,
-  AvatarFallback,
-  AvatarImage,
-} from '@/components/ui/avatar'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import {
-  HoverCard,
-  HoverCardContent,
-  HoverCardTrigger,
-} from '@/components/ui/hover-card'
-import { Skeleton } from '@/components/ui/skeleton'
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table'
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
-import { cn, formatDate, formatPhoneNumber, getAge, getAvatarFromFullName } from '@/lib/utils'
+import type { StudentFormValues } from '@/validations'
 import { CaretSortIcon } from '@radix-ui/react-icons'
 import { MailIcon } from 'lucide-react'
 import { nanoid } from 'nanoid'
 import { useRouter } from 'next/navigation'
-import React, { useCallback } from 'react'
+
+import React, { useCallback, useState } from 'react'
+import { toast } from 'sonner'
+
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/hover-card'
+import { Skeleton } from '@/components/ui/skeleton'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
+
+import { cn, formatDate, formatPhoneNumber, getAge, getAvatarFromFullName } from '@/lib/utils'
+import { useStudentStore } from '@/store'
+
+import { EditStudentForm } from '../../classes/[slug]/_components/StudentTable/EditStudentForm'
 import { StudentTableRowActions } from './StudentTableRowActions'
 
 interface SortableHeaderProps {
@@ -81,155 +75,225 @@ export const StudentsTable: React.FC<StudentsTableProps> = ({
   students,
   isLoading,
   onParentLink,
-  onStudentEdit,
+  onStudentEdit: _onStudentEdit, // Prefix with _ to indicate it's intentionally unused
 }) => {
   const router = useRouter()
+
+  const [showEditModal, setShowEditModal] = useState(false)
+  const [selectedStudent, setSelectedStudent] = useState<IStudentDTO | null>(null)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const { updateStudent, error } = useStudentStore()
 
   const navigateToStudent = useCallback((slug: string) => {
     router.push(`/t/students/${slug}`)
   }, [router])
+
+  const handleEditClick = useCallback((student: IStudentDTO) => {
+    setSelectedStudent(student)
+    setShowEditModal(true)
+  }, [])
+
+  const handleEditSubmit = async (values: StudentFormValues) => {
+    if (!selectedStudent)
+      return
+
+    setIsSubmitting(true)
+    try {
+      await updateStudent({
+        id: selectedStudent.id,
+        gender: values.gender,
+        address: values.address,
+        lastName: values.lastName,
+        firstName: values.firstName,
+        avatarUrl: values.avatarUrl,
+        dateOfBirth: values.dateOfBirth?.toISOString(),
+      })
+
+      if (error) {
+        toast.error(error.message)
+        return
+      }
+
+      toast.success('Profil mis à jour avec succès')
+      setShowEditModal(false)
+    }
+    catch (error) {
+      console.error('Failed to update student:', error)
+      toast.error('Erreur lors de la mise à jour du profil')
+    }
+    finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  const handleEditCancel = () => {
+    setShowEditModal(false)
+    setSelectedStudent(null)
+  }
 
   const fakeStudents = Array.from({ length: 10 }, (_, i) => ({
     id: i.toString(),
   }))
 
   return (
-    <Table>
-      <TableHeader>
-        <TableRow>
-          <TableHead>N°</TableHead>
-          <TableHead>
-            <SortableHeader field="lastName" sort={sort} onSort={onSort}>
-              Nom
-            </SortableHeader>
-          </TableHead>
-          <TableHead>
-            <SortableHeader field="firstName" sort={sort} onSort={onSort}>
-              Prénom
-            </SortableHeader>
-          </TableHead>
-          <TableHead className="text-center">
-            <SortableHeader field="idNumber" sort={sort} onSort={onSort}>
-              Matricule
-            </SortableHeader>
-          </TableHead>
-          <TableHead className="text-center">
-            <SortableHeader field="gender" sort={sort} onSort={onSort}>
-              Sexe
-            </SortableHeader>
-          </TableHead>
-          <TableHead className="text-center">
-            <SortableHeader field="dayOfBirth" sort={sort} onSort={onSort}>
-              Age
-            </SortableHeader>
-          </TableHead>
-          <TableHead className="text-center">Classe</TableHead>
-          <TableHead className="text-center">Affecté</TableHead>
-          <TableHead className="text-center">Parent</TableHead>
-          <TableHead className="text-right">Actions</TableHead>
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {isLoading
-          ? (
-              fakeStudents.map(el => (
-                <TableRow key={el.id}>
-                  {Array.from({ length: 9 }).map(() => (
-                    <TableCell key={nanoid()}>
-                      <Skeleton className="h-4 w-[100px]" />
+    <>
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>N°</TableHead>
+            <TableHead>
+              <SortableHeader field="lastName" sort={sort} onSort={onSort}>
+                Nom
+              </SortableHeader>
+            </TableHead>
+            <TableHead>
+              <SortableHeader field="firstName" sort={sort} onSort={onSort}>
+                Prénom
+              </SortableHeader>
+            </TableHead>
+            <TableHead className="text-center">
+              <SortableHeader field="idNumber" sort={sort} onSort={onSort}>
+                Matricule
+              </SortableHeader>
+            </TableHead>
+            <TableHead className="text-center">
+              <SortableHeader field="gender" sort={sort} onSort={onSort}>
+                Sexe
+              </SortableHeader>
+            </TableHead>
+            <TableHead className="text-center">
+              <SortableHeader field="dayOfBirth" sort={sort} onSort={onSort}>
+                Age
+              </SortableHeader>
+            </TableHead>
+            <TableHead className="text-center">Classe</TableHead>
+            <TableHead className="text-center">Affecté</TableHead>
+            <TableHead className="text-center">Parent</TableHead>
+            <TableHead className="text-right">Actions</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {isLoading
+            ? (
+                fakeStudents.map(el => (
+                  <TableRow key={el.id}>
+                    {Array.from({ length: 9 }).map(() => (
+                      <TableCell key={nanoid()}>
+                        <Skeleton className="h-4 w-[100px]" />
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                ))
+              )
+            : (
+                students?.map((student, index) => (
+                  <TableRow key={student.id}>
+                    <TableCell>{index + 1}</TableCell>
+                    <TableCell className="font-medium text-left">
+                      <div className="flex items-center gap-2">
+                        <Avatar className="h-8 w-8">
+                          <AvatarImage src={student.avatarUrl ?? ''} />
+                          <AvatarFallback>
+                            {student.firstName && student.lastName ? getAvatarFromFullName(`${student.firstName} ${student.lastName}`) : 'U'}
+                          </AvatarFallback>
+                        </Avatar>
+                        {student.lastName}
+                      </div>
                     </TableCell>
-                  ))}
-                </TableRow>
-              ))
-            )
-          : (
-              students?.map((student, index) => (
-                <TableRow key={student.id}>
-                  <TableCell>{index + 1}</TableCell>
-                  <TableCell className="font-medium text-left">
-                    <div className="flex items-center gap-2">
-                      <Avatar className="h-8 w-8">
-                        <AvatarImage src={student.avatarUrl ?? ''} />
-                        <AvatarFallback>
-                          {student.firstName && student.lastName ? getAvatarFromFullName(`${student.firstName} ${student.lastName}`) : 'U'}
-                        </AvatarFallback>
-                      </Avatar>
-                      {student.lastName}
-                    </div>
-                  </TableCell>
-                  <TableCell className="font-medium text-left">{student.firstName}</TableCell>
-                  <TableCell className="font-medium text-center">{student.idNumber}</TableCell>
-                  <TableCell className="text-center">{student.gender}</TableCell>
-                  <TableCell className="text-center">
-                    {
-                      student.dateOfBirth
-                        ? (
-                            <Tooltip delayDuration={750}>
-                              <TooltipTrigger>
-                                <span>
-                                  {getAge(student.dateOfBirth)}
-                                  {' ans'}
+                    <TableCell className="font-medium text-left">{student.firstName}</TableCell>
+                    <TableCell className="font-medium text-center">{student.idNumber}</TableCell>
+                    <TableCell className="text-center">{student.gender}</TableCell>
+                    <TableCell className="text-center">
+                      {
+                        student.dateOfBirth
+                          ? (
+                              <Tooltip delayDuration={750}>
+                                <TooltipTrigger>
+                                  <span>
+                                    {getAge(student.dateOfBirth)}
+                                    {' ans'}
+                                  </span>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  {formatDate(student.dateOfBirth)}
+                                </TooltipContent>
+                              </Tooltip>
+                            )
+                          : '-'
+                      }
+                    </TableCell>
+                    <TableCell className="text-center">{student.classroom?.name ?? '-'}</TableCell>
+                    <TableCell className="text-center">
+                      <Badge className="w-12 justify-center" variant={student.isGouvernentAffected ? 'default' : 'outline'}>
+                        {student.isGouvernentAffected ? 'OUI' : 'NON'}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-center">
+                      <HoverCard>
+                        <HoverCardTrigger asChild>
+                          <Button variant="ghost">{student.parent?.fullName ?? '-'}</Button>
+                        </HoverCardTrigger>
+                        <HoverCardContent className="w-80">
+                          <div className="flex justify-between space-x-4">
+                            <Avatar>
+                              <AvatarImage src={student.parent?.avatarUrl ?? ''} />
+                              <AvatarFallback>
+                                {student.parent?.fullName ? getAvatarFromFullName(student.parent?.fullName) : 'U'}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div className="space-y-1">
+                              <h4 className="text-sm font-semibold">{student.parent?.fullName ?? '-'}</h4>
+                              <p className="text-sm">
+                                {
+                                  student.parent?.phoneNumber
+                                    ? formatPhoneNumber(student.parent?.phoneNumber)
+                                    : '-'
+                                }
+                              </p>
+                              <div className="flex items-center pt-2">
+                                <MailIcon className="mr-2 h-4 w-4 opacity-70" />
+                                {' '}
+                                <span className="text-xs text-muted-foreground">
+                                  {student.parent?.email ?? '-'}
                                 </span>
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                {formatDate(student.dateOfBirth)}
-                              </TooltipContent>
-                            </Tooltip>
-                          )
-                        : '-'
-                    }
-                  </TableCell>
-                  <TableCell className="text-center">{student.classroom?.name ?? '-'}</TableCell>
-                  <TableCell className="text-center">
-                    <Badge className="w-12 justify-center" variant={student.isGouvernentAffected ? 'default' : 'outline'}>
-                      {student.isGouvernentAffected ? 'OUI' : 'NON'}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-center">
-                    <HoverCard>
-                      <HoverCardTrigger asChild>
-                        <Button variant="ghost">{student.parent?.fullName ?? '-'}</Button>
-                      </HoverCardTrigger>
-                      <HoverCardContent className="w-80">
-                        <div className="flex justify-between space-x-4">
-                          <Avatar>
-                            <AvatarImage src={student.parent?.avatarUrl ?? ''} />
-                            <AvatarFallback>
-                              {student.parent?.fullName ? getAvatarFromFullName(student.parent?.fullName) : 'U'}
-                            </AvatarFallback>
-                          </Avatar>
-                          <div className="space-y-1">
-                            <h4 className="text-sm font-semibold">{student.parent?.fullName ?? '-'}</h4>
-                            <p className="text-sm">
-                              {
-                                student.parent?.phoneNumber
-                                  ? formatPhoneNumber(student.parent?.phoneNumber)
-                                  : '-'
-                              }
-                            </p>
-                            <div className="flex items-center pt-2">
-                              <MailIcon className="mr-2 h-4 w-4 opacity-70" />
-                              {' '}
-                              <span className="text-xs text-muted-foreground">
-                                {student.parent?.email ?? '-'}
-                              </span>
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      </HoverCardContent>
-                    </HoverCard>
-                  </TableCell>
-                  <TableCell className="flex justify-end">
-                    <StudentTableRowActions
-                      editButtonClicked={() => onStudentEdit(student)}
-                      navigateToStudent={() => navigateToStudent(student.idNumber)}
-                      linkToParent={() => onParentLink(student)}
-                    />
-                  </TableCell>
-                </TableRow>
-              ))
-            )}
-      </TableBody>
-    </Table>
+                        </HoverCardContent>
+                      </HoverCard>
+                    </TableCell>
+                    <TableCell className="flex justify-end">
+                      <StudentTableRowActions
+                        editButtonClicked={() => handleEditClick(student)}
+                        navigateToStudent={() => navigateToStudent(student.idNumber)}
+                        linkToParent={() => onParentLink(student)}
+                      />
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+        </TableBody>
+      </Table>
+
+      {/* Edit Student Dialog */}
+      <Dialog open={showEditModal} onOpenChange={setShowEditModal}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Modifier le profil</DialogTitle>
+            <DialogDescription>
+              Modifier les informations de l&apos;élève. Cliquez sur enregistrer une fois terminé.
+            </DialogDescription>
+          </DialogHeader>
+          {selectedStudent && (
+            <EditStudentForm
+              studentIdNumber={selectedStudent.idNumber}
+              onSubmit={handleEditSubmit}
+              onCancel={handleEditCancel}
+              isLoading={isSubmitting}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
+    </>
   )
 }
