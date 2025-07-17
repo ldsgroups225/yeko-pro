@@ -122,8 +122,8 @@ export default function TuitionSettingsPage() {
             <TableHeader>
               <TableRow>
                 <TableHead className="min-w-[80px]">Niveau</TableHead>
-                <TableHead className="min-w-[150px]">Frais Annuels</TableHead>
-                <TableHead className="min-w-[150px]">Frais État</TableHead>
+                <TableHead className="min-w-[150px]">Scolarité Annuelle</TableHead>
+                <TableHead className="min-w-[150px]">Scolarité Orient.</TableHead>
                 <TableHead className="min-w-[150px]">Reduction Orphelin</TableHead>
                 <TableHead className="min-w-[150px]">Frais Cantine</TableHead>
                 <TableHead className="min-w-[150px]">Frais Transport</TableHead>
@@ -147,7 +147,7 @@ export default function TuitionSettingsPage() {
         </div>
         <div className="mt-4 flex items-center justify-end space-x-2 text-sm text-muted-foreground">
           <span>• Tout les frais sont en FCFA</span>
-          <span>• Frais État = élèves affectés d'état</span>
+          <span>• Scolarité Orient. État = élèves affectés d'état</span>
         </div>
       </SettingsSection>
 

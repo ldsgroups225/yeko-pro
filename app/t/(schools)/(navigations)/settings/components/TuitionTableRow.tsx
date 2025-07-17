@@ -81,6 +81,9 @@ export function TuitionTableRow({
                 ref={annualFeeInputRef}
                 min={0}
                 max={10000000}
+                thousandSeparator=" "
+                decimalSeparator=","
+                stepper={10000}
                 value={formData.annualFee}
                 onValueChange={value =>
                   setFormData(prev => ({
@@ -102,6 +105,9 @@ export function TuitionTableRow({
                 ref={governmentAnnualFeeInputRef}
                 min={0}
                 max={10000000}
+                thousandSeparator=" "
+                decimalSeparator=","
+                stepper={10000}
                 value={formData.governmentAnnualFee}
                 onValueChange={value =>
                   setFormData(prev => ({
@@ -123,6 +129,9 @@ export function TuitionTableRow({
                 ref={orphanDiscountAmountInputRef}
                 min={0}
                 max={10000000}
+                thousandSeparator=" "
+                decimalSeparator=","
+                stepper={5000}
                 value={formData.orphanDiscountAmount}
                 onValueChange={value =>
                   setFormData(prev => ({
@@ -144,6 +153,9 @@ export function TuitionTableRow({
                 ref={canteenFeeInputRef}
                 min={0}
                 max={10000000}
+                thousandSeparator=" "
+                decimalSeparator=","
+                stepper={5000}
                 value={formData.canteenFee}
                 onValueChange={value =>
                   setFormData(prev => ({
@@ -165,6 +177,9 @@ export function TuitionTableRow({
                 ref={transportationFeeInputRef}
                 min={0}
                 max={10000000}
+                thousandSeparator=" "
+                decimalSeparator=","
+                stepper={5000}
                 value={formData.transportationFee}
                 onValueChange={value =>
                   setFormData(prev => ({
