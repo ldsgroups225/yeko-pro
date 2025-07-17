@@ -30,11 +30,11 @@ export function NumberInput({ ref, stepper, thousandSeparator, placeholder, defa
     const currentValue = controlledValue ?? internalValue ?? 0
     const stepValue = stepper ?? 1
     const newValue = Math.min(currentValue + stepValue, max)
-    
+
     if (controlledValue === undefined) {
       setInternalValue(newValue)
     }
-    
+
     if (onValueChange) {
       onValueChange(newValue)
     }
@@ -44,11 +44,11 @@ export function NumberInput({ ref, stepper, thousandSeparator, placeholder, defa
     const currentValue = controlledValue ?? internalValue ?? 0
     const stepValue = stepper ?? 1
     const newValue = Math.max(currentValue - stepValue, min)
-    
+
     if (controlledValue === undefined) {
       setInternalValue(newValue)
     }
-    
+
     if (onValueChange) {
       onValueChange(newValue)
     }
@@ -81,12 +81,12 @@ export function NumberInput({ ref, stepper, thousandSeparator, placeholder, defa
     floatValue: number | undefined
   }) => {
     const newValue = values.floatValue === undefined ? undefined : values.floatValue
-    
+
     // Only update internal state if not controlled
     if (controlledValue === undefined) {
       setInternalValue(newValue)
     }
-    
+
     // Always call onValueChange if provided
     if (onValueChange) {
       onValueChange(newValue)

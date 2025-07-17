@@ -12,7 +12,7 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
-import { cn, saveRecordIfDirty } from '@/lib/utils'
+import { saveRecordIfDirty } from '@/lib/utils'
 import useGradeStore from '@/store/gradeStore'
 import useTuitionStore from '@/store/tuitionStore'
 import { AnimatePresence, motion } from 'framer-motion'
