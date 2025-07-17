@@ -265,6 +265,7 @@ export async function getStudentsWithPaymentStatus(
     .select('*')
     .eq('school_id', schoolId)
     .eq('school_year_id', currentSchoolYear.id)
+    .order('last_payment_date', { ascending: false, nullsFirst: false })
 
   if (filters.status) {
     query = query.eq('is_up_to_date', filters.status === 'paid')
@@ -275,7 +276,7 @@ export async function getStudentsWithPaymentStatus(
     query = query.or(`first_name.ilike.%${term}%,last_name.ilike.%${term}%,id_number.ilike.%${term}%`)
   }
 
-  const { data, error } = await query.limit(5)
+  const { data, error } = await query.limit(10)
 
   if (error) {
     console.error('Error fetching students with payment status:', error)
@@ -288,6 +289,7 @@ export async function getStudentsWithPaymentStatus(
       name: formatFullName(student.first_name, student.last_name),
       idNumber: student.id_number!,
       classroom: student.classroom || '-',
+      lastPaymentDate: student.last_payment_date ? new Date(student.last_payment_date) : null,
       paymentStatus: student.is_up_to_date ? 'paid' : 'overdue',
       remainingAmount: student.remaining_amount || 0,
     })) || []

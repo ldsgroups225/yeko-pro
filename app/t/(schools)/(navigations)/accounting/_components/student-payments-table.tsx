@@ -1,6 +1,6 @@
 import type { StudentWithPaymentStatus } from '@/types/accounting'
 import { Badge } from '@/components/ui/badge'
-import { cn, formatCurrency } from '@/lib/utils'
+import { cn, formatCurrency, formatTimePassed } from '@/lib/utils'
 import { CheckCircle2 } from 'lucide-react'
 import { NotifyIndividualParentButton } from './notify-individual-parent-button'
 
@@ -26,11 +26,12 @@ export function StudentPaymentsTable({ students }: StudentPaymentsTableProps) {
       <thead className="[&_tr]:border-b">
         <tr className={trStyle}>
           <th className={cn(thStyle, 'text-left')}>Nom</th>
-          <th className={cn(thStyle, 'text-center')}>Matricule</th>
-          <th className={cn(thStyle, 'text-center')}>Classe</th>
-          <th className={cn(thStyle, 'text-right')}>Reste à payer</th>
-          <th className={cn(thStyle, 'text-end')}>Statut</th>
-          <th className={cn(thStyle, 'text-end')}>Actions</th>
+          <th className={cn(thStyle, 'text-center w-[90px]')}>Matricule</th>
+          <th className={cn(thStyle, 'text-center w-[60px]')}>Classe</th>
+          <th className={cn(thStyle, 'text-center w-[150px]')}>Dernier paiement</th>
+          <th className={cn(thStyle, 'text-right w-[70px]')}>Reste à payer</th>
+          <th className={cn(thStyle, 'text-end w-[70px]')}>Statut</th>
+          <th className={cn(thStyle, 'text-end w-[20px]')}></th>
         </tr>
       </thead>
       <tbody className="[&_tr:last-child]:border-0">
@@ -39,9 +40,16 @@ export function StudentPaymentsTable({ students }: StudentPaymentsTableProps) {
             students.map(student => (
               <tr key={student.id} className={trStyle}>
                 <td className={cn(tdStyle, 'text-left')}>{student.name}</td>
-                <td className={cn(tdStyle, 'text-center')}>{student.idNumber}</td>
-                <td className={cn(tdStyle, 'text-center')}>{student.classroom}</td>
-                <td className={cn(tdStyle, 'text-end')}>
+                <td className={cn(tdStyle, 'text-center w-[90px]')}>{student.idNumber}</td>
+                <td className={cn(tdStyle, 'text-center w-[60px]')}>{student.classroom}</td>
+                <td className={cn(tdStyle, 'text-center text-sm w-[160px]')}>
+                  {
+                    student.lastPaymentDate === null
+                      ? '-'
+                      : formatTimePassed(student.lastPaymentDate, true)
+                  }
+                </td>
+                <td className={cn(tdStyle, 'text-end w-[70px]')}>
                   {
                     student.remainingAmount === 0
                       ? (
@@ -49,10 +57,10 @@ export function StudentPaymentsTable({ students }: StudentPaymentsTableProps) {
                             <CheckCircle2 className="w-4 h-4 text-green-500" />
                           </Badge>
                         )
-                      : `-${formatCurrency(student.remainingAmount, true)}`
+                      : formatCurrency(student.remainingAmount, true)
                   }
                 </td>
-                <td className={cn(tdStyle, 'text-end')}>
+                <td className={cn(tdStyle, 'text-end w-[70px]')}>
                   <Badge
                     variant={student.paymentStatus === 'paid' ? 'success' : 'outline'}
                     className={student.paymentStatus !== 'paid' ? 'text-white bg-red-500 border-red-500' : ''}
@@ -60,7 +68,7 @@ export function StudentPaymentsTable({ students }: StudentPaymentsTableProps) {
                     {student.paymentStatus === 'paid' ? 'A jour' : `-${formatCurrency(student.remainingAmount, true)}`}
                   </Badge>
                 </td>
-                <td className={cn(tdStyle, 'text-end')}>
+                <td className={cn(tdStyle, 'text-end w-[20px]')}>
                   {
                     student.paymentStatus !== 'paid' && (
                       <NotifyIndividualParentButton

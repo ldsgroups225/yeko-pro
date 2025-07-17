@@ -164,11 +164,19 @@ export function isToday(date: Date): boolean {
 /**
  * Formats a date for display
  * @param date - Date to format
+ * @param calcFromMidnight - Whether to calculate the time passed from midnight or not
  * @returns {string} - Formatted date string
  */
-export function formatTimePassed(date: Date | number): string {
+export function formatTimePassed(date: Date | number, calcFromMidnight: boolean = false): string {
   const now = new Date()
-  const diffDays = differenceInDays(now, date)
+  const dateValue = typeof date === 'number' ? new Date(date) : date
+
+  if (calcFromMidnight) {
+    now.setHours(0, 0, 0, 0)
+    dateValue.setHours(0, 0, 0, 0)
+  }
+
+  const diffDays = differenceInDays(now, dateValue)
 
   if (diffDays === 0) {
     return 'Aujourd\'hui'
@@ -183,18 +191,18 @@ export function formatTimePassed(date: Date | number): string {
     return 'La semaine dernière'
   }
   else if (diffDays < 30) {
-    const diffWeeks = differenceInWeeks(now, date)
+    const diffWeeks = differenceInWeeks(now, dateValue)
     return `Il y a ${diffWeeks} semaine${diffWeeks > 1 ? 's' : ''}`
   }
   else if (diffDays < 60) {
     return 'Le mois dernier'
   }
   else if (diffDays < 365) {
-    const diffMonths = differenceInMonths(now, date)
+    const diffMonths = differenceInMonths(now, dateValue)
     return `Il y a ${diffMonths} mois`
   }
   else {
-    const diffYears = differenceInYears(now, date)
+    const diffYears = differenceInYears(now, dateValue)
     return `Il y a ${diffYears} ans`
   }
 }
