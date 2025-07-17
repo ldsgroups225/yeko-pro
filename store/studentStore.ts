@@ -1,5 +1,7 @@
 import type { IClassesGrouped, IStudentDTO, IStudentsQueryParams } from '@/types'
 import type { LinkStudentParentData, StudentFormValues } from '@/validations'
+import { parseISO } from 'date-fns'
+import { create } from 'zustand'
 import {
   bulkAddStudentsToClass,
   createStudent,
@@ -12,8 +14,6 @@ import {
   linkStudentAndParent,
   updateStudent,
 } from '@/services'
-import { parseISO } from 'date-fns'
-import { create } from 'zustand'
 
 interface StudentFilters {
   searchTerm?: string

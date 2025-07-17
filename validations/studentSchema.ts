@@ -1,6 +1,6 @@
-import { MIN_STUDENT_AGE } from '@/constants'
 import { subYears } from 'date-fns'
 import z from 'zod'
+import { MIN_STUDENT_AGE } from '@/constants'
 
 export const studentFormSchema = z.object({
   id: z.string(),
@@ -8,6 +8,10 @@ export const studentFormSchema = z.object({
   firstName: z.string().min(2, 'Le prénom doit contenir au moins 2 caractères'),
   lastName: z.string().min(2, 'Le nom de famille doit contenir au moins 2 caractères'),
   gender: z.enum(['M', 'F'], { required_error: 'Veuillez sélectionner le genre' }).nullable(),
+  classes: z.array(z.object({
+    id: z.string(),
+    name: z.string(),
+  })).optional(),
   gradeName: z.string().optional(),
   classId: z.string().optional(),
   dateOfBirth: z.date({

@@ -4,12 +4,12 @@ import type { StudentStats } from '@/app/t/(schools)/(navigations)/students/[idN
 import type { SupabaseClient } from '@/lib/supabase/server'
 import type { IClassesGrouped, IStudentDTO, IStudentsQueryParams } from '@/types'
 import type { LinkStudentParentData, StudentFormValues } from '@/validations'
-import { createClient } from '@/lib/supabase/server'
-import { formatFullName, parseMedicalCondition } from '@/lib/utils'
-import { linkStudentParentSchema } from '@/validations'
 import { camelCase, snakeCase } from 'change-case'
 import { parseISO } from 'date-fns'
 import { nanoid } from 'nanoid'
+import { createClient } from '@/lib/supabase/server'
+import { formatFullName, parseMedicalCondition } from '@/lib/utils'
+import { linkStudentParentSchema } from '@/validations'
 import { uploadImageToStorage } from './uploadImageService'
 
 export async function getStudents(query: IStudentsQueryParams): Promise<{ data: IStudentDTO[], totalCount: number | null }> {
@@ -150,7 +150,7 @@ export async function getStudentByIdNumberForEdit(idNumber: string) {
     error: gradeError,
   } = await client
     .from('student_school_class')
-    .select('grade_id, grade:grades(name)')
+    .select('class_id, grade_id, grade:grades(name)')
     .eq('student_id', data.id)
     .eq('enrollment_status', 'accepted')
     .is('is_active', true)
@@ -162,16 +162,27 @@ export async function getStudentByIdNumberForEdit(idNumber: string) {
 
   const _grade = gradeData?.grade ? { name: gradeData.grade.name } : undefined
 
+  const { data: classData, error: classError } = await client
+    .from('classes')
+    .select('id, name')
+    .eq('grade_id', gradeData!.grade_id)
+
+  if (classError) {
+    console.warn(`Could not fetch class for student ${idNumber}:`, classError.message)
+  }
+
   return {
     id: data.id,
     idNumber: data.id_number,
     firstName: data.first_name,
     lastName: data.last_name,
+    classId: gradeData?.class_id ?? undefined,
     gradeName: _grade?.name,
     dateOfBirth: data.date_of_birth ? parseISO(data.date_of_birth) : null,
     avatarUrl: data.avatar_url,
     address: data.address,
     gender: (data as { gender: 'M' | 'F' | null }).gender,
+    classes: classData ?? undefined,
   } satisfies StudentFormValues
 }
 

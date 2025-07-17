@@ -1,7 +1,14 @@
 'use client'
 
-import type { StudentFormValues } from '@/validations'
 import type { ChangeEvent, FocusEvent } from 'react'
+import type { IClass } from '@/types'
+import type { StudentFormValues } from '@/validations'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { format, isValid, parse, parseISO, subYears } from 'date-fns'
+import fr from 'date-fns/locale/fr'
+import { CalendarIcon, Loader2 } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { useForm } from 'react-hook-form'
 import { ImageUpload } from '@/components/ImageUpload'
 import { Button } from '@/components/ui/button'
 import { Calendar } from '@/components/ui/calendar'
@@ -14,13 +21,8 @@ import { Textarea } from '@/components/ui/textarea'
 import { MIN_STUDENT_AGE } from '@/constants'
 import { cn } from '@/lib/utils'
 import { useStudentStore } from '@/store'
+import useClassStore from '@/store/classStore'
 import { studentFormSchema } from '@/validations'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { format, isValid, parse, parseISO, subYears } from 'date-fns'
-import fr from 'date-fns/locale/fr'
-import { CalendarIcon, Loader2 } from 'lucide-react'
-import { useEffect, useState } from 'react'
-import { useForm } from 'react-hook-form'
 
 const minAgeDate = subYears(new Date(), MIN_STUDENT_AGE)
 
@@ -44,13 +46,6 @@ interface DateFieldType {
   onChange: (date: Date | null) => void
   value: Date | null
 }
-
-const gradeOptions = [
-  { value: '6', label: '6ème' },
-  { value: '5', label: '5ème' },
-  { value: '4', label: '4ème' },
-  { value: '3', label: '3ème' },
-] as const
 
 export function EditStudentForm({ studentIdNumber, onSubmit, onCancel, isLoading }: EditStudentFormProps) {
   const { getStudentByIdNumberForEdit } = useStudentStore()
@@ -261,7 +256,12 @@ export function EditStudentForm({ studentIdNumber, onSubmit, onCancel, isLoading
               <FormItem>
                 <FormLabel>Matricule</FormLabel>
                 <FormControl>
-                  <Input {...field} readOnly value={student.idNumber} className="bg-muted" />
+                  <Input
+                    {...field}
+                    readOnly={student.idNumber.startsWith('ST')}
+                    value={student.idNumber}
+                    className={cn(!student.idNumber.startsWith('ST') && 'bg-muted')}
+                  />
                 </FormControl>
                 <FormDescription>
                   Identifiant unique de l&apos;étudiant (non modifiable)
@@ -349,9 +349,9 @@ export function EditStudentForm({ studentIdNumber, onSubmit, onCancel, isLoading
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    {gradeOptions.map(option => (
-                      <SelectItem key={option.value} value={option.value}>
-                        {option.label}
+                    {student.classes?.map(option => (
+                      <SelectItem key={option.id} value={option.id}>
+                        {option.name}
                       </SelectItem>
                     ))}
                   </SelectContent>
