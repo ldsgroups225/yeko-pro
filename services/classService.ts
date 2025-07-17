@@ -321,49 +321,96 @@ export async function updateClass({
     throw studentCountError
   }
 
-  if (maxStudent > (studentCount ?? 0)) {
-    throw new Error('Cette classe contient plus d\élève que la limite')
+  if (maxStudent <= (studentCount ?? 0)) {
+    throw new Error('Cette classe contient plus d\'élève que la limite')
   }
 
-  const { data, error } = await supabase
+  // First, update the class
+  const { data: classData, error: updateError } = await supabase
     .from('classes')
     .update({
       name: name.trim(),
       grade_id: gradeId,
       max_student: maxStudent,
+      updated_at: new Date().toISOString(),
+      updated_by: userId,
     })
     .eq('id', classId)
-    .select(`
-      *,
-      teacher:users!inner(id, first_name, last_name, email),
-      students(count)
-    `)
+    .select('*')
     .single()
     .throwOnError()
 
-  if (error) {
-    console.error('Error updating class:', error)
+  if (updateError) {
+    console.error('Error updating class:', updateError)
     throw new Error('Échec de la modification de la classe')
   }
 
-  if (!data) {
+  if (!classData) {
     throw new Error('Classe non trouvée')
   }
 
-  const teacherData = Array.isArray(data.teacher) ? data.teacher[0] : null
+  const [teacherResult, countResult] = await Promise.allSettled([
+    // Get the main teacher for this class
+    supabase
+      .from('teacher_class_assignments')
+      .select(`
+        users!inner(
+          id,
+          first_name,
+          last_name,
+          email
+        )
+      `)
+      .eq('class_id', classId)
+      .eq('is_main_teacher', true)
+      .single(),
+
+    // Get student count
+    supabase
+      .from('student_school_class')
+      .select('id', { count: 'exact', head: true })
+      .eq('class_id', classId)
+      .is('is_active', true),
+  ])
+
+  // Handle teacher result
+  let teacherAssignment = null
+  if (teacherResult.status === 'fulfilled' && teacherResult.value.error?.code !== 'PGRST116') {
+    if (teacherResult.value.error) {
+      console.error('Error fetching teacher:', teacherResult.value.error)
+    }
+    else {
+      teacherAssignment = teacherResult.value.data
+    }
+  }
+
+  // Handle count result
+  let studentCountResult = 0
+  if (countResult.status === 'fulfilled') {
+    if (countResult.value.error) {
+      console.error('Error fetching student count:', countResult.value.error)
+    }
+    else {
+      studentCountResult = countResult.value.count ?? 0
+    }
+  }
 
   return {
-    id: data.id,
-    name: data.name,
-    slug: data.slug!,
-    gradeId: data.grade_id,
-    isActive: data.is_active,
-    maxStudent: data.max_student,
-    studentCount: (data.students[0] as any)?.count ?? 0,
-    teacher: teacherData
+    id: classData.id,
+    name: classData.name,
+    slug: classData.slug!,
+    gradeId: classData.grade_id,
+    isActive: classData.is_active,
+    maxStudent: classData.max_student,
+    studentCount: studentCountResult ?? 0,
+    teacher: teacherAssignment?.users
       ? {
-          id: teacherData.id,
-          fullName: formatFullName(teacherData.first_name, teacherData.last_name, teacherData.email),
+          id: teacherAssignment.users.id,
+          fullName: formatFullName(
+            teacherAssignment.users.first_name,
+            teacherAssignment.users.last_name,
+            teacherAssignment.users.email,
+          ),
         }
       : null,
   }
@@ -484,18 +531,14 @@ export async function getClassDetailsStats({ schoolId, classId, schoolYearId, se
     classAverageQs,
   ])
 
-  if (!studentCounts || !attendanceData || !classAverage) {
-    throw new Error('Failed to fetch student data')
-  }
-
-  const totalStudents = studentCounts.length
-  const boyCount = studentCounts.filter(s => s.gender === 'M').length
-  const girlCount = studentCounts.filter(s => s.gender === 'F').length
+  const totalStudents = studentCounts?.length ?? 0
+  const boyCount = studentCounts?.filter(s => s.gender === 'M').length ?? 0
+  const girlCount = studentCounts?.filter(s => s.gender === 'F').length ?? 0
   const activeStudents = totalStudents // You might need to add an is_active column to students table
   const inactiveStudents = 0 // Same as above
 
-  const absentCount = attendanceData.filter(a => a.status === 'absent').length
-  const lateCount = attendanceData.filter(a => a.status === 'late').length
+  const absentCount = attendanceData?.filter(a => a.status === 'absent').length ?? 0
+  const lateCount = attendanceData?.filter(a => a.status === 'late').length ?? 0
 
   // // Calculate subject performance
   // const subjectPerformance = Object.values(
@@ -527,7 +570,7 @@ export async function getClassDetailsStats({ schoolId, classId, schoolYearId, se
 
   return {
     totalStudents,
-    averageGrade: classAverage.year_average ?? 0,
+    averageGrade: classAverage?.year_average ?? 0,
     absentCount,
     lateCount,
     boyCount,

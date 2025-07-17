@@ -1,7 +1,7 @@
 import type { ClassDetailsStudent, FilterStudentWhereNotInTheClass, IClass, IClassDetailsStats } from '@/types'
-import useClassStore from '@/store/classStore'
 import { useCallback, useEffect, useMemo, useRef } from 'react'
 import { useDebouncedCallback } from 'use-debounce'
+import useClassStore from '@/store/classStore'
 import { useSchoolYear } from './useSchoolYear'
 import { useUser } from './useUser'
 

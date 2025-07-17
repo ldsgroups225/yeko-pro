@@ -1,4 +1,5 @@
 import type { ClassDetailsStudent, FilterStudentWhereNotInTheClass, IClass, IClassDetailsStats } from '@/types'
+import { create } from 'zustand'
 import {
   activateDeactivateClass,
   createClass,
@@ -10,7 +11,6 @@ import {
   getClassStudents,
   updateClass,
 } from '@/services'
-import { create } from 'zustand'
 
 interface ClassFilters {
   gradeId?: string
@@ -170,7 +170,7 @@ const useClassStore = create<ClassState & ClassActions>((set, get) => ({
     try {
       await createClass({ name, schoolId, gradeId, maxStudent })
 
-      await get().fetchClasses(get().currentSchoolId!)
+      // await get().fetchClasses(schoolId)
     }
     catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to create class'

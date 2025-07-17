@@ -1,4 +1,10 @@
 import type { IGrade } from '@/types'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { useRouter } from 'next/navigation'
+import React, { useEffect } from 'react'
+import { useForm } from 'react-hook-form'
+import { toast } from 'sonner'
+import { z } from 'zod'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -25,12 +31,6 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { useClasses, useUser } from '@/hooks'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { useRouter } from 'next/navigation'
-import React, { useEffect } from 'react'
-import { useForm } from 'react-hook-form'
-import { toast } from 'sonner'
-import { z } from 'zod'
 
 interface Props {
   open: boolean
@@ -55,13 +55,20 @@ const formSchema = z.object({
   }).max(13, {
     message: 'Veuillez sélectionner un niveau scolaire.',
   }),
-  maxStudent: z.number({
-    required_error: 'Veuillez mentioner le nombre maximum d\'élève pour cette classe',
-  }).min(1, {
-    message: 'Il faut au moins 1 élève par classe',
-  }).max(75, {
-    message: 'Il faut au maximum 75 élèves par classe',
-  }).default(45),
+  maxStudent: z.preprocess(
+    val => (val === '' ? undefined : Number(val)),
+    z.number({
+      required_error: 'Veuillez mentionner le nombre maximum d\'élève pour cette classe',
+      invalid_type_error: 'Veuillez entrer un nombre valide',
+    })
+      .min(1, {
+        message: 'Il faut au moins 1 élève par classe',
+      })
+      .max(75, {
+        message: 'Il faut au maximum 75 élèves par classe',
+      })
+      .default(45),
+  ),
 })
 
 export function ClassCreationOrUpdateDialog({
@@ -227,7 +234,12 @@ export function ClassCreationOrUpdateDialog({
                   <FormControl>
                     <Input
                       type="number"
-                      {...field}
+                      min="1"
+                      max="75"
+                      value={field.value}
+                      onChange={e => field.onChange(e.target.value)}
+                      onBlur={field.onBlur}
+                      ref={field.ref}
                     />
                   </FormControl>
                   <FormMessage />

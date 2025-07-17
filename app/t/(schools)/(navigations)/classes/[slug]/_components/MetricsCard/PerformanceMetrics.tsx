@@ -1,9 +1,9 @@
 'use client'
 
 import type { IClassDetailsStats } from '@/types'
-import { Card, CardContent } from '@/components/ui/card'
 import { Award, TrendingUp } from 'lucide-react'
 import { Line, LineChart } from 'recharts'
+import { Card, CardContent } from '@/components/ui/card'
 
 interface PerformanceMetricsProps {
   stats: Pick<IClassDetailsStats, 'performanceData'>
@@ -18,7 +18,7 @@ export function PerformanceMetrics({ stats }: PerformanceMetricsProps) {
             <p className="text-sm text-muted-foreground">Performance</p>
             <p className="text-2xl font-bold">
               <TrendingUp className="h-6 w-6 text-green-500 inline-block mr-2" />
-              +5.2%
+              +0%
             </p>
           </div>
           <Award className="h-8 w-8 text-purple-500" />

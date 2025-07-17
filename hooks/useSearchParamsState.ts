@@ -1,69 +1,119 @@
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
-import { useCallback, useState } from 'react'
+import { useCallback, useOptimistic, useTransition } from 'react'
 import { useDebouncedCallback } from 'use-debounce'
 
-interface SearchParamsState {
-  grade?: string
-  search?: string
-  active?: boolean
-  teacher?: boolean
+type SearchParamValue = string | boolean | number | undefined | null
+type SearchParamsState = Record<string, SearchParamValue>
+
+interface UseSearchParamsStateOptions<T extends SearchParamsState> {
+  /**
+   * Default values for the search params
+   */
+  defaultValues: T
+  /**
+   * Debounce delay in milliseconds for URL updates
+   * @default 300
+   */
+  debounceDelay?: number
+  /**
+   * Whether to update the URL on every state change
+   * @default true
+   */
+  updateURL?: boolean
 }
 
-export function useSearchParamsState(defaultValues: SearchParamsState) {
+export function useSearchParamsState<T extends SearchParamsState>({
+  defaultValues,
+  debounceDelay = 300,
+  updateURL = true,
+}: UseSearchParamsStateOptions<T>) {
   const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
+  const [isPending, startTransition] = useTransition()
 
-  // Local state to manage search params
-  const [state, setState] = useState<SearchParamsState>(() => ({
-    grade: searchParams.get('grade') || defaultValues.grade,
-    search: searchParams.get('search') || defaultValues.search,
-    active: searchParams.has('active')
-      ? searchParams.get('active') === 'true'
-      : defaultValues.active,
-    teacher: searchParams.has('teacher')
-      ? searchParams.get('teacher') === 'true'
-      : defaultValues.teacher,
-  }))
+  // Initialize state from URL or defaults
+  const getInitialState = useCallback((): T => {
+    const state = { ...defaultValues }
+    
+    searchParams.forEach((value, key) => {
+      if (value === 'true') {
+        state[key as keyof T] = true as T[keyof T]
+      } else if (value === 'false') {
+        state[key as keyof T] = false as T[keyof T]
+      } else if (value === 'null') {
+        state[key as keyof T] = null as unknown as T[keyof T]
+      } else if (value === 'undefined') {
+        state[key as keyof T] = undefined as unknown as T[keyof T]
+      } else if (!Number.isNaN(Number(value))) {
+        state[key as keyof T] = Number(value) as unknown as T[keyof T]
+      } else {
+        state[key as keyof T] = value as T[keyof T]
+      }
+    })
+    
+    return state as T
+  }, [searchParams, defaultValues])
+
+  // Optimistic state for instant UI updates
+  const [optimisticState, setOptimisticState] = useOptimistic<T>(
+    getInitialState()
+  )
 
   // Create URL query string
-  const createQueryString = useCallback((params: Record<string, any>) => {
-    const newSearchParams = new URLSearchParams(searchParams.toString())
+  const createQueryString = useCallback((params: T) => {
+    const newSearchParams = new URLSearchParams()
 
     Object.entries(params).forEach(([key, value]) => {
       if (value === undefined || value === '' || value === 'all') {
         newSearchParams.delete(key)
-      }
-      else {
+      } else {
         newSearchParams.set(key, String(value))
       }
     })
 
     return newSearchParams.toString()
-  }, [searchParams])
+  }, [])
 
   // Debounced URL update
-  const updateURL = useDebouncedCallback((newState: SearchParamsState) => {
-    const queryString = createQueryString({
-      grade: newState.grade,
-      search: newState.search,
-      active: newState.active?.toString(),
-      teacher: newState.teacher?.toString(),
+  const updateURLDebounced = useDebouncedCallback((state: T) => {
+    if (!updateURL) return
+    
+    const queryString = createQueryString(state)
+    
+    startTransition(() => {
+      router.replace(`${pathname}?${queryString}`, { scroll: false })
     })
-    router.push(`${pathname}?${queryString}`, { scroll: false })
-  }, 300)
+  }, debounceDelay)
 
-  // Update state and URL when state changes
-  const updateState = useCallback((newState: Partial<SearchParamsState>) => {
-    setState((prev) => {
-      const updated = { ...prev, ...newState }
-      updateURL(updated)
-      return updated
-    })
-  }, [updateURL])
+  // Update state with optimistic updates
+  const setState = useCallback((updater: T | ((prevState: T) => T)) => {
+    const newState = typeof updater === 'function' 
+      ? (updater as (prevState: T) => T)(optimisticState)
+      : updater
+    
+    // Update URL with debounce
+    updateURLDebounced(newState)
+    setOptimisticState(newState)
+  }, [updateURLDebounced, setOptimisticState, optimisticState])
+
+  // Get current state
+  const getState = useCallback((): T => ({
+    ...optimisticState
+  }), [optimisticState])
+
+  // Reset to default values
+  const reset = useCallback(() => {
+    const newState = { ...defaultValues }
+    updateURLDebounced(newState)
+    setOptimisticState(newState)
+  }, [defaultValues, updateURLDebounced, setOptimisticState])
 
   return {
-    state,
-    updateState,
+    state: optimisticState,
+    setState,
+    getState,
+    reset,
+    isPending,
   }
 }
