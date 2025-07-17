@@ -7,9 +7,9 @@ import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
+import { Separator } from '@/components/ui/separator'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { PlusIcon } from 'lucide-react'
+import { UserPlus2Icon } from 'lucide-react'
 import { useState, useTransition } from 'react'
 import { useForm } from 'react-hook-form'
 import { searchStudentAndSchool } from '../../actions'
@@ -122,38 +122,19 @@ export function Step1Identification({
             )}
           />
 
-          <div className="flex items-end gap-2">
-            <FormField
-              control={form.control}
-              name="studentId"
-              render={({ field }) => (
-                <FormItem className="flex-1">
-                  <FormLabel>Matricule de l'élève</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Entrez la matricule de l'élève" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <TooltipProvider>
-              <Tooltip delayDuration={100}>
-                <TooltipTrigger asChild>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="icon"
-                    onClick={() => setIsCreatingStudent(true)}
-                  >
-                    <PlusIcon className="h-4 w-4" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>Créer un nouvel élève</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          </div>
+          <FormField
+            control={form.control}
+            name="studentId"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Matricule de l'élève</FormLabel>
+                <FormControl>
+                  <Input placeholder="Entrez la matricule de l'élève" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
           {error && (
             <Alert variant="destructive">
@@ -162,9 +143,28 @@ export function Step1Identification({
             </Alert>
           )}
 
-          <Button type="submit" className="w-full" disabled={searching}>
-            {searching ? 'Recherche en cours...' : 'Rechercher'}
-          </Button>
+          <div className="flex flex-col items-center gap-2">
+            <Button type="submit" className="w-full" disabled={searching}>
+              {searching ? 'Recherche en cours...' : 'Rechercher'}
+            </Button>
+
+            <div className="flex items-center gap-2 w-full">
+              <Separator className="w-1/2" />
+              <p className="text-center">ou</p>
+              <Separator className="w-1/2" />
+            </div>
+
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              className="w-1/2"
+              onClick={() => setIsCreatingStudent(true)}
+            >
+              <UserPlus2Icon className="h-4 w-4 mr-2" />
+              Créer un nouvel élève
+            </Button>
+          </div>
         </form>
       </Form>
 
