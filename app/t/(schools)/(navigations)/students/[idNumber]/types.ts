@@ -61,5 +61,6 @@ export function transformStudentDTO(dto: IStudentDTO): Student {
           name: dto.classroom.name,
         }
       : undefined,
+    dateJoined: dto.createdAt || undefined,
   }
 }

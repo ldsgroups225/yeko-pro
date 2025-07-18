@@ -130,7 +130,8 @@ export async function getStudentByIdNumberForEdit(idNumber: string) {
     .from('students')
     .select(
       `
-        id, id_number, first_name, last_name, date_of_birth, gender, avatar_url, address
+        id, id_number, first_name, last_name, date_of_birth, gender, avatar_url, address,
+        extra_parent
       `,
     )
     .eq('id_number', idNumber)
@@ -171,6 +172,14 @@ export async function getStudentByIdNumberForEdit(idNumber: string) {
     console.warn(`Could not fetch class for student ${idNumber}:`, classError.message)
   }
 
+  // Transform the database extra_parent to secondParent format
+  const secondParent = data.extra_parent ? {
+    fullName: data.extra_parent.full_name,
+    gender: data.extra_parent.gender,
+    phone: data.extra_parent.phone,
+    type: data.extra_parent.type,
+  } : null;
+
   return {
     id: data.id,
     idNumber: data.id_number,
@@ -183,6 +192,7 @@ export async function getStudentByIdNumberForEdit(idNumber: string) {
     address: data.address,
     gender: (data as { gender: 'M' | 'F' | null }).gender,
     classes: classData ?? undefined,
+    secondParent: secondParent,
   } satisfies StudentFormValues
 }
 
@@ -250,7 +260,7 @@ export async function getStudentByIdNumber(idNumber: string): Promise<IStudentDT
           name: classroom.class.name,
         }
       : undefined,
-    createdAt: student.created_at,
+    createdAt: classroom?.created_at || student.created_at,
     createdBy: student.created_by,
     updatedAt: student.updated_at,
     updatedBy: student.updated_by,
@@ -305,11 +315,25 @@ export async function updateStudent(params: Partial<IStudentDTO> & { id: string 
     params.avatarUrl = newAvatarUrl
   }
 
-  const snakeCaseParams = Object.keys(params).reduce<Record<string, any>>((acc, key) => {
-    const snakeKey = snakeCase(key)
-    acc[snakeKey] = params[key as keyof typeof params]
-    return acc
-  }, {})
+  // Transform secondParent to extra_parent format if it exists
+  const { secondParent, ...restParams } = params;
+  const extra_parent = secondParent ? {
+    full_name: secondParent.fullName,
+    gender: secondParent.gender,
+    phone: secondParent.phone,
+    type: secondParent.type,
+  } : null;
+
+  const snakeCaseParams = Object.keys(restParams).reduce<Record<string, any>>((acc, key) => {
+    const snakeKey = snakeCase(key);
+    acc[snakeKey] = restParams[key as keyof typeof restParams];
+    return acc;
+  }, {});
+
+  // Add extra_parent to the update params if it exists
+  if (secondParent !== undefined) {
+    snakeCaseParams.extra_parent = extra_parent;
+  }
 
   const { data, error } = await client
     .from('students')

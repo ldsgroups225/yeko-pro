@@ -53,15 +53,15 @@ describe('classesClient', () => {
 
   it('toggles view mode when toggle button is clicked', () => {
     render(<ClassesClient {...defaultProps} />)
-    const toggleButton = screen.getByTestId('toggle-view-mode-btn')
-    fireEvent.click(toggleButton)
+    const toggleButtons = screen.getAllByTestId('toggle-view-mode-btn')
+    fireEvent.click(toggleButtons[0])
     // No error means toggle worked; could check for grid/table class if needed
   })
 
   it('opens and closes the class creation modal', () => {
     render(<ClassesClient {...defaultProps} />)
-    const newClassButton = screen.getByTestId('new-class-btn')
-    fireEvent.click(newClassButton)
+    const newClassButtons = screen.getAllByTestId('new-class-btn')
+    fireEvent.click(newClassButtons[0])
     // Modal should open; check for dialog or close button
     // For now, just ensure button is clickable
   })

@@ -1,0 +1,7 @@
+# Cursor Updates
+
+## 2024-12-19
+- Added student enrollment date (dateJoined) to PersonalInfo component using data from student_school_class.created_at
+- Updated studentService.ts to fetch created_at from student_school_class table
+- Updated transformStudentDTO to map createdAt to dateJoined field
+- Fixed test issues by using getAllByTestId instead of getByTestId for duplicate elements 
