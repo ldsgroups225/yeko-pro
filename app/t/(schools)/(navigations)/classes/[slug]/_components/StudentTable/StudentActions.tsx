@@ -2,16 +2,16 @@
 
 import type { ClassDetailsStudent } from '@/types'
 import type { StudentFormValues } from '@/validations'
+import { Edit, Eye, FileText, Mail, MoreHorizontal, UserMinus } from 'lucide-react'
+import { useState } from 'react'
+import { toast } from 'sonner'
 import { StudentAvatar } from '@/app/t/(schools)/(navigations)/students/[idNumber]/components/StudentHeader/StudentAvatar'
 import { PersonalInfo } from '@/app/t/(schools)/(navigations)/students/[idNumber]/components/Tabs/ProfileTab/PersonalInfo'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { useStudentStore } from '@/store'
-import { Edit, Eye, FileText, Mail, MoreHorizontal, UserMinus } from 'lucide-react'
-
-import { useState } from 'react'
-import { toast } from 'sonner'
 import { EditStudentForm } from './EditStudentForm'
 import { ParentContactDialog } from './ParentContactDialog'
 

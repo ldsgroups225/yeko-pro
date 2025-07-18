@@ -1,7 +1,7 @@
 import type { IClassDetailsStats } from '@/types'
+import { Users } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
-import { Users } from 'lucide-react'
 
 interface StudentMetricsCardProps {
   stats: Pick<IClassDetailsStats, 'totalStudents' | 'boyCount' | 'girlCount'>

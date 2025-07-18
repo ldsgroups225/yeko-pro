@@ -1,11 +1,11 @@
 'use client'
 
+import { Bell, Mail, MessageSquare, Phone } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Switch } from '@/components/ui/switch'
-import { Bell, Mail, MessageSquare, Phone } from 'lucide-react'
 
 export interface CommunicationChannel {
   id: string

@@ -1,10 +1,10 @@
 'use client'
 
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 import { LayoutGridIcon, TableIcon } from 'lucide-react'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { useDebouncedCallback } from 'use-debounce'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 
 export function TeachersFilters() {
   const searchParams = useSearchParams()

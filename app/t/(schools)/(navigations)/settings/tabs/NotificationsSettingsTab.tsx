@@ -1,10 +1,10 @@
 'use client'
 
+import React from 'react'
 import { CardContent } from '@/components/ui/card'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
-import React from 'react'
 import SettingsSection from '../components/SettingsSection'
 import ToggleSetting from '../components/ToggleSetting'
 

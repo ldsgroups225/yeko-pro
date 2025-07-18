@@ -1,6 +1,10 @@
 'use client'
 
+import { MoonIcon, SunIcon } from '@radix-ui/react-icons'
+import { useTheme } from 'next-themes'
+import React from 'react'
 import { Button } from '@/components/ui/button'
+
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -8,10 +12,6 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { cn } from '@/lib/utils'
-import { MoonIcon, SunIcon } from '@radix-ui/react-icons'
-
-import { useTheme } from 'next-themes'
-import React from 'react'
 
 interface ModeToggleProps {
   textColor?: string

@@ -1,7 +1,7 @@
 import type { IClassDetailsStats } from '@/types'
+import { GraduationCap } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
-import { GraduationCap } from 'lucide-react'
 
 interface AverageGradeMetricsProps {
   stats: Pick<IClassDetailsStats, 'averageGrade' | 'performanceData'>

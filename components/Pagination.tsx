@@ -1,9 +1,9 @@
 'use client'
 
-import { Button } from '@/components/ui/button'
 import { ChevronLeftIcon, ChevronRightIcon } from '@radix-ui/react-icons'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import React from 'react'
+import { Button } from '@/components/ui/button'
 
 interface PaginationProps {
   currentPage: number

@@ -1,5 +1,7 @@
 'use client'
 
+import { AnimatePresence, motion } from 'framer-motion'
+import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import {
   Drawer,
@@ -15,8 +17,6 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover'
 import { useMediaQuery, useSearchStudentsToAdd } from '@/hooks'
-import { AnimatePresence, motion } from 'framer-motion'
-import { useState } from 'react'
 import { SaveButton } from './SaveButton'
 import { SearchContent } from './SearchContent'
 

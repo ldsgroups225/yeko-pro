@@ -1,8 +1,8 @@
 import type { IClassesGrouped, IScheduleCalendarDTO } from '@/types'
-import { ScheduleValidator } from '@/lib/utils'
-import { createSchedule, fetchClassSchedule, getClassId, updateSchedule as updateScheduleService } from '@/services'
 import { create } from 'zustand'
 import { devtools } from 'zustand/middleware'
+import { ScheduleValidator } from '@/lib/utils'
+import { createSchedule, fetchClassSchedule, getClassId, updateSchedule as updateScheduleService } from '@/services'
 
 // Constants
 const INITIAL_STATE = {

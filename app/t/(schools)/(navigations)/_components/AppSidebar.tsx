@@ -1,5 +1,10 @@
 'use client'
 
+import { AnimatePresence, motion } from 'framer-motion'
+import { ChevronLeft, ChevronRight } from 'lucide-react'
+import Image from 'next/image'
+import Link from 'next/link'
+import { usePathname } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import {
   Sidebar,
@@ -14,11 +19,6 @@ import {
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { sidebarItems } from '@/constants'
 import { cn } from '@/lib/utils'
-import { AnimatePresence, motion } from 'framer-motion'
-import { ChevronLeft, ChevronRight } from 'lucide-react'
-import Image from 'next/image'
-import Link from 'next/link'
-import { usePathname } from 'next/navigation'
 import { UserProfile } from './UserProfile'
 
 interface AppSidebarProps {
@@ -33,18 +33,18 @@ export function AppSidebar({ className }: AppSidebarProps) {
     width: state === 'collapsed' ? 80 : 256,
     transition: {
       duration: 0.3,
-      ease: [0.4, 0, 0.2, 1],
+      ease: 'easeInOut',
     },
-  }
+  } as const
 
   const logoAnimation = {
     width: state === 'collapsed' ? 64 : 96,
     height: state === 'collapsed' ? 64 : 96,
     transition: {
       duration: 0.3,
-      ease: [0.4, 0, 0.2, 1],
+      ease: 'easeInOut',
     },
-  }
+  } as const
 
   return (
     <TooltipProvider delayDuration={100}>

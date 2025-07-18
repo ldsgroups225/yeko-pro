@@ -1,10 +1,10 @@
 // providers/UserProvider.tsx
 
 import type { ReactNode } from 'react'
-import { useInitUsefulData } from '@/hooks/useInitUsefullData' // Corrected import path if needed
-import useUserStore from '@/store/userStore'
 import { useEffect, useMemo, useReducer } from 'react'
 import { useShallow } from 'zustand/react/shallow'
+import { useInitUsefulData } from '@/hooks/useInitUsefullData' // Corrected import path if needed
+import useUserStore from '@/store/userStore'
 import { UserContext } from './UserContext'
 
 interface UserProviderProps {
@@ -17,10 +17,10 @@ interface State {
   error: Error | null
 }
 
-type Action =
-  | { type: 'START_LOADING' }
-  | { type: 'FINISH_LOADING', error?: Error }
-  | { type: 'SET_INITIALIZED' }
+type Action
+  = | { type: 'START_LOADING' }
+    | { type: 'FINISH_LOADING', error?: Error }
+    | { type: 'SET_INITIALIZED' }
 
 const initialState: State = {
   isLoading: true, // Start loading initially

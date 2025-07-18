@@ -1,6 +1,6 @@
+import type { JSX } from 'react'
 import type { LessonProgressReportSortKeys } from '@/services/progressReportService'
 import type { ILessonProgressReport } from '@/types'
-import type { JSX } from 'react'
 import { Pagination } from '@/components/Pagination'
 import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'

@@ -2,12 +2,12 @@
 'use client'
 
 import type { Locale } from 'date-fns'
-import { cn } from '@/lib/utils'
 import { format } from 'date-fns'
 import fr from 'date-fns/locale/fr'
-
 import { CalendarIcon } from 'lucide-react'
+
 import * as React from 'react'
+import { cn } from '@/lib/utils'
 import { Button } from './ui/button'
 import { Calendar } from './ui/calendar'
 import {

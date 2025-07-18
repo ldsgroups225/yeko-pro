@@ -1,10 +1,10 @@
 'use client'
 
+import { BookOpen, ListChecks, School, User } from 'lucide-react'
+import { useState } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { BookOpen, ListChecks, School, User } from 'lucide-react'
-import { useState } from 'react'
 
 import ProfileSettingsTab from './tabs/ProfileSettingsTab'
 import ProgressReportsSettingsTab from './tabs/ProgressReportsSettingsTab'

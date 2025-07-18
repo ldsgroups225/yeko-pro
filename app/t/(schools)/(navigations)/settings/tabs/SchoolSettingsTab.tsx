@@ -1,6 +1,12 @@
 'use client'
 
 import type { ISchoolDTO } from '@/types'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { Calendar, FileText, GraduationCap, LineChart, Loader2, Users } from 'lucide-react'
+import { useActionState, useOptimistic, useRef, useTransition } from 'react'
+import { useForm } from 'react-hook-form'
+import { toast } from 'sonner'
+import { z } from 'zod'
 import { ImageUpload } from '@/components/ImageUpload'
 import { PhoneInput } from '@/components/PhoneInput'
 import { Button } from '@/components/ui/button'
@@ -10,12 +16,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea'
 import { useUser } from '@/hooks'
 import { SchoolService } from '@/services/schoolService'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { Calendar, FileText, GraduationCap, LineChart, Loader2, Users } from 'lucide-react'
-import { useActionState, useOptimistic, useRef, useTransition } from 'react'
-import { useForm } from 'react-hook-form'
-import { toast } from 'sonner'
-import { z } from 'zod'
 import SettingsSection from '../components/SettingsSection'
 
 const formSchema = z.object({

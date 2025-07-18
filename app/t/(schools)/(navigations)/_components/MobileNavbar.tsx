@@ -1,3 +1,7 @@
+import { Menu } from 'lucide-react'
+import Image from 'next/image'
+import Link from 'next/link'
+import { usePathname } from 'next/navigation'
 import { ModeToggle } from '@/components/ModeToggle'
 import { SchoolYearSelector } from '@/components/SchoolYearSelector'
 import { Button } from '@/components/ui/button'
@@ -10,10 +14,6 @@ import {
 } from '@/components/ui/drawer'
 import { sidebarItems } from '@/constants'
 import { cn } from '@/lib/utils'
-import { Menu } from 'lucide-react'
-import Image from 'next/image'
-import Link from 'next/link'
-import { usePathname } from 'next/navigation'
 import { BreadcrumbNav } from './BreadcrumbNav'
 
 export function MobileNavbar() {

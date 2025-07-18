@@ -1,6 +1,6 @@
-import { Skeleton } from '@/components/ui/skeleton'
 import { nanoid } from 'nanoid'
 import React from 'react'
+import { Skeleton } from '@/components/ui/skeleton'
 
 export function TableSkeleton() {
   return (

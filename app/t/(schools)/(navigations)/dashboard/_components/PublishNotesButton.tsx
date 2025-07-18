@@ -1,10 +1,10 @@
 'use client'
 
+import { AnimatePresence, motion } from 'framer-motion'
+import { startTransition, useActionState, useOptimistic } from 'react'
 import { Button } from '@/components/ui/button'
 import { createClient } from '@/lib/supabase/client'
 import { ERole } from '@/types'
-import { AnimatePresence, motion } from 'framer-motion'
-import { startTransition, useActionState, useOptimistic } from 'react'
 
 interface PublishNotesButtonProps {
   noteId: string

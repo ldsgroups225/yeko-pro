@@ -1,4 +1,6 @@
 import type { InstallmentTemplate as InstallmentTemplateType } from '@/validations'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { useForm } from 'react-hook-form'
 import { DatePicker } from '@/components/DatePicker'
 import { Button } from '@/components/ui/button'
 import {
@@ -20,8 +22,6 @@ import {
 import { Input } from '@/components/ui/input'
 import useTuitionStore from '@/store/tuitionStore'
 import { installmentTemplateSchema } from '@/validations'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { useForm } from 'react-hook-form'
 
 interface AddInstallmentDialogProps {
   gradeId: number

@@ -1,8 +1,8 @@
 'use client'
 
 import type { Student } from '../../types'
-import { Badge } from '@/components/ui/badge'
 import { School } from 'lucide-react'
+import { Badge } from '@/components/ui/badge'
 
 interface StudentInfoProps {
   student: Student

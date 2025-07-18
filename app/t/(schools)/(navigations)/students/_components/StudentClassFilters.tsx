@@ -1,4 +1,5 @@
 import type { IClassesGrouped } from '@/types'
+import { ChevronDownIcon } from '@radix-ui/react-icons'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -8,7 +9,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { ChevronDownIcon } from '@radix-ui/react-icons'
 
 interface StudentClassFiltersProps {
   groupedClasses: IClassesGrouped[]

@@ -1,6 +1,4 @@
 import type { IPaymentInvoice } from '@/types/invoice'
-import { PAYMENT_METHOD_OPTIONS_MAP } from '@/constants'
-import { formatCurrency, formatDate } from '@/lib/utils'
 import {
   Document,
   Image,
@@ -9,6 +7,8 @@ import {
   Text,
   View,
 } from '@react-pdf/renderer'
+import { PAYMENT_METHOD_OPTIONS_MAP } from '@/constants'
+import { formatCurrency, formatDate } from '@/lib/utils'
 
 const styles = StyleSheet.create({
   page: {

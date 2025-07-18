@@ -1,10 +1,10 @@
 'use client'
 
 import type { FilterStudentWhereNotInTheClass } from '@/types'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { Badge } from '@/components/ui/badge'
 import { motion } from 'framer-motion'
 import { X } from 'lucide-react'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { Badge } from '@/components/ui/badge'
 
 const badgeVariants = {
   hidden: { scale: 0, opacity: 0 },

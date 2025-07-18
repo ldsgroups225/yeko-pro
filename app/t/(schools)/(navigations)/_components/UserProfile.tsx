@@ -1,3 +1,7 @@
+import { LogOut } from 'lucide-react'
+import Link from 'next/link'
+import { useMemo, useTransition } from 'react'
+import { toast } from 'sonner'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import {
@@ -7,10 +11,6 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { useUser } from '@/hooks'
-import { LogOut } from 'lucide-react'
-import Link from 'next/link'
-import { useMemo, useTransition } from 'react'
-import { toast } from 'sonner'
 
 interface UserProfileProps {
   expanded: boolean

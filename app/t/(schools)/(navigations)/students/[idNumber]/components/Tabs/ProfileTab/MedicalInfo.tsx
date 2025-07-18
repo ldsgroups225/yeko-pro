@@ -1,9 +1,9 @@
 'use client'
 
 import type { MedicalCondition } from '@/types'
+import { AlertCircle } from 'lucide-react'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { AlertCircle } from 'lucide-react'
 
 interface MedicalInfoProps {
   conditions: MedicalCondition[]

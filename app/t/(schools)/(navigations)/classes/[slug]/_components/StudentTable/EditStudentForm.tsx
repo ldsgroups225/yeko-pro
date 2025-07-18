@@ -1,7 +1,6 @@
 'use client'
 
 import type { ChangeEvent, FocusEvent } from 'react'
-import type { IClass } from '@/types'
 import type { StudentFormValues } from '@/validations'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { format, isValid, parse, parseISO, subYears } from 'date-fns'
@@ -21,7 +20,6 @@ import { Textarea } from '@/components/ui/textarea'
 import { MIN_STUDENT_AGE } from '@/constants'
 import { cn } from '@/lib/utils'
 import { useStudentStore } from '@/store'
-import useClassStore from '@/store/classStore'
 import { studentFormSchema } from '@/validations'
 
 const minAgeDate = subYears(new Date(), MIN_STUDENT_AGE)

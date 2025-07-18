@@ -1,6 +1,8 @@
 'use client'
 
 import type { IGrade, ISubject } from '@/types'
+import { usePathname, useRouter, useSearchParams } from 'next/navigation'
+import { useCallback, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import {
   Select,
@@ -10,8 +12,6 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { useSchoolYear } from '@/hooks'
-import { usePathname, useRouter, useSearchParams } from 'next/navigation'
-import { useCallback, useEffect } from 'react'
 
 interface ProgressReportFiltersProps {
   grades: IGrade[]

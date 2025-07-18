@@ -1,9 +1,9 @@
 'use client'
 
+import { ArrowDown, ArrowUp, Minus } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
 import { Skeleton } from '@/components/ui/skeleton'
-import { ArrowDown, ArrowUp, Minus } from 'lucide-react'
 
 export interface PerformanceMetric {
   id: string

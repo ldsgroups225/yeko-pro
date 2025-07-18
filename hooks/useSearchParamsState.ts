@@ -35,29 +35,34 @@ export function useSearchParamsState<T extends SearchParamsState>({
   // Initialize state from URL or defaults
   const getInitialState = useCallback((): T => {
     const state = { ...defaultValues }
-    
+
     searchParams.forEach((value, key) => {
       if (value === 'true') {
         state[key as keyof T] = true as T[keyof T]
-      } else if (value === 'false') {
+      }
+      else if (value === 'false') {
         state[key as keyof T] = false as T[keyof T]
-      } else if (value === 'null') {
+      }
+      else if (value === 'null') {
         state[key as keyof T] = null as unknown as T[keyof T]
-      } else if (value === 'undefined') {
+      }
+      else if (value === 'undefined') {
         state[key as keyof T] = undefined as unknown as T[keyof T]
-      } else if (!Number.isNaN(Number(value))) {
+      }
+      else if (!Number.isNaN(Number(value))) {
         state[key as keyof T] = Number(value) as unknown as T[keyof T]
-      } else {
+      }
+      else {
         state[key as keyof T] = value as T[keyof T]
       }
     })
-    
+
     return state as T
   }, [searchParams, defaultValues])
 
   // Optimistic state for instant UI updates
   const [optimisticState, setOptimisticState] = useOptimistic<T>(
-    getInitialState()
+    getInitialState(),
   )
 
   // Create URL query string
@@ -67,7 +72,8 @@ export function useSearchParamsState<T extends SearchParamsState>({
     Object.entries(params).forEach(([key, value]) => {
       if (value === undefined || value === '' || value === 'all') {
         newSearchParams.delete(key)
-      } else {
+      }
+      else {
         newSearchParams.set(key, String(value))
       }
     })
@@ -77,10 +83,11 @@ export function useSearchParamsState<T extends SearchParamsState>({
 
   // Debounced URL update
   const updateURLDebounced = useDebouncedCallback((state: T) => {
-    if (!updateURL) return
-    
+    if (!updateURL)
+      return
+
     const queryString = createQueryString(state)
-    
+
     startTransition(() => {
       router.replace(`${pathname}?${queryString}`, { scroll: false })
     })
@@ -88,10 +95,10 @@ export function useSearchParamsState<T extends SearchParamsState>({
 
   // Update state with optimistic updates
   const setState = useCallback((updater: T | ((prevState: T) => T)) => {
-    const newState = typeof updater === 'function' 
+    const newState = typeof updater === 'function'
       ? (updater as (prevState: T) => T)(optimisticState)
       : updater
-    
+
     // Update URL with debounce
     updateURLDebounced(newState)
     setOptimisticState(newState)
@@ -99,7 +106,7 @@ export function useSearchParamsState<T extends SearchParamsState>({
 
   // Get current state
   const getState = useCallback((): T => ({
-    ...optimisticState
+    ...optimisticState,
   }), [optimisticState])
 
   // Reset to default values

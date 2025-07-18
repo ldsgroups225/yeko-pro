@@ -1,8 +1,8 @@
 // app/report-card-template/[studentIdNumber]/page.tsx
 
+import { notFound } from 'next/navigation'
 import ReportCardDisplay from '@/app/report-card/ReportCardDisplay'
 import { getReportCardDataForStudent } from '@/services'
-import { notFound } from 'next/navigation'
 
 interface ReportCardTemplatePageProps {
   params: Promise<{

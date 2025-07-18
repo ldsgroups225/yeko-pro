@@ -1,14 +1,14 @@
 // app/t/(schools)/(navigations)/settings/components/TuitionTableRow.tsx
 
+import type { RefObject } from 'react'
 import type { IGrade } from '@/types'
 import type { TuitionSettings } from '@/validations'
-import type { RefObject } from 'react'
+import { CheckCircle2, Edit2Icon, EyeIcon, EyeOffIcon, X } from 'lucide-react'
+import { useRef, useState } from 'react'
 import { NumberInput } from '@/components/NumberInput'
 import { Button } from '@/components/ui/button'
 import { TableCell, TableRow } from '@/components/ui/table'
 import { formatCurrency } from '@/lib/utils'
-import { CheckCircle2, Edit2Icon, EyeIcon, EyeOffIcon, X } from 'lucide-react'
-import { useRef, useState } from 'react'
 
 export interface TuitionTableRowProps {
   grade: IGrade

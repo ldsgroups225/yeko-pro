@@ -1,7 +1,7 @@
 import type { IClassDetailsStats } from '@/types'
+import { Clock } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
-import { Clock } from 'lucide-react'
 
 interface AttendanceMetricsProps {
   stats: Pick<IClassDetailsStats, 'absentCount' | 'lateCount'>

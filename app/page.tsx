@@ -1,17 +1,5 @@
 'use client'
 
-import { ModeToggle } from '@/components/ModeToggle'
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from '@/components/ui/accordion'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Textarea } from '@/components/ui/textarea'
 import {
   ArrowRightIcon,
   BackpackIcon,
@@ -32,6 +20,18 @@ import { nanoid } from 'nanoid'
 import Image from 'next/image'
 import Link from 'next/link'
 import React, { useState } from 'react'
+import { ModeToggle } from '@/components/ModeToggle'
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/components/ui/accordion'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Textarea } from '@/components/ui/textarea'
 
 const FeatureCard: React.FC<{
   title: string

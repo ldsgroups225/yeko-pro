@@ -1,9 +1,9 @@
 import type { FilterStudentWhereNotInTheClass } from '@/types'
-import { useStudentStore } from '@/store'
-import useUserStore from '@/store/userStore'
 import { useCallback, useEffect, useState } from 'react'
 import { toast } from 'sonner'
 import { useDebounce } from 'use-debounce'
+import { useStudentStore } from '@/store'
+import useUserStore from '@/store/userStore'
 import { useClasses } from './useClasses'
 
 interface UseSearchStudentsToAddProps {

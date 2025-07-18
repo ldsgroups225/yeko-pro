@@ -3,6 +3,17 @@
 'use client'
 
 import type { InstallmentTemplate as ITemplate } from '@/validations'
+import { AnimatePresence, motion } from 'framer-motion'
+import {
+  CalendarIcon,
+  CheckCircle2,
+  Edit2Icon,
+  SeparatorHorizontal,
+  Trash2Icon,
+  X,
+} from 'lucide-react'
+import { startTransition, useOptimistic, useState } from 'react'
+import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Calendar } from '@/components/ui/calendar'
 import { Input } from '@/components/ui/input'
@@ -19,17 +30,6 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip
 import { cn, formatCurrency, formatDate } from '@/lib/utils'
 import { saveRecordIfDirty } from '@/lib/utils/saveDataIfDirty'
 import useTuitionStore from '@/store/tuitionStore'
-import { AnimatePresence, motion } from 'framer-motion'
-import {
-  CalendarIcon,
-  CheckCircle2,
-  Edit2Icon,
-  SeparatorHorizontal,
-  Trash2Icon,
-  X,
-} from 'lucide-react'
-import { startTransition, useOptimistic, useState } from 'react'
-import { toast } from 'sonner'
 import { AddInstallmentDialog } from './AddInstallmentDialogProps'
 import { DeleteInstallmentDialog } from './DeleteInstallmentDialog'
 

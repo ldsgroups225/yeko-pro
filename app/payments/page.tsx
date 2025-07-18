@@ -1,6 +1,6 @@
+import Image from 'next/image'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { cn } from '@/lib/utils'
-import Image from 'next/image'
 import { RegistrationStepper } from './components/RegistrationStepper'
 
 export default function RegistrationPage() {

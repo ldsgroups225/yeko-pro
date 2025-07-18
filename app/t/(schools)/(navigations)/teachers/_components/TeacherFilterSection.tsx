@@ -1,8 +1,8 @@
 'use client'
 
+import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { Label } from '@/components/ui/label'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
-import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 
 export function TeacherFilterSection() {
   const searchParams = useSearchParams()

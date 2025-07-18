@@ -1,7 +1,7 @@
-import type { ITeacherQueryParams } from '@/types'
 import type { Metadata } from 'next'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import type { ITeacherQueryParams } from '@/types'
 import { Suspense } from 'react'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { FilterButton, InviteTeacherButton, TeachersFilters, TeachersTable, TeachersTableSkeleton } from './_components'
 
 const ITEMS_PER_PAGE = 12

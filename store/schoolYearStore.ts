@@ -1,6 +1,6 @@
 import type { ISchoolYear, ISemester } from '@/types'
-import { fetchSchoolYears, fetchSemesters } from '@/services'
 import { create } from 'zustand'
+import { fetchSchoolYears, fetchSemesters } from '@/services'
 
 interface SchoolYearState {
   isLoading: boolean

@@ -1,12 +1,3 @@
-import { Button } from '@/components/ui/button'
-
-import { Separator } from '@/components/ui/separator'
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip'
 import {
   ArchiveIcon,
   DownloadIcon,
@@ -14,7 +5,16 @@ import {
   ViewGridIcon,
   ViewHorizontalIcon,
 } from '@radix-ui/react-icons'
+
 import React from 'react'
+import { Button } from '@/components/ui/button'
+import { Separator } from '@/components/ui/separator'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip'
 
 interface ActionsAndViewModeToggleProps {
   isTableViewMode: boolean

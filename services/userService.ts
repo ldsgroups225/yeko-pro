@@ -1,12 +1,12 @@
 'use server'
 
 import type { IUserProfileDTO } from '@/types'
-import { createClient } from '@/lib/supabase/server'
+import { cookies } from 'next/headers'
 
+import { redirect } from 'next/navigation'
+import { createClient } from '@/lib/supabase/server'
 import { getEnvOrThrowServerSide } from '@/lib/utils/EnvServer'
 import { ERole, roleToString } from '@/types'
-import { cookies } from 'next/headers'
-import { redirect } from 'next/navigation'
 
 /**
  * Gets the current authenticated user's basic information.

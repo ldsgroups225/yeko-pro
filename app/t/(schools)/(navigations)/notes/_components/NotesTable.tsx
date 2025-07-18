@@ -1,5 +1,6 @@
 'use client'
 
+import { useEffect, useMemo, useState } from 'react'
 import { Input } from '@/components/ui/input'
 import {
   Table,
@@ -11,7 +12,6 @@ import {
 } from '@/components/ui/table'
 import { NOTE_TYPE } from '@/constants/noteTypes'
 import { getNotesForTableView } from '@/services/noteService'
-import { useEffect, useMemo, useState } from 'react'
 
 interface StructuredNoteInfo {
   noteId: string

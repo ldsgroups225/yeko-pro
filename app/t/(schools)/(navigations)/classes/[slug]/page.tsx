@@ -1,9 +1,9 @@
+import { notFound } from 'next/navigation'
+import { Suspense } from 'react'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { getClassBySlug } from '@/services/classService'
 import { fetchGrades } from '@/services/gradeService'
 import { fetchUserProfile } from '@/services/userService'
-import { notFound } from 'next/navigation'
-import { Suspense } from 'react'
 
 import {
   MetricsCardsLoader,

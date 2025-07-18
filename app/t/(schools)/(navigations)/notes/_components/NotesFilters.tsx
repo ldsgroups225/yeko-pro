@@ -1,5 +1,8 @@
 'use client'
 
+import { usePathname, useRouter, useSearchParams } from 'next/navigation'
+import { useCallback, useEffect, useState } from 'react'
+import { useDebounceCallback } from 'usehooks-ts'
 import { Combobox } from '@/components/Combobox'
 import { Input } from '@/components/ui/input'
 import {
@@ -10,9 +13,6 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { NOTE_OPTIONS } from '@/constants/noteTypes'
-import { usePathname, useRouter, useSearchParams } from 'next/navigation'
-import { useCallback, useEffect, useState } from 'react'
-import { useDebounceCallback } from 'usehooks-ts'
 
 interface IOption {
   id: string

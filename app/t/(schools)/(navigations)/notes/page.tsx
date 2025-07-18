@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
+import { Suspense } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { getClassesForNotes, getSemesters, getSubjects } from '@/services/noteService'
-import { Suspense } from 'react'
 import { NotesFilters, NotesTable, NotesTableSkeleton } from './_components'
 
 export const metadata: Metadata = {

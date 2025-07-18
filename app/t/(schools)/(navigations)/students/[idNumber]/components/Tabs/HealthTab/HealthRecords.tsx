@@ -1,9 +1,9 @@
 'use client'
 
+import { FileCheck, Stethoscope, Syringe } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
-import { FileCheck, Stethoscope, Syringe } from 'lucide-react'
 
 export interface HealthRecord {
   id: string

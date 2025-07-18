@@ -1,3 +1,5 @@
+import Link from 'next/link'
+import { redirect } from 'next/navigation'
 import { PublishNotesButton } from '@/app/t/(schools)/(navigations)/dashboard/_components/PublishNotesButton'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -7,8 +9,6 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { NOTE_OPTIONS } from '@/constants'
 import { formatDate } from '@/lib/utils'
 import { getNoteDetails } from '@/services/dashboardService'
-import Link from 'next/link'
-import { redirect } from 'next/navigation'
 
 interface PageProps {
   params: Promise<{

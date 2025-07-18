@@ -5,11 +5,11 @@ import type { Student } from '../../../types'
 // import type { FamilyMember } from './FamilyOverview'
 import type { ParentContact } from './ParentContacts'
 
+import consola from 'consola'
+import { useCallback, useEffect, useState } from 'react'
 import { Card } from '@/components/ui/card'
 // import { getCommunicationPreferences, getFamilyMembers, getStudentParents } from '@/services/parentService'
 import { getStudentParents } from '@/services/parentService'
-import consola from 'consola'
-import { useCallback, useEffect, useState } from 'react'
 
 // import { CommunicationPreferences } from './CommunicationPreferences'
 // import { FamilyOverview } from './FamilyOverview'

@@ -3,6 +3,10 @@
 'use client'
 
 import type { TuitionSettings } from '@/validations'
+import { AnimatePresence, motion } from 'framer-motion'
+import { ArrowRightIcon, PlusCircle } from 'lucide-react'
+import { startTransition, useCallback, useEffect, useOptimistic, useState } from 'react'
+import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import {
   Table,
@@ -15,10 +19,6 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { saveRecordIfDirty } from '@/lib/utils'
 import useGradeStore from '@/store/gradeStore'
 import useTuitionStore from '@/store/tuitionStore'
-import { AnimatePresence, motion } from 'framer-motion'
-import { ArrowRightIcon, PlusCircle } from 'lucide-react'
-import { startTransition, useCallback, useEffect, useOptimistic, useState } from 'react'
-import { toast } from 'sonner'
 import { PaymentPlanSection } from '../components/PaymentPlanSection'
 import SettingsSection from '../components/SettingsSection'
 import { TuitionTableRow } from '../components/TuitionTableRow'
@@ -112,14 +112,14 @@ export default function TuitionSettingsPage() {
     })
   }
 
-  // Animation variants
+  // Animation variants with proper TypeScript types
   const containerVariants = {
     hidden: {
       width: '100%',
       opacity: 1,
       x: 0,
       transition: {
-        type: 'spring',
+        type: 'spring' as const,
         stiffness: 300,
         damping: 30,
       },
@@ -129,12 +129,12 @@ export default function TuitionSettingsPage() {
       opacity: 0,
       x: -50,
       transition: {
-        type: 'spring',
+        type: 'spring' as const,
         stiffness: 300,
         damping: 30,
       },
     },
-  }
+  } as const
 
   const paymentPlanVariants = {
     hidden: {
@@ -143,7 +143,7 @@ export default function TuitionSettingsPage() {
       width: 0,
       transition: {
         duration: 0.2,
-        when: 'afterChildren',
+        when: 'afterChildren' as const,
       },
     },
     visible: {
@@ -151,10 +151,10 @@ export default function TuitionSettingsPage() {
       x: 0,
       width: '100%',
       transition: {
-        type: 'spring',
+        type: 'spring' as const,
         stiffness: 300,
         damping: 30,
-        when: 'beforeChildren',
+        when: 'beforeChildren' as const,
       },
     },
     exit: {
@@ -163,10 +163,10 @@ export default function TuitionSettingsPage() {
       width: 0,
       transition: {
         duration: 0.2,
-        when: 'afterChildren',
+        when: 'afterChildren' as const,
       },
     },
-  }
+  } as const
 
   return (
     <div className="flex flex-col gap-6">

@@ -1,15 +1,15 @@
 'use client'
 
 import type { IClassesGrouped, IScheduleCalendarDTO } from '@/types'
+import { ChevronDownIcon, EyeOpenIcon } from '@radix-ui/react-icons'
+import Link from 'next/link'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { useScheduleOptimistic, useSchedules, useStudents, useUser } from '@/hooks'
 import { calculatePosition } from '@/lib/utils'
-import { ChevronDownIcon, EyeOpenIcon } from '@radix-ui/react-icons'
-import Link from 'next/link'
-import { useEffect, useMemo, useRef, useState } from 'react'
-import { toast } from 'sonner'
 import { AddCourseDialog, CurrentTimeLine, EventCell, TimelineIndicator } from './_components'
 
 const DAYS = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi']

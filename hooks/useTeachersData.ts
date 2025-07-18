@@ -1,7 +1,7 @@
 import type { ITeacherDTO, ITeacherQueryParams } from '@/types'
-import { useUser } from '@/hooks/useUser'
 import { useEffect, useRef } from 'react'
 import { useDebouncedCallback } from 'use-debounce'
+import { useUser } from '@/hooks/useUser'
 import { useTeachers } from './useTeachers'
 
 interface UseTeachersDataProps {

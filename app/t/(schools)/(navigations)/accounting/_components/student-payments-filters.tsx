@@ -1,9 +1,9 @@
 'use client'
 
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { useDebouncedCallback } from 'use-debounce'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 
 export function StudentPaymentsFilters() {
   const searchParams = useSearchParams()

@@ -1,10 +1,10 @@
 'use client'
 
+import { Activity, AlertCircle, AlertTriangle, Heart } from 'lucide-react'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
-import { Activity, AlertCircle, AlertTriangle, Heart } from 'lucide-react'
 
 export interface MedicalCondition {
   id: string

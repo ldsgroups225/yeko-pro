@@ -1,8 +1,8 @@
 import type { Student } from './types'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { getStudentByIdNumber } from '@/services/studentService'
 import { notFound } from 'next/navigation'
 import { Suspense } from 'react'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { getStudentByIdNumber } from '@/services/studentService'
 import {
   QuickStatsGrid,
   QuickStatsGridSkeleton,

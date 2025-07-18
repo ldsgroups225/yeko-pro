@@ -1,6 +1,6 @@
+import Image from 'next/image'
 import { Card, CardContent } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
-import Image from 'next/image'
 
 /**
  * Displays information about the school.

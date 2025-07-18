@@ -5,13 +5,13 @@ import type { GradePoint } from './GradesTrend'
 import type { PerformanceMetric } from './PerformanceOverview'
 import type { SubjectPerformanceData } from './SubjectPerformance'
 
+import { useEffect, useState } from 'react'
 import { Card } from '@/components/ui/card'
 import {
   getStudentGradePoints,
   getStudentPerformanceMetrics,
   getStudentSubjectPerformance,
 } from '@/services/noteService'
-import { useEffect, useState } from 'react'
 
 import { GradesTrend } from './GradesTrend'
 import { PerformanceOverview } from './PerformanceOverview'

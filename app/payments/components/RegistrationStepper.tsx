@@ -3,8 +3,8 @@
 'use client'
 
 import type { ISchool, IStudent } from '../types'
-import { Stepper } from '@/components/ui/stepper'
 import { useState } from 'react'
+import { Stepper } from '@/components/ui/stepper'
 import { Step1Identification, Step2Confirmation, Step3GradeSelection, Step4TuitionDisplay, Step5Payment, Step6Success } from './steps'
 
 interface Step {

@@ -1,6 +1,6 @@
 import type { ITeacherDTO, ITeacherOptions, ITeacherQueryParams } from '@/types'
-import { createInviteTeacher, getTeachers, getTeacherToSetToCourse, updateTeacherStatus } from '@/services'
 import { create } from 'zustand'
+import { createInviteTeacher, getTeachers, getTeacherToSetToCourse, updateTeacherStatus } from '@/services'
 
 interface TeacherFilters {
   searchTerm?: string

@@ -1,5 +1,6 @@
 // app/t/(schools)/(navigations)/teachers/_components/TeachersTableSkeleton.tsx
 
+import { nanoid } from 'nanoid'
 import { Skeleton } from '@/components/ui/skeleton'
 import {
   Table,
@@ -9,7 +10,6 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import { nanoid } from 'nanoid'
 
 export function TeachersTableSkeleton() {
   const headers = ['Enseignant', 'Email', 'Enseigne dans', 'Prof principal de', 'Actions']

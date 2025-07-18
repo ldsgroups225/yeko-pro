@@ -1,4 +1,15 @@
 'use client'
+import {
+  Edit,
+  Loader2,
+  MoreHorizontal,
+  ToggleLeftIcon,
+  Trash,
+  UserPlus2,
+} from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { useState, useTransition } from 'react'
+import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -18,17 +29,6 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { Input } from '@/components/ui/input'
 import { useClasses, useUser } from '@/hooks'
-import {
-  Edit,
-  Loader2,
-  MoreHorizontal,
-  ToggleLeftIcon,
-  Trash,
-  UserPlus2,
-} from 'lucide-react'
-import { useRouter } from 'next/navigation'
-import { useState, useTransition } from 'react'
-import { toast } from 'sonner'
 import { SearchStudentToAdd } from '../SearchStudentToAdd'
 
 interface ClassActionsProps {

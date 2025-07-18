@@ -1,14 +1,7 @@
 'use client'
 
-import type { InstallmentTemplate as ITemplate } from '@/validations'
 import type { PaymentPlanFormData } from './PaymentPlanRowLogic'
-import { Button } from '@/components/ui/button'
-import { Calendar } from '@/components/ui/calendar'
-import { Input } from '@/components/ui/input'
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
-import { TableCell, TableRow } from '@/components/ui/table'
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
-import { cn, formatCurrency, formatDate } from '@/lib/utils'
+import type { InstallmentTemplate as ITemplate } from '@/validations'
 import { AnimatePresence, motion } from 'framer-motion'
 import {
   CalendarIcon,
@@ -18,6 +11,13 @@ import {
   X,
 } from 'lucide-react'
 import { useState } from 'react'
+import { Button } from '@/components/ui/button'
+import { Calendar } from '@/components/ui/calendar'
+import { Input } from '@/components/ui/input'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { TableCell, TableRow } from '@/components/ui/table'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
+import { cn, formatCurrency, formatDate } from '@/lib/utils'
 
 interface PaymentPlanRowViewProps {
   plan: ITemplate

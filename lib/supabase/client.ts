@@ -1,6 +1,6 @@
 import type { Database } from '@/lib/supabase/types'
-import { getEnvOrThrowClientSide } from '@/lib/utils/EnvClient'
 import { createBrowserClient } from '@supabase/ssr'
+import { getEnvOrThrowClientSide } from '@/lib/utils/EnvClient'
 
 export function createClient() {
   const env = getEnvOrThrowClientSide()

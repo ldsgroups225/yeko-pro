@@ -1,6 +1,6 @@
+import { MixerVerticalIcon } from '@radix-ui/react-icons'
 import { Button } from '@/components/ui/button'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
-import { MixerVerticalIcon } from '@radix-ui/react-icons'
 import { TeacherFilterSection } from './TeacherFilterSection'
 
 export function FilterButton() {

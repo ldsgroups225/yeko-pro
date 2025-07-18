@@ -1,5 +1,5 @@
-import { calculatePosition } from '@/lib/utils'
 import { useEffect, useState } from 'react'
+import { calculatePosition } from '@/lib/utils'
 
 export function CurrentTimeLine() {
   const getCurrentPosition = () => {

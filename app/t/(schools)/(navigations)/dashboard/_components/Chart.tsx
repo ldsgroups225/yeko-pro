@@ -1,7 +1,6 @@
 'use client'
 
 import type { IDashboardChartProps } from '@/types'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import {
   CartesianGrid,
   Legend,
@@ -12,6 +11,7 @@ import {
   XAxis,
   YAxis,
 } from 'recharts'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
 export function Chart({ data }: IDashboardChartProps) {
   return (

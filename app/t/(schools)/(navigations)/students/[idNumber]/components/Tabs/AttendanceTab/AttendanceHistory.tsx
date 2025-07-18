@@ -1,5 +1,7 @@
 'use client'
 
+import { AnimatePresence, motion } from 'framer-motion'
+import { useMemo, useState } from 'react'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
 import {
@@ -12,8 +14,6 @@ import {
 import { Skeleton } from '@/components/ui/skeleton'
 import { cn } from '@/lib/utils'
 import useSchoolYearStore from '@/store/schoolYearStore'
-import { AnimatePresence, motion } from 'framer-motion'
-import { useMemo, useState } from 'react'
 
 export interface Attendance {
   id: string

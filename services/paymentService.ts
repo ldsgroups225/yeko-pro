@@ -4,10 +4,10 @@
 
 import type { SupabaseClient } from '@/lib/supabase/server'
 import type { StudentForPayment } from '@/types/accounting'
+import { nanoid } from 'nanoid'
 import { createClient } from '@/lib/supabase/server'
 import { formatFullName } from '@/lib/utils'
 import { ERole } from '@/types'
-import { nanoid } from 'nanoid'
 
 interface Transaction {
   id: string

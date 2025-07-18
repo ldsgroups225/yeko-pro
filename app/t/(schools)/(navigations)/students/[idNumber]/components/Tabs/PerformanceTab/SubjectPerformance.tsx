@@ -1,10 +1,10 @@
 'use client'
 
+import { AlertTriangle, ArrowDown, ArrowUp, Sparkles } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
 import { Skeleton } from '@/components/ui/skeleton'
-import { AlertTriangle, ArrowDown, ArrowUp, Sparkles } from 'lucide-react'
 
 export interface SubjectPerformanceData {
   id: string

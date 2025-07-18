@@ -1,7 +1,7 @@
 import type { StudentWithPaymentStatus } from '@/types/accounting'
+import { CheckCircle2 } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { cn, formatCurrency, formatTimePassed } from '@/lib/utils'
-import { CheckCircle2 } from 'lucide-react'
 import { NotifyIndividualParentButton } from './notify-individual-parent-button'
 
 interface StudentPaymentsTableProps {

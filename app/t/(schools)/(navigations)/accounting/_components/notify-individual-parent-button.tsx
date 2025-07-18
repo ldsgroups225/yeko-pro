@@ -1,8 +1,8 @@
 'use client'
 
-import { notifyIndividualParent } from '@/services/accountingService'
 import { BellRing } from 'lucide-react'
 import { toast } from 'sonner'
+import { notifyIndividualParent } from '@/services/accountingService'
 
 interface Props {
   studentId: string

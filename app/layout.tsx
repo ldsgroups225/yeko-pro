@@ -1,8 +1,8 @@
 import type { Metadata } from 'next'
+import localFont from 'next/font/local'
 import { Toaster } from '@/components/ui/sonner'
 import { ReactQueryClientProvider } from '@/providers/ReactQueryClientProvider'
 import { ThemeProvider } from '@/providers/ThemeProvider'
-import localFont from 'next/font/local'
 import './globals.css'
 
 const poppins = localFont({

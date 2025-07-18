@@ -1,7 +1,7 @@
 // app/payments/schemas.ts
 
-import { MAX_STUDENT_AGE, maxBirthDate, MIN_STUDENT_AGE, minBirthDate } from '@/constants'
 import { z } from 'zod'
+import { MAX_STUDENT_AGE, maxBirthDate, MIN_STUDENT_AGE, minBirthDate } from '@/constants'
 
 export const searchSchema = z.object({
   schoolCode: z.string().min(1, 'Le code de l\'école est requis'),

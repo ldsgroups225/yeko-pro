@@ -1,9 +1,9 @@
 'use client'
 
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { useUser } from '@/hooks'
 import { Mail, Smartphone } from 'lucide-react'
 import React from 'react'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { useUser } from '@/hooks'
 import FormField from '../components/FormField'
 import SettingsSection from '../components/SettingsSection'
 

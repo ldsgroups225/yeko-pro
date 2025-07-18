@@ -1,10 +1,10 @@
 // hooks/useInitUsefulData.ts
 
+import { useCallback } from 'react'
 import useGradeStore from '@/store/gradeStore'
 import useSchoolYearStore from '@/store/schoolYearStore'
 import useSubjectStore from '@/store/subjectStore'
 import useUserStore from '@/store/userStore'
-import { useCallback } from 'react'
 
 export function useInitUsefulData() {
   // Select only the functions needed, which are stable references from Zustand

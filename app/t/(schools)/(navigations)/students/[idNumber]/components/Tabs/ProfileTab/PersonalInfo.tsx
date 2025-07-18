@@ -1,10 +1,10 @@
 'use client'
 
 import type { Student } from '../../../types'
+import { Calendar, CalendarDays, FileText, GraduationCap, Home, MapPin } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { formatDate, getAge } from '@/lib/utils'
-import { Calendar, CalendarDays, FileText, GraduationCap, Home, MapPin } from 'lucide-react'
 
 interface PersonalInfoProps {
   student: Student

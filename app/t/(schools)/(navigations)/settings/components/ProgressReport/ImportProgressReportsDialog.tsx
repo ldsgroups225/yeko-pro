@@ -3,6 +3,10 @@
 import type { ValidationError } from '@/components/DataImporter'
 import type { LessonProgressReportConfigInsertWithErrorKeys } from '@/services/progressReportService'
 import type { IGrade, ISubject } from '@/types'
+import { nanoid } from 'nanoid'
+import { useState } from 'react'
+import { toast } from 'sonner'
+import { z } from 'zod'
 import { DataImporter } from '@/components/DataImporter'
 import {
   Dialog,
@@ -13,10 +17,6 @@ import {
 } from '@/components/ui/dialog'
 import { capitalize } from '@/lib/utils'
 import { importLessonsProgressReportsConfig } from '@/services/progressReportService'
-import { nanoid } from 'nanoid'
-import { useState } from 'react'
-import { toast } from 'sonner'
-import { z } from 'zod'
 
 interface ImportProgressReportsDialogProps {
   isOpen: boolean

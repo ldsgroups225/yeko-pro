@@ -1,7 +1,7 @@
 import type { IScheduleCalendarDTO } from '@/types'
-import { cn } from '@/lib/utils'
 import { format } from 'date-fns'
 import { useEffect, useMemo, useState } from 'react'
+import { cn } from '@/lib/utils'
 import { EditCourseDialog } from './EditCourseDialog'
 
 interface EventCellProps {

@@ -1,9 +1,9 @@
 'use client'
 
 import type { Student } from '../../types'
-import { Badge } from '@/components/ui/badge'
 import { UserCircle } from 'lucide-react'
 import Image from 'next/image'
+import { Badge } from '@/components/ui/badge'
 
 interface StudentAvatarProps {
   student: Student

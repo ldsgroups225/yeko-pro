@@ -1,5 +1,20 @@
 // components/DataImporter/DataImporter.tsx
 
+import {
+  AlertCircle,
+  CheckCircle2,
+  Download,
+  FileSpreadsheet,
+  Loader2,
+  Upload,
+  XCircle,
+} from 'lucide-react'
+import { nanoid } from 'nanoid'
+import Papa from 'papaparse'
+import React, { useCallback, useState } from 'react'
+import { useDropzone } from 'react-dropzone'
+import * as XLSX from 'xlsx'
+import { z } from 'zod'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -20,21 +35,6 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import {
-  AlertCircle,
-  CheckCircle2,
-  Download,
-  FileSpreadsheet,
-  Loader2,
-  Upload,
-  XCircle,
-} from 'lucide-react'
-import { nanoid } from 'nanoid'
-import Papa from 'papaparse'
-import React, { useCallback, useState } from 'react'
-import { useDropzone } from 'react-dropzone'
-import * as XLSX from 'xlsx'
-import { z } from 'zod'
 import { getSchemaShape } from './getSchemaShape'
 
 export interface ValidationError {

@@ -1,8 +1,8 @@
 'use client'
 
-import { Button } from '@/components/ui/button'
 import { ChevronDownIcon, ChevronUpIcon } from '@radix-ui/react-icons'
 import React, { useState } from 'react'
+import { Button } from '@/components/ui/button'
 
 /**
  * NewSchoolInfo component that displays information about creating a new school account.

@@ -1,4 +1,5 @@
 import type { IUserProfileDTO } from '@/types'
+import { create } from 'zustand'
 import {
   fetchUserProfile,
   handleAuthCallback,
@@ -8,7 +9,6 @@ import {
   signUp,
   updatePassword,
 } from '@/services'
-import { create } from 'zustand'
 
 // Define the state interface
 interface UserState {

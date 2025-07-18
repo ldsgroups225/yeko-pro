@@ -2,9 +2,9 @@
 
 'use server'
 
-import type { SupabaseClient } from '@/lib/supabase/server'
 import type { SearchFormData } from './schemas'
 import type { ISchool, IStudent, SearchResult } from './types'
+import type { SupabaseClient } from '@/lib/supabase/server'
 import { createClient } from '@/lib/supabase/server'
 import { parseMedicalCondition } from '@/lib/utils'
 import { uploadImageToStorage } from '@/services/uploadImageService'

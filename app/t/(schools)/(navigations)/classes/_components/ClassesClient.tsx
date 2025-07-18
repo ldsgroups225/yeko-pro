@@ -2,10 +2,10 @@
 
 import type { IClass, IGrade } from '@/types'
 
-import { Pagination } from '@/components/Pagination'
-import { Button } from '@/components/ui/button'
 import { PlusIcon } from '@radix-ui/react-icons'
 import React, { useState } from 'react'
+import { Pagination } from '@/components/Pagination'
+import { Button } from '@/components/ui/button'
 import {
   ClassCreationOrUpdateDialog,
   ClassesFilters,

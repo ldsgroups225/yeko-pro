@@ -1,7 +1,7 @@
-import { Button } from '@/components/ui/button'
-import { CardFooter } from '@/components/ui/card'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
+import { Button } from '@/components/ui/button'
+import { CardFooter } from '@/components/ui/card'
 
 interface TablePaginationProps {
   currentPage: number

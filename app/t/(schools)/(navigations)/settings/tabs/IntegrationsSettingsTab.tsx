@@ -1,10 +1,10 @@
 'use client'
 
+import { nanoid } from 'nanoid'
+import React from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { nanoid } from 'nanoid'
-import React from 'react'
 import IntegrationItem from '../components/IntegrationItem'
 import SettingsSection from '../components/SettingsSection'
 

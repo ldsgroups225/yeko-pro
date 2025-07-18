@@ -1,8 +1,8 @@
 import type { IStudentsQueryParams } from '@/types'
-import { areEqual } from '@/lib/utils'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { useCallback, useEffect, useState } from 'react'
 import { useDebouncedCallback } from 'use-debounce'
+import { areEqual } from '@/lib/utils'
 
 export function useSearchStudentParamsState(defaultValues: IStudentsQueryParams) {
   const router = useRouter()

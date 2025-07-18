@@ -5,10 +5,26 @@ import { describe, expect, it, vi } from 'vitest'
 import ClassesClient from './ClassesClient'
 import '@testing-library/jest-dom/vitest'
 
+// Mock Next.js navigation
+const mockPush = vi.fn()
+const mockGet = vi.fn()
+
+// Create mock implementations for Next.js navigation
+const mockRouter = {
+  push: mockPush,
+  // Add other router methods as needed
+}
+
+const mockSearchParams = {
+  get: mockGet,
+  // Add other searchParams methods as needed
+}
+
+// Mock the Next.js navigation module
 vi.mock('next/navigation', () => ({
-  useRouter: () => ({ push: vi.fn() }),
-  usePathname: () => '/',
-  useSearchParams: () => ({ get: vi.fn() }),
+  useRouter: vi.fn(() => mockRouter),
+  usePathname: vi.fn(() => '/'),
+  useSearchParams: vi.fn(() => mockSearchParams),
 }))
 
 describe('classesClient', () => {

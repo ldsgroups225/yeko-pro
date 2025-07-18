@@ -1,4 +1,3 @@
-import { DATE_FORMAT_SHORT, TIME_FORMAT_24H } from '@/constants'
 import {
   differenceInDays,
   differenceInMonths,
@@ -10,6 +9,7 @@ import {
   parseISO,
 } from 'date-fns'
 import { enUS, fr } from 'date-fns/locale'
+import { DATE_FORMAT_SHORT, TIME_FORMAT_24H } from '@/constants'
 
 type DateInput = Date | string
 

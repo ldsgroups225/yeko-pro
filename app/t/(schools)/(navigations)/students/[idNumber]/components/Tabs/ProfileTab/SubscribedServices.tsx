@@ -1,9 +1,9 @@
 'use client'
 
+import { Bus, Utensils } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Switch } from '@/components/ui/switch'
-import { Bus, Utensils } from 'lucide-react'
 
 export interface Service {
   id: string

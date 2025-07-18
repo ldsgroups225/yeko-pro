@@ -1,6 +1,8 @@
 'use client'
 
 import type { ClassDetailsStudent } from '@/types'
+import { useState } from 'react'
+import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -17,8 +19,6 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { useSchoolYear } from '@/hooks'
-import { useState } from 'react'
-import { toast } from 'sonner'
 
 interface ReportCardSemesterDialogProps {
   student: ClassDetailsStudent

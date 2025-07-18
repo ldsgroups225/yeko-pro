@@ -1,10 +1,10 @@
 'use client'
 
+import { AlarmClock, AlertCircle, Building2, MapPin, Phone } from 'lucide-react'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
-import { AlarmClock, AlertCircle, Building2, MapPin, Phone } from 'lucide-react'
 
 export interface EmergencyContact {
   id: string

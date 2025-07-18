@@ -1,6 +1,7 @@
 'use client'
 
 import type { ILessonProgressReportConfig } from '@/types'
+import { useEffect, useState } from 'react'
 import { Pagination } from '@/components/Pagination'
 import {
   Table,
@@ -11,7 +12,6 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { getLessonsProgressReportsConfig } from '@/services/progressReportService'
-import { useEffect, useState } from 'react'
 import { ProgressReportTableActions } from './ProgressReportTableActions'
 
 interface ProgressReportTableProps {

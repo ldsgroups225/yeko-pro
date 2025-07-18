@@ -1,8 +1,8 @@
 'use client'
 
+import { AlertCircle, RefreshCcw } from 'lucide-react'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
-import { AlertCircle, RefreshCcw } from 'lucide-react'
 
 interface StudentPageErrorProps {
   error: Error

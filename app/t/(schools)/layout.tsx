@@ -1,9 +1,9 @@
 'use client'
 
-import { cn } from '@/lib/utils'
-import { UserProvider } from '@/providers/UserProvider'
 import { usePathname } from 'next/navigation'
 import { Suspense } from 'react'
+import { cn } from '@/lib/utils'
+import { UserProvider } from '@/providers/UserProvider'
 
 export default function HomeLayout({
   children,

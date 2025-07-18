@@ -1,8 +1,8 @@
 'use client'
 
+import { nanoid } from 'nanoid'
 import { Card, CardContent } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
-import { nanoid } from 'nanoid'
 
 export function QuickStatsGridSkeleton() {
   return (

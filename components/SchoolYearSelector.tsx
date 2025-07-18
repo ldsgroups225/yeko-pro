@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react'
 import {
   Select,
   SelectContent,
@@ -6,7 +7,6 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { useSchoolYear } from '@/hooks'
-import { useEffect, useRef } from 'react'
 
 interface SchoolYearSelectorProps {
   onYearChange: (year: number) => void

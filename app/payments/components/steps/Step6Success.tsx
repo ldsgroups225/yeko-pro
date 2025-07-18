@@ -3,9 +3,9 @@
 'use client'
 
 import type { ISchool, IStudent } from '../../types'
+import { CheckCircle2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { CheckCircle2 } from 'lucide-react'
 
 interface Step6SuccessProps {
   student: IStudent

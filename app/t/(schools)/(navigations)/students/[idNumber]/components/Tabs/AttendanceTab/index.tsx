@@ -4,12 +4,12 @@ import type { Student } from '../../../types'
 import type { Attendance } from './AttendanceHistory'
 import type { AttendanceStats } from './AttendanceSummary'
 
+import { useEffect, useState } from 'react'
 import { Card } from '@/components/ui/card'
 import {
   getStudentAttendanceHistory,
   getStudentAttendanceStats,
 } from '@/services/attendanceService'
-import { useEffect, useState } from 'react'
 
 import { AttendanceHistory } from './AttendanceHistory'
 import { AttendanceSummary } from './AttendanceSummary'

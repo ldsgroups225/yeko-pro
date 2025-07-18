@@ -1,5 +1,5 @@
-import { getCandidatures, getDashboardMetrics, getPonctualiteData } from '@/services/dashboardService'
 import { BatteryPlus, School, Users, UserX } from 'lucide-react'
+import { getCandidatures, getDashboardMetrics, getPonctualiteData } from '@/services/dashboardService'
 import { Applications, Chart, GradesTable, MetricCard } from './_components'
 
 export default async function DashboardPage() {

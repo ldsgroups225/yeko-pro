@@ -3,11 +3,11 @@
 // Types
 import type { Student } from '../../../types'
 import type { Observation, Subject, Term } from './types'
-import { Card } from '@/components/ui/card'
-
-import { getStudentAcademicData } from '@/services/studentService'
 // External imports
 import { useEffect, useState } from 'react'
+
+import { Card } from '@/components/ui/card'
+import { getStudentAcademicData } from '@/services/studentService'
 
 // Components
 import { MainSubjects } from './MainSubjects'

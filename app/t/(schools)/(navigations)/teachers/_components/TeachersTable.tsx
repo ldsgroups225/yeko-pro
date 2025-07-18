@@ -3,9 +3,11 @@
 'use client'
 
 import type { ITeacherDTO, ITeacherQueryParams } from '@/types'
+import { usePathname, useRouter, useSearchParams } from 'next/navigation'
+import { useEffect, useState } from 'react'
+
 import { Pagination } from '@/components/Pagination'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-
 import { Button } from '@/components/ui/button'
 import {
   Table,
@@ -16,8 +18,6 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { getTeachers } from '@/services'
-import { usePathname, useRouter, useSearchParams } from 'next/navigation'
-import { useEffect, useState } from 'react'
 import { AssignClassesButton } from './AssignClassesButton'
 
 export function TeachersTable({

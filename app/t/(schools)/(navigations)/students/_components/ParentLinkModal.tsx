@@ -1,3 +1,6 @@
+import { ExclamationTriangleIcon } from '@radix-ui/react-icons'
+import React, { useState } from 'react'
+import { toast } from 'sonner'
 import { Alert, AlertTitle } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import {
@@ -15,9 +18,6 @@ import {
   InputOTPSlot,
 } from '@/components/ui/input-otp'
 import { useStudents } from '@/hooks'
-import { ExclamationTriangleIcon } from '@radix-ui/react-icons'
-import React, { useState } from 'react'
-import { toast } from 'sonner'
 
 interface ParentLinkModalProps {
   studentName: string

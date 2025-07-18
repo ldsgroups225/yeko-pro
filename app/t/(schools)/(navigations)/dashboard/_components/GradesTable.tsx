@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import {
@@ -10,7 +11,6 @@ import {
 } from '@/components/ui/table'
 import { formatDate } from '@/lib/utils'
 import { getNotes } from '@/services/dashboardService'
-import Link from 'next/link'
 
 export async function GradesTable() {
   const notes = await getNotes()

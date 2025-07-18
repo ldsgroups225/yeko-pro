@@ -1,6 +1,9 @@
 'use client'
 
 import type { ILessonProgressReportConfig } from '@/types'
+import { Edit, Loader2, MoreHorizontal, Trash } from 'lucide-react'
+import { useState, useTransition } from 'react'
+import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -10,9 +13,6 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { deleteLessonProgressReportConfig } from '@/services/progressReportService'
-import { Edit, Loader2, MoreHorizontal, Trash } from 'lucide-react'
-import { useState, useTransition } from 'react'
-import { toast } from 'sonner'
 import { ProgressReportDialog } from './ProgressReportDialog'
 
 interface ProgressReportTableActionsProps {

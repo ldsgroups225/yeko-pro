@@ -1,4 +1,5 @@
 import type { IGrade } from '@/types'
+import React from 'react'
 import { ActionsAndViewModeToggle } from '@/components/ActionsAndViewModeToggle'
 import { Input } from '@/components/ui/input'
 import {
@@ -8,7 +9,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import React from 'react'
 
 interface ClassesFiltersProps {
   grades?: IGrade[] | null

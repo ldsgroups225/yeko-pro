@@ -1,12 +1,12 @@
 'use client'
 
 import type { CollectionRateData } from '@/types/accounting'
+import { useEffect, useState } from 'react'
+import { CartesianGrid, Legend, Line, LineChart, Tooltip, XAxis, YAxis } from 'recharts'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useUser } from '@/hooks'
 import { getCollectionRateData } from '@/services/accountingService'
-import { useEffect, useState } from 'react'
-import { CartesianGrid, Legend, Line, LineChart, Tooltip, XAxis, YAxis } from 'recharts'
 
 export function CollectionRateChart() {
   const { user } = useUser()

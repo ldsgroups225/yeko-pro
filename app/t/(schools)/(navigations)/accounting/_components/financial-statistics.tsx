@@ -1,13 +1,13 @@
 'use client'
 
 import type { FinancialMetrics, FinancialStatistic } from '@/types/accounting'
+import { CheckCircle, Percent, Users } from 'lucide-react'
+import { nanoid } from 'nanoid'
+import { useEffect, useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { formatCurrency } from '@/lib/utils'
 import { getFinancialMetrics } from '@/services/accountingService'
-import { CheckCircle, Percent, Users } from 'lucide-react'
-import { nanoid } from 'nanoid'
-import { useEffect, useState } from 'react'
 
 interface StatisticCardProps {
   title: string

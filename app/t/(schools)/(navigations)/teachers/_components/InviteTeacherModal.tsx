@@ -1,5 +1,6 @@
 'use client'
 
+import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -12,7 +13,6 @@ import {
 import { Label } from '@/components/ui/label'
 import { useToast } from '@/components/ui/use-toast'
 import { useTeacherStore } from '@/store'
-import { useState } from 'react'
 
 interface InviteTeacherModalProps {
   isOpen: boolean

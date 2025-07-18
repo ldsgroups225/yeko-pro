@@ -1,10 +1,10 @@
 'use client'
 
 import type { InstallmentTemplate as ITemplate } from '@/validations'
-import { saveRecordIfDirty } from '@/lib/utils/saveDataIfDirty'
-import useTuitionStore from '@/store/tuitionStore'
 import { useState } from 'react'
 import { toast } from 'sonner'
+import { saveRecordIfDirty } from '@/lib/utils/saveDataIfDirty'
+import useTuitionStore from '@/store/tuitionStore'
 
 export interface PaymentPlanFormData {
   dueDate: string

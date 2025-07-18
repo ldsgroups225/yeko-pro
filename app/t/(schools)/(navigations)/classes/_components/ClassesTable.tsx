@@ -1,4 +1,6 @@
 import type { IClass } from '@/types'
+import { useRouter } from 'next/navigation'
+import React from 'react'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
 import {
@@ -9,8 +11,6 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import { useRouter } from 'next/navigation'
-import React from 'react'
 import { ClassTableRowActions } from './ClassTableRowActions'
 
 interface ClassesTableProps {

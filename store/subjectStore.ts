@@ -1,6 +1,6 @@
 import type { ISubject } from '@/types'
-import { fetchSubjects } from '@/services'
 import { create } from 'zustand'
+import { fetchSubjects } from '@/services'
 
 // Define the state interface
 interface SubjectState {

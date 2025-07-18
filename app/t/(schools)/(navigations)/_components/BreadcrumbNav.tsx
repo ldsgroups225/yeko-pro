@@ -1,5 +1,9 @@
 'use client'
 
+import { Slash } from 'lucide-react'
+import Link from 'next/link'
+import { usePathname } from 'next/navigation'
+import React, { useCallback, useMemo } from 'react'
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -10,10 +14,6 @@ import {
 } from '@/components/ui/breadcrumb'
 import { mergedRoutes } from '@/constants'
 import { useClasses } from '@/hooks'
-import { Slash } from 'lucide-react'
-import Link from 'next/link'
-import { usePathname } from 'next/navigation'
-import React, { useCallback, useMemo } from 'react'
 
 interface IBreadcrumbItem {
   href: string

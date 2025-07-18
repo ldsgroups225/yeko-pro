@@ -1,4 +1,6 @@
 import type { IClassesGrouped, IScheduleCalendarDTO, ITeacherOptions } from '@/types'
+import { Loader2, Plus } from 'lucide-react'
+import { useCallback, useEffect, useState } from 'react'
 import { Combobox } from '@/components/Combobox'
 import { GenericSelect } from '@/components/GenericSelect'
 import { Button } from '@/components/ui/button'
@@ -17,8 +19,6 @@ import { getDayName } from '@/lib/utils'
 import { useTeacherStore } from '@/store'
 import useSubjectStore from '@/store/subjectStore'
 import useUserStore from '@/store/userStore'
-import { Loader2, Plus } from 'lucide-react'
-import { useCallback, useEffect, useState } from 'react'
 
 interface AddCourseDialogProps {
   classId: string

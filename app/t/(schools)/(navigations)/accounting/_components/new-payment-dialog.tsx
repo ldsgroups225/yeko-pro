@@ -3,15 +3,15 @@
 'use client'
 
 import type { StudentForPayment } from '@/types/accounting'
+import { Search } from 'lucide-react'
+import { useState } from 'react'
+import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { createPayment, getStudentPaymentDetailsByMatriculation } from '@/services/paymentService'
 import { useTransactionsStore } from '@/store'
-import { Search } from 'lucide-react'
-import { useState } from 'react'
-import { toast } from 'sonner'
 import { PaymentForm } from './payment-form'
 import { StudentInformation } from './student-information'
 

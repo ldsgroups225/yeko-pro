@@ -1,8 +1,8 @@
 // store/tuitionStore.ts
 
 import type { InstallmentTemplate as ITemplate, TuitionSettings as ITuition } from '@/validations'
-import { deleteInstallmentTemplate, getInstallmentTemplates, getTuitions, updateInstallmentTemplate, updateTuition } from '@/services'
 import { create } from 'zustand'
+import { deleteInstallmentTemplate, getInstallmentTemplates, getTuitions, updateInstallmentTemplate, updateTuition } from '@/services'
 
 // Define the state interface
 /**

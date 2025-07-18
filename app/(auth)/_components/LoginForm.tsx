@@ -1,6 +1,12 @@
 'use client'
 
 import type { ILogin } from '@/validations'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { MinusCircledIcon } from '@radix-ui/react-icons'
+import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import React, { useState, useTransition } from 'react'
+import { useForm } from 'react-hook-form'
 import { SubmitButton } from '@/components/SubmitButton'
 import { Alert, AlertTitle } from '@/components/ui/alert'
 import { Checkbox } from '@/components/ui/checkbox'
@@ -16,12 +22,6 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { useUser } from '@/hooks'
 import { loginSchema } from '@/validations'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { MinusCircledIcon } from '@radix-ui/react-icons'
-import Link from 'next/link'
-import { useRouter } from 'next/navigation'
-import React, { useState, useTransition } from 'react'
-import { useForm } from 'react-hook-form'
 
 export function LoginForm() {
   const router = useRouter()

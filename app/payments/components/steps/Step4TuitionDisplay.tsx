@@ -2,11 +2,11 @@
 
 'use client'
 
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
 import { formatCurrency } from '@/lib/utils'
-import { useEffect, useMemo, useRef, useState } from 'react'
 import { fetchTuitionFees } from '../../actions'
 
 interface Step4TuitionDisplayProps {

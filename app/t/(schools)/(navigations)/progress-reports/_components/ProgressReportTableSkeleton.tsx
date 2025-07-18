@@ -1,3 +1,4 @@
+import { nanoid } from 'nanoid'
 import { Skeleton } from '@/components/ui/skeleton'
 import {
   Table,
@@ -7,7 +8,6 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import { nanoid } from 'nanoid'
 
 export function ProgressReportTableSkeleton() {
   const headersCount = 9 // Number of columns

@@ -1,3 +1,6 @@
+import { Check, ChevronDown, Loader2 } from 'lucide-react'
+import React, { useEffect, useMemo, useState } from 'react'
+import { useDebounceValue } from 'usehooks-ts'
 import { Button } from '@/components/ui/button'
 import {
   Command,
@@ -14,9 +17,6 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover'
 import { cn, removeAccents } from '@/lib/utils'
-import { Check, ChevronDown, Loader2 } from 'lucide-react'
-import React, { useEffect, useMemo, useState } from 'react'
-import { useDebounceValue } from 'usehooks-ts'
 
 interface ComboboxProps<T extends { id: string, name: string }> {
   value?: string

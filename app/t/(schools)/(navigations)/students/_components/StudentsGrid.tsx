@@ -1,13 +1,13 @@
 import type { IStudentDTO } from '@/types'
 
+import Image from 'next/image'
+import { useRouter } from 'next/navigation'
+import React, { useCallback } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { formatPhoneNumber, getAge } from '@/lib/utils'
 import FemaleSign from '@/public/FemaleSign.svg'
 import MaleSign from '@/public/MaleSign.svg'
-import Image from 'next/image'
-import { useRouter } from 'next/navigation'
-import React, { useCallback } from 'react'
 import { StudentTableRowActions } from './StudentTableRowActions'
 
 interface StudentsGridProps {

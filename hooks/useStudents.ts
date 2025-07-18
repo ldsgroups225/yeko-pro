@@ -1,6 +1,6 @@
 import type { IClassesGrouped, IStudentDTO, IStudentsQueryParams } from '@/types'
-import useStudentStore from '@/store/studentStore'
 import { useDebouncedCallback } from 'use-debounce'
+import useStudentStore from '@/store/studentStore'
 
 interface UseStudentsResult {
   students: IStudentDTO[]

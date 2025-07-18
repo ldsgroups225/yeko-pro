@@ -2,15 +2,15 @@
 'use client'
 
 import type { FilterStudentWhereNotInTheClass } from '@/types'
+import { AnimatePresence, motion } from 'framer-motion'
+import { memo, useEffect, useRef, useState } from 'react'
+import { useDebounce } from 'use-debounce'
 import {
   Command,
   CommandGroup,
   CommandInput,
   CommandList,
 } from '@/components/ui/command'
-import { AnimatePresence, motion } from 'framer-motion'
-import { memo, useEffect, useRef, useState } from 'react'
-import { useDebounce } from 'use-debounce'
 import { SelectedStudentBadge } from './SelectedStudentBadge'
 import { StudentCommandItem } from './StudentCommandItem'
 

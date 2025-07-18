@@ -79,25 +79,25 @@ interface GetProgressReportsParams {
 
 // Define a type for sorting keys that could be on the report or its config
 // This should align with the keys available in ILessonProgressReport and conceptually sortable fields
-export type LessonProgressReportSortKeys =
-  | keyof LessonProgressReport
-  | `config.${keyof LessonProgressReportConfig}`
-  | 'config.grade.name'
-  | 'config.subject.name'
-  | 'level'
-  | 'id'
-  | 'createdAt'
-  | 'startedAt'
-  | 'updatedAt'
-  | 'completedAt'
-  | 'isCompleted'
-  | 'sessionsCompleted'
-  | 'classId'
-  | 'config.id'
-  | 'config.level'
-  | 'config.subjectName'
-  | 'config.lessonOrder'
-  | 'config.sessionsCount'
+export type LessonProgressReportSortKeys
+  = | keyof LessonProgressReport
+    | `config.${keyof LessonProgressReportConfig}`
+    | 'config.grade.name'
+    | 'config.subject.name'
+    | 'level'
+    | 'id'
+    | 'createdAt'
+    | 'startedAt'
+    | 'updatedAt'
+    | 'completedAt'
+    | 'isCompleted'
+    | 'sessionsCompleted'
+    | 'classId'
+    | 'config.id'
+    | 'config.level'
+    | 'config.subjectName'
+    | 'config.lessonOrder'
+    | 'config.sessionsCount'
 
 export async function getLessonsProgressReportsConfig(
   params: GetProgressReportsConfigParams,

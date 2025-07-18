@@ -1,8 +1,8 @@
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 import { ColumnsIcon, FileDown, FileUp, ListChecks, ListTree } from 'lucide-react'
 import { nanoid } from 'nanoid'
 import React from 'react'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 
 interface StudentsFiltersProps {
   searchTerm: string

@@ -1,5 +1,7 @@
 'use client'
 
+import Link from 'next/link'
+import { useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import {
   Card,
@@ -9,8 +11,6 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
-import Link from 'next/link'
-import { useEffect } from 'react'
 
 interface ErrorProps {
   error: Error & { digest?: string }

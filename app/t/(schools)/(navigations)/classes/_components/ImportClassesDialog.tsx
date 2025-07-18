@@ -1,3 +1,4 @@
+import { z } from 'zod'
 import { DataImporter } from '@/components/DataImporter/DataImporter'
 import {
   Dialog,
@@ -7,7 +8,6 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { capitalize } from '@/lib/utils'
-import { z } from 'zod'
 
 interface Props {
   open: boolean
