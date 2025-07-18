@@ -205,7 +205,7 @@ export async function getStudentByIdNumber(idNumber: string): Promise<IStudentDT
 
   const { data: classroom, error: classroomError } = await client
     .from('student_school_class')
-    .select('class_id, is_orphan, is_government_affected, is_subscribed_to_transportation, is_subscribed_to_canteen, class:classes(id, name, slug)')
+    .select('class_id, is_orphan, is_government_affected, is_subscribed_to_transportation, is_subscribed_to_canteen, created_at, class:classes(id, name, slug)')
     .eq('student_id', student!.id)
     .eq('enrollment_status', 'accepted')
     .is('is_active', true)

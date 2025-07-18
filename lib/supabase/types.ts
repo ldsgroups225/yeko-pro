@@ -2010,6 +2010,7 @@ export interface Database {
           created_at: string | null
           created_by: string | null
           date_of_birth: string | null
+          extra_parent: Json | null
           first_name: string
           gender: string | null
           id: string
@@ -2028,6 +2029,7 @@ export interface Database {
           created_at?: string | null
           created_by?: string | null
           date_of_birth?: string | null
+          extra_parent?: Json | null
           first_name: string
           gender?: string | null
           id?: string
@@ -2046,6 +2048,7 @@ export interface Database {
           created_at?: string | null
           created_by?: string | null
           date_of_birth?: string | null
+          extra_parent?: Json | null
           first_name?: string
           gender?: string | null
           id?: string

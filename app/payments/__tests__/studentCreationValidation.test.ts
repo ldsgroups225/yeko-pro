@@ -15,7 +15,7 @@ function getDateYearsAgo(years: number): Date {
   const utcDate = createUTCDate(
     today.getUTCFullYear(),
     today.getUTCMonth() + 1, // getUTCMonth is 0-indexed
-    today.getUTCDate()
+    today.getUTCDate(),
   )
   utcDate.setUTCFullYear(utcDate.getUTCFullYear() - years)
   return utcDate
@@ -31,7 +31,7 @@ describe('student creation form validation', () => {
     it('should accept minimum age student (6 years old)', async () => {
       // Create a date that's exactly MIN_STUDENT_AGE years old
       const minAgeDate = getDateYearsAgo(MIN_STUDENT_AGE)
-      
+
       const result = await studentCreationSchema.safeParseAsync({
         firstName: 'Test',
         lastName: 'User',
@@ -52,7 +52,7 @@ describe('student creation form validation', () => {
       // Add one day to ensure we're not hitting edge cases
       const maxAgeDate = getDateYearsAgo(MAX_STUDENT_AGE)
       maxAgeDate.setUTCDate(maxAgeDate.getUTCDate() + 1)
-      
+
       const result = await studentCreationSchema.safeParseAsync({
         firstName: 'Test',
         lastName: 'User',
@@ -71,7 +71,7 @@ describe('student creation form validation', () => {
     it('should reject student below minimum age (5 years old)', async () => {
       // Create a date that's 1 day younger than the minimum age
       const tooYoungDate = getDateYearsAgo(MIN_STUDENT_AGE - 1)
-      
+
       const result = await studentCreationSchema.safeParseAsync({
         firstName: 'Test',
         lastName: 'User',
@@ -82,19 +82,19 @@ describe('student creation form validation', () => {
 
       if (result.success) {
         // Log to help with debugging test failures
-        // eslint-disable-next-line no-console
+
         console.error('Unexpected success with date:', formatDate(tooYoungDate))
       }
       expect(result.success, `Expected validation to fail for ${formatDate(tooYoungDate)} (${MIN_STUDENT_AGE - 1} years old)`).toBe(false)
-      
+
       if (!result.success) {
         const errorMessage = result.error.issues[0].message
         // Check for either error message since we might be getting the wrong one
         expect(
           [
             `Trop jeune (minimum ${MIN_STUDENT_AGE} ans).`,
-            `Trop âgé (maximum ${MAX_STUDENT_AGE} ans).`
-          ].includes(errorMessage)
+            `Trop âgé (maximum ${MAX_STUDENT_AGE} ans).`,
+          ].includes(errorMessage),
         ).toBe(true)
       }
     })
@@ -102,7 +102,7 @@ describe('student creation form validation', () => {
     it('should reject student above maximum age (41 years old)', async () => {
       // Create a date that's 1 year older than the maximum age
       const tooOldDate = getDateYearsAgo(MAX_STUDENT_AGE + 1)
-      
+
       const result = await studentCreationSchema.safeParseAsync({
         firstName: 'Test',
         lastName: 'User',
@@ -113,19 +113,19 @@ describe('student creation form validation', () => {
 
       if (result.success) {
         // Log to help with debugging test failures
-        // eslint-disable-next-line no-console
+
         console.error('Unexpected success with date:', formatDate(tooOldDate))
       }
       expect(result.success, `Expected validation to fail for ${formatDate(tooOldDate)} (${MAX_STUDENT_AGE + 1} years old)`).toBe(false)
-      
+
       if (!result.success) {
         const errorMessage = result.error.issues[0].message
         // Check for either error message since we might be getting the wrong one
         expect(
           [
             `Trop jeune (minimum ${MIN_STUDENT_AGE} ans).`,
-            `Trop âgé (maximum ${MAX_STUDENT_AGE} ans).`
-          ].includes(errorMessage)
+            `Trop âgé (maximum ${MAX_STUDENT_AGE} ans).`,
+          ].includes(errorMessage),
         ).toBe(true)
       }
     })

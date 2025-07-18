@@ -220,6 +220,11 @@ export async function fetchTuitionFees(gradeId: number) {
  * @param formData.address - Student's address (optional)
  * @param formData.medicalCondition - Student's medical condition (optional)
  * @param formData.avatarUrl - URL of student's avatar image (optional)
+ * @param formData.secondParent - The second parent of the student (optional)
+ * @param formData.secondParent.fullName - The full name of the second parent
+ * @param formData.secondParent.gender - The gender of the second parent ('M' or 'F')
+ * @param formData.secondParent.phone - The phone number of the second parent
+ * @param formData.secondParent.type - The type of the second parent ('father', 'mother', or 'guardian')
  * @param parentId - The ID of the parent
  * @returns The newly created student
  */
@@ -232,6 +237,12 @@ export async function createStudent(
     address?: string
     avatarUrl?: string
     medicalCondition: { description: string, severity: 'low' | 'medium' | 'high' }[]
+    secondParent?: {
+      fullName: string
+      gender: 'M' | 'F'
+      phone: string
+      type: 'father' | 'mother' | 'guardian'
+    }
   },
   parentId: string,
 ): Promise<IStudent> {
@@ -259,6 +270,14 @@ export async function createStudent(
         address: formData.address,
         parent_id: parentId,
         medical_condition: formData.medicalCondition,
+        extra_parent: formData.secondParent
+          ? {
+              fullName: formData.secondParent.fullName,
+              gender: formData.secondParent.gender,
+              phone: formData.secondParent.phone,
+              type: formData.secondParent.type,
+            }
+          : null,
       })
       .select()
       .single()

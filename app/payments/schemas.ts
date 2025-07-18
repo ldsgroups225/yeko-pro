@@ -8,6 +8,23 @@ export const searchSchema = z.object({
   studentId: z.string().min(1, 'La matricule de l\'élève est requise'),
 })
 
+// Schema for the second parent
+const secondParentSchema = z.object({
+  fullName: z.string({
+    required_error: 'Le nom complet du deuxième parent est requis',
+  }).min(1, 'Le nom complet est requis'),
+  gender: z.enum(['M', 'F'], {
+    required_error: 'Le genre du deuxième parent est requis',
+  }),
+  phone: z.string({
+    required_error: 'Le numéro de téléphone est requis',
+  }).min(1, 'Le numéro de téléphone est requis'),
+  type: z.enum(['father', 'mother', 'guardian'], {
+    required_error: 'Le type de parent est requis',
+    invalid_type_error: 'Type de parent invalide',
+  }),
+}).optional()
+
 export const studentCreationSchema = z.object({
   firstName: z.string({
     required_error: 'Le prénom est obligatoire',
@@ -39,6 +56,8 @@ export const studentCreationSchema = z.object({
   otp: z.string({ required_error: 'Code OTP requis.' })
     .regex(/^\d{6}$/, 'Code OTP : 6 chiffres requis.')
     .optional(),
+  // Second parent (optional)
+  secondParent: secondParentSchema,
 })
 
 export type SearchFormData = z.infer<typeof searchSchema>

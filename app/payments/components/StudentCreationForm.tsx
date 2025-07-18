@@ -6,18 +6,20 @@ import type { IStudent } from '../types'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { format } from 'date-fns'
 import fr from 'date-fns/locale/fr'
-import { CalendarIcon } from 'lucide-react'
+import { CalendarIcon, ChevronDown, ChevronUp } from 'lucide-react'
 import { useState, useTransition } from 'react'
 import { useForm } from 'react-hook-form'
 import { ImageUpload } from '@/components/ImageUpload'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { Calendar } from '@/components/ui/calendar'
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { InputOTP, InputOTPGroup, InputOTPSeparator, InputOTPSlot } from '@/components/ui/input-otp'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { maxBirthDate, minBirthDate } from '@/constants'
 import { cn } from '@/lib/utils'
 import { checkOTP, createStudent } from '../actions'
@@ -40,6 +42,7 @@ export function StudentCreationForm({
 
   const [isOtpChecking, startOtpChecking] = useTransition()
   const [isSubmitting, startSubmitting] = useTransition()
+  const [showSecondParent, setShowSecondParent] = useState(false)
 
   const studentForm = useForm<StudentCreationFormData>({
     resolver: zodResolver(studentCreationSchema),
@@ -50,9 +53,9 @@ export function StudentCreationForm({
       birthDate: undefined,
       address: '',
       medicalCondition: [],
+      secondParent: undefined,
       otp: '',
       parentId: '',
-
     },
   })
 
@@ -124,7 +127,128 @@ export function StudentCreationForm({
           />
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Second Parent Section */}
+        <div className="space-y-4 border-t pt-4">
+          <Collapsible
+            open={showSecondParent}
+            onOpenChange={setShowSecondParent}
+            className="space-y-4"
+          >
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-medium">Deuxième parent (optionnel)</h3>
+              <CollapsibleTrigger asChild>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="w-9 p-0"
+                >
+                  {showSecondParent
+                    ? (
+                        <>
+                          <span className="sr-only">Masquer</span>
+                          <ChevronUp className="h-4 w-4" />
+                        </>
+                      )
+                    : (
+                        <>
+                          <span className="sr-only">Afficher</span>
+                          <ChevronDown className="h-4 w-4" />
+                        </>
+                      )}
+                </Button>
+              </CollapsibleTrigger>
+            </div>
+
+            <CollapsibleContent className="space-y-4">
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                <FormField
+                  control={studentForm.control}
+                  name="secondParent.fullName"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Nom complet</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Nom complet" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={studentForm.control}
+                  name="secondParent.phone"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Téléphone</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Téléphone" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={studentForm.control}
+                  name="secondParent.type"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Type de parent</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Sélectionner un type" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="father">Père</SelectItem>
+                          <SelectItem value="mother">Mère</SelectItem>
+                          <SelectItem value="guardian">Tuteur</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={studentForm.control}
+                  name="secondParent.gender"
+                  render={({ field }) => (
+                    <FormItem className="space-y-3">
+                      <FormLabel>Genre</FormLabel>
+                      <FormControl>
+                        <RadioGroup
+                          onValueChange={field.onChange}
+                          defaultValue={field.value}
+                          className="flex flex-row space-x-4"
+                        >
+                          <FormItem className="flex items-center space-x-2 space-y-0">
+                            <FormControl>
+                              <RadioGroupItem value="M" />
+                            </FormControl>
+                            <FormLabel className="font-normal">Masculin</FormLabel>
+                          </FormItem>
+                          <FormItem className="flex items-center space-x-2 space-y-0">
+                            <FormControl>
+                              <RadioGroupItem value="F" />
+                            </FormControl>
+                            <FormLabel className="font-normal">Féminin</FormLabel>
+                          </FormItem>
+                        </RadioGroup>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </CollapsibleContent>
+          </Collapsible>
+        </div>
+
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           {/* First Name using Wrapper */}
           <FormFieldWrapper
             control={studentForm.control}
