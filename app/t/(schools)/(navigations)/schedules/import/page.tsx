@@ -3,13 +3,13 @@
 'use client'
 
 import type { Database } from '@/lib/supabase/types'
+import { useEffect, useState } from 'react'
+import { z } from 'zod'
 import { DataImporter } from '@/components/DataImporter'
 import { useClasses } from '@/hooks'
 import { useSubject } from '@/hooks/useSubject'
 import { importSchedule } from '@/services'
 import useUserStore from '@/store/userStore'
-import { useEffect, useState } from 'react'
-import { z } from 'zod'
 
 const ScheduleSchema = z.object({
   classroom: z.string().min(2, { message: 'Le nom de la classe doit contenir au moins 2 caractères.' }),
@@ -40,9 +40,8 @@ interface AiResponse {
   correct_day: string
 }
 
-// Move API key to environment variables in production
-const GOOGLE_AI_ENDPOINT = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro-latest:generateContent'
-const GOOGLE_API_KEY = 'AIzaSyBSJdg49rjB-Nx40YYZ8nTPutkkrfSXu1k'
+const GOOGLE_AI_ENDPOINT = process.env.GOOGLE_AI_ENDPOINT
+const GOOGLE_API_KEY = process.env.GOOGLE_API_KEY
 
 const customInstructions = `
   You are a data normalization assistant. Your tasks:
