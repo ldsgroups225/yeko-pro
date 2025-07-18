@@ -29,7 +29,7 @@ export function StudentPaymentsTable({ students }: StudentPaymentsTableProps) {
           <th className={cn(thStyle, 'text-center w-[90px]')}>Matricule</th>
           <th className={cn(thStyle, 'text-center w-[60px]')}>Classe</th>
           <th className={cn(thStyle, 'text-center w-[150px]')}>Dernier paiement</th>
-          <th className={cn(thStyle, 'text-right w-[70px]')}>Reste à payer</th>
+          <th className={cn(thStyle, 'text-right w-[90px]')}>Reste à payer</th>
           <th className={cn(thStyle, 'text-end w-[70px]')}>Statut</th>
           <th className={cn(thStyle, 'text-end w-[20px]')}></th>
         </tr>
@@ -49,7 +49,7 @@ export function StudentPaymentsTable({ students }: StudentPaymentsTableProps) {
                       : formatTimePassed(student.lastPaymentDate, true)
                   }
                 </td>
-                <td className={cn(tdStyle, 'text-end w-[70px]')}>
+                <td className={cn(tdStyle, 'text-end w-[90px]')}>
                   {
                     student.remainingAmount === 0
                       ? (

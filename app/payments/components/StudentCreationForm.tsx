@@ -6,6 +6,7 @@ import type { IStudent } from '../types'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { format } from 'date-fns'
 import fr from 'date-fns/locale/fr'
+import { AnimatePresence, motion } from 'framer-motion'
 import { CalendarIcon, ChevronDown, ChevronUp } from 'lucide-react'
 import { useState, useTransition } from 'react'
 import { useForm } from 'react-hook-form'
@@ -53,7 +54,12 @@ export function StudentCreationForm({
       birthDate: undefined,
       address: '',
       medicalCondition: [],
-      secondParent: undefined,
+      secondParent: {
+        fullName: '',
+        phone: '',
+        type: 'guardian',
+        gender: 'M',
+      },
       otp: '',
       parentId: '',
     },
@@ -125,127 +131,6 @@ export function StudentCreationForm({
             onChange={url => setAvatarUrl(url ?? undefined)}
             disabled={isLoading}
           />
-        </div>
-
-        {/* Second Parent Section */}
-        <div className="space-y-4 border-t pt-4">
-          <Collapsible
-            open={showSecondParent}
-            onOpenChange={setShowSecondParent}
-            className="space-y-4"
-          >
-            <div className="flex items-center justify-between">
-              <h3 className="text-lg font-medium">Deuxième parent (optionnel)</h3>
-              <CollapsibleTrigger asChild>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  className="w-9 p-0"
-                >
-                  {showSecondParent
-                    ? (
-                        <>
-                          <span className="sr-only">Masquer</span>
-                          <ChevronUp className="h-4 w-4" />
-                        </>
-                      )
-                    : (
-                        <>
-                          <span className="sr-only">Afficher</span>
-                          <ChevronDown className="h-4 w-4" />
-                        </>
-                      )}
-                </Button>
-              </CollapsibleTrigger>
-            </div>
-
-            <CollapsibleContent className="space-y-4">
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                <FormField
-                  control={studentForm.control}
-                  name="secondParent.fullName"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Nom complet</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Nom complet" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={studentForm.control}
-                  name="secondParent.phone"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Téléphone</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Téléphone" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={studentForm.control}
-                  name="secondParent.type"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Type de parent</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Sélectionner un type" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="father">Père</SelectItem>
-                          <SelectItem value="mother">Mère</SelectItem>
-                          <SelectItem value="guardian">Tuteur</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={studentForm.control}
-                  name="secondParent.gender"
-                  render={({ field }) => (
-                    <FormItem className="space-y-3">
-                      <FormLabel>Genre</FormLabel>
-                      <FormControl>
-                        <RadioGroup
-                          onValueChange={field.onChange}
-                          defaultValue={field.value}
-                          className="flex flex-row space-x-4"
-                        >
-                          <FormItem className="flex items-center space-x-2 space-y-0">
-                            <FormControl>
-                              <RadioGroupItem value="M" />
-                            </FormControl>
-                            <FormLabel className="font-normal">Masculin</FormLabel>
-                          </FormItem>
-                          <FormItem className="flex items-center space-x-2 space-y-0">
-                            <FormControl>
-                              <RadioGroupItem value="F" />
-                            </FormControl>
-                            <FormLabel className="font-normal">Féminin</FormLabel>
-                          </FormItem>
-                        </RadioGroup>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-            </CollapsibleContent>
-          </Collapsible>
         </div>
 
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -460,6 +345,142 @@ export function StudentCreationForm({
             />
           )}
         </FormFieldWrapper>
+
+        {/* Second Parent Section */}
+        <div className="space-y-4 border-t pt-4">
+          <Collapsible
+            open={showSecondParent}
+            onOpenChange={setShowSecondParent}
+            className="space-y-4"
+          >
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-medium">Deuxième parent (optionnel)</h3>
+              <CollapsibleTrigger asChild>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="w-9 p-0"
+                >
+                  {showSecondParent
+                    ? (
+                        <>
+                          <span className="sr-only">Masquer</span>
+                          <ChevronUp className="h-4 w-4" />
+                        </>
+                      )
+                    : (
+                        <>
+                          <span className="sr-only">Afficher</span>
+                          <ChevronDown className="h-4 w-4" />
+                        </>
+                      )}
+                </Button>
+              </CollapsibleTrigger>
+            </div>
+
+            <AnimatePresence initial={false}>
+              {showSecondParent && (
+                <CollapsibleContent forceMount>
+                  <motion.div
+                    key="second-parent-content"
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: 'auto', opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    transition={{ duration: 0.3, ease: 'easeInOut' }}
+                    style={{ overflow: 'hidden' }}
+                  >
+                    <div className="space-y-4">
+                      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                        <FormField
+                          control={studentForm.control}
+                          name="secondParent.fullName"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Nom complet</FormLabel>
+                              <FormControl>
+                                <Input placeholder="Nom complet" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          control={studentForm.control}
+                          name="secondParent.phone"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Téléphone</FormLabel>
+                              <FormControl>
+                                <Input placeholder="Téléphone" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          control={studentForm.control}
+                          name="secondParent.type"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Type de parent</FormLabel>
+                              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                <FormControl>
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="Sélectionner un type" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  <SelectItem value="father">Père</SelectItem>
+                                  <SelectItem value="mother">Mère</SelectItem>
+                                  <SelectItem value="guardian">Tuteur</SelectItem>
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          control={studentForm.control}
+                          name="secondParent.gender"
+                          render={({ field }) => (
+                            <FormItem className="space-y-3">
+                              <FormLabel>Genre</FormLabel>
+                              <FormControl>
+                                <RadioGroup
+                                  onValueChange={field.onChange}
+                                  defaultValue={field.value}
+                                  className="flex flex-row space-x-4"
+                                >
+                                  <FormItem className="flex items-center space-x-2 space-y-0">
+                                    <FormControl>
+                                      <RadioGroupItem value="M" />
+                                    </FormControl>
+                                    <FormLabel className="font-normal">Masculin</FormLabel>
+                                  </FormItem>
+                                  <FormItem className="flex items-center space-x-2 space-y-0">
+                                    <FormControl>
+                                      <RadioGroupItem value="F" />
+                                    </FormControl>
+                                    <FormLabel className="font-normal">Féminin</FormLabel>
+                                  </FormItem>
+                                </RadioGroup>
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                    </div>
+                  </motion.div>
+                </CollapsibleContent>
+              )}
+            </AnimatePresence>
+          </Collapsible>
+        </div>
 
         {/* --- Error Display and Buttons remain the same --- */}
         {error && (

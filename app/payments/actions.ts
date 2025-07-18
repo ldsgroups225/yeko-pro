@@ -272,7 +272,7 @@ export async function createStudent(
         medical_condition: formData.medicalCondition,
         extra_parent: formData.secondParent
           ? {
-              fullName: formData.secondParent.fullName,
+              full_name: formData.secondParent.fullName,
               gender: formData.secondParent.gender,
               phone: formData.secondParent.phone,
               type: formData.secondParent.type,

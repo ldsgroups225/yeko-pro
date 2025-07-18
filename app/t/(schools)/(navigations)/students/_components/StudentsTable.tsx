@@ -99,6 +99,16 @@ export const StudentsTable: React.FC<StudentsTableProps> = ({
 
     setIsSubmitting(true)
     try {
+      const secondParent = values.secondParent?.fullName
+        ? {
+            id: '',
+            fullName: values.secondParent.fullName!,
+            phone: values.secondParent.phone!,
+            gender: values.secondParent.gender!,
+            type: values.secondParent.type!,
+          }
+        : undefined
+
       await updateStudent({
         id: selectedStudent.id,
         gender: values.gender,
@@ -107,6 +117,7 @@ export const StudentsTable: React.FC<StudentsTableProps> = ({
         firstName: values.firstName,
         avatarUrl: values.avatarUrl,
         dateOfBirth: values.dateOfBirth?.toISOString(),
+        secondParent,
       })
 
       if (error) {

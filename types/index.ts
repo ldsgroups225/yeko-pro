@@ -124,6 +124,14 @@ export interface IStudentDTO {
     avatarUrl?: string | null
   }
 
+  secondParent?: {
+    id: string
+    fullName: string
+    phone: string
+    gender: 'M' | 'F'
+    type: 'father' | 'mother' | 'guardian'
+  }
+
   classId?: string | null
   parentId?: string
 

@@ -173,12 +173,15 @@ export async function getStudentByIdNumberForEdit(idNumber: string) {
   }
 
   // Transform the database extra_parent to secondParent format
-  const secondParent = data.extra_parent ? {
-    fullName: data.extra_parent.full_name,
-    gender: data.extra_parent.gender,
-    phone: data.extra_parent.phone,
-    type: data.extra_parent.type,
-  } : null;
+  const secondParent = data.extra_parent
+    ? {
+      id: nanoid(),
+      fullName: (data.extra_parent as any).full_name,
+      gender: (data.extra_parent as any).gender,
+      phone: (data.extra_parent as any).phone,
+      type: (data.extra_parent as any).type,
+    } satisfies IStudentDTO['secondParent']
+    : null
 
   return {
     id: data.id,
@@ -192,7 +195,7 @@ export async function getStudentByIdNumberForEdit(idNumber: string) {
     address: data.address,
     gender: (data as { gender: 'M' | 'F' | null }).gender,
     classes: classData ?? undefined,
-    secondParent: secondParent,
+    secondParent,
   } satisfies StudentFormValues
 }
 
@@ -316,23 +319,25 @@ export async function updateStudent(params: Partial<IStudentDTO> & { id: string 
   }
 
   // Transform secondParent to extra_parent format if it exists
-  const { secondParent, ...restParams } = params;
-  const extra_parent = secondParent ? {
-    full_name: secondParent.fullName,
-    gender: secondParent.gender,
-    phone: secondParent.phone,
-    type: secondParent.type,
-  } : null;
+  const { secondParent, ...restParams } = params
+  const extra_parent = secondParent
+    ? {
+        full_name: secondParent.fullName,
+        gender: secondParent.gender,
+        phone: secondParent.phone,
+        type: secondParent.type,
+      }
+    : null
 
   const snakeCaseParams = Object.keys(restParams).reduce<Record<string, any>>((acc, key) => {
-    const snakeKey = snakeCase(key);
-    acc[snakeKey] = restParams[key as keyof typeof restParams];
-    return acc;
-  }, {});
+    const snakeKey = snakeCase(key)
+    acc[snakeKey] = restParams[key as keyof typeof restParams]
+    return acc
+  }, {})
 
   // Add extra_parent to the update params if it exists
   if (secondParent !== undefined) {
-    snakeCaseParams.extra_parent = extra_parent;
+    snakeCaseParams.extra_parent = extra_parent
   }
 
   const { data, error } = await client

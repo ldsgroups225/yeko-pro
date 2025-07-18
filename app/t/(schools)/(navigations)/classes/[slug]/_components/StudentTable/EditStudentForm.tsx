@@ -5,12 +5,14 @@ import type { StudentFormValues } from '@/validations'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { format, isValid, parse, parseISO, subYears } from 'date-fns'
 import fr from 'date-fns/locale/fr'
-import { CalendarIcon, Loader2 } from 'lucide-react'
+import { AnimatePresence, motion } from 'framer-motion'
+import { CalendarIcon, ChevronDown, ChevronUp, Loader2 } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { ImageUpload } from '@/components/ImageUpload'
 import { Button } from '@/components/ui/button'
 import { Calendar } from '@/components/ui/calendar'
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
@@ -50,6 +52,7 @@ export function EditStudentForm({ studentIdNumber, onSubmit, onCancel, isLoading
 
   const [student, setStudent] = useState<StudentFormValues>()
   const [dateInputValue, setDateInputValue] = useState<string | null>('')
+  const [showSecondParent, setShowSecondParent] = useState(false)
   const form = useForm<StudentFormValues>({
     resolver: zodResolver(studentFormSchema),
     defaultValues: student,
@@ -206,15 +209,6 @@ export function EditStudentForm({ studentIdNumber, onSubmit, onCancel, isLoading
     }
   }
 
-  const handleSubmit = async (values: StudentFormValues) => {
-    try {
-      await onSubmit(values)
-    }
-    catch (error) {
-      console.error('Form submission error:', error)
-    }
-  }
-
   const getMinBirthDate = (maxAge: number): Date => {
     const year = new Date().getFullYear() - maxAge - 1
     return new Date(year, 11, 31)
@@ -227,7 +221,7 @@ export function EditStudentForm({ studentIdNumber, onSubmit, onCancel, isLoading
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6 max-w-2xl mx-auto">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
         <div className="space-y-4 max-h-[500px] overflow-y-auto">
           <FormField
             control={form.control}
@@ -435,6 +429,142 @@ export function EditStudentForm({ studentIdNumber, onSubmit, onCancel, isLoading
               </FormItem>
             )}
           />
+
+          {/* Second Parent Collapsible Section */}
+          <div className="space-y-4">
+            <Collapsible
+              open={showSecondParent}
+              onOpenChange={setShowSecondParent}
+              className="space-y-4"
+            >
+              <div className="flex items-center justify-between">
+                <h4 className="text-sm font-medium">Deuxième parent (optionnel)</h4>
+                <CollapsibleTrigger asChild>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="w-9 p-0"
+                  >
+                    {showSecondParent
+                      ? (
+                          <>
+                            <span className="sr-only">Masquer</span>
+                            <ChevronUp className="h-4 w-4" />
+                          </>
+                        )
+                      : (
+                          <>
+                            <span className="sr-only">Afficher</span>
+                            <ChevronDown className="h-4 w-4" />
+                          </>
+                        )}
+                  </Button>
+                </CollapsibleTrigger>
+              </div>
+
+              <AnimatePresence initial={false}>
+                {showSecondParent && (
+                  <CollapsibleContent forceMount>
+                    <motion.div
+                      key="second-parent-content"
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: 'auto', opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.3, ease: 'easeInOut' }}
+                      style={{ overflow: 'hidden' }}
+                    >
+                      <div className="space-y-4">
+                        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                          <FormField
+                            control={form.control}
+                            name="secondParent.fullName"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Nom complet</FormLabel>
+                                <FormControl>
+                                  <Input placeholder="Nom complet" {...field} value={field.value || ''} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+
+                          <FormField
+                            control={form.control}
+                            name="secondParent.phone"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Téléphone</FormLabel>
+                                <FormControl>
+                                  <Input placeholder="Téléphone" {...field} value={field.value || ''} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+
+                          <FormField
+                            control={form.control}
+                            name="secondParent.type"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Type de parent</FormLabel>
+                                <Select onValueChange={field.onChange} value={field.value || ''}>
+                                  <FormControl>
+                                    <SelectTrigger>
+                                      <SelectValue placeholder="Sélectionner un type" />
+                                    </SelectTrigger>
+                                  </FormControl>
+                                  <SelectContent>
+                                    <SelectItem value="father">Père</SelectItem>
+                                    <SelectItem value="mother">Mère</SelectItem>
+                                    <SelectItem value="guardian">Tuteur</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+
+                          <FormField
+                            control={form.control}
+                            name="secondParent.gender"
+                            render={({ field }) => (
+                              <FormItem className="space-y-3">
+                                <FormLabel>Genre</FormLabel>
+                                <FormControl>
+                                  <RadioGroup
+                                    onValueChange={field.onChange}
+                                    value={field.value || ''}
+                                    className="flex flex-row space-x-4"
+                                  >
+                                    <FormItem className="flex items-center space-x-2 space-y-0">
+                                      <FormControl>
+                                        <RadioGroupItem value="M" />
+                                      </FormControl>
+                                      <FormLabel className="font-normal">Masculin</FormLabel>
+                                    </FormItem>
+                                    <FormItem className="flex items-center space-x-2 space-y-0">
+                                      <FormControl>
+                                        <RadioGroupItem value="F" />
+                                      </FormControl>
+                                      <FormLabel className="font-normal">Féminin</FormLabel>
+                                    </FormItem>
+                                  </RadioGroup>
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+                      </div>
+                    </motion.div>
+                  </CollapsibleContent>
+                )}
+              </AnimatePresence>
+            </Collapsible>
+          </div>
         </div>
 
         <div className="flex justify-end gap-4">
