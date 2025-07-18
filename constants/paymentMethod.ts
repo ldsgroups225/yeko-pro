@@ -23,3 +23,14 @@ export const PAYMENT_METHOD_FROM_STRING_OPTIONS_MAP: Record<string, PAYMENT_METH
   mobile_money: PAYMENT_METHOD.MOBILE_MONEY,
   bank_transfer: PAYMENT_METHOD.BANK_TRANSFER,
 }
+
+/**
+ * This map is used to display the payment method in the invoice document
+ * Example: mobile_money -> Mobile Money
+ * How to use: PAYMENT_METHOD_FROM_STRING_OPTIONS_MAP_LABEL[payment.method]
+ */
+export const PAYMENT_METHOD_FROM_STRING_OPTIONS_MAP_LABEL: Record<string, string> = {
+  mobile_money: 'Mobile Money',
+  bank_transfer: 'Virement',
+  cash: 'Espèces',
+}

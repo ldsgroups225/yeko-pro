@@ -6,21 +6,11 @@
  * @returns           A locale-formatted string, e.g. "Fr 1 000" or "1 000"
  */
 export function formatCurrency(amount: number, withSymbol = true): string {
-  // Module-level formatters (cached for performance)
-  //   - Currency formatter: fr-FR locale, XOF, no decimals
-  //   - Number formatter: fr-FR locale, no decimals
-  const currencyFormatter = new Intl.NumberFormat('fr-FR', {
-    style: 'currency',
-    currency: 'XOF',
-    currencyDisplay: 'symbol',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  })
-  const numberFormatter = new Intl.NumberFormat('fr-FR', {
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  })
+  const formatted = amount.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ')
 
-  // Select the appropriate formatter
-  return (withSymbol ? currencyFormatter : numberFormatter).format(amount)
+  if (withSymbol) {
+    return `${formatted}F CFA`
+  }
+
+  return formatted
 }

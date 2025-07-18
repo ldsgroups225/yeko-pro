@@ -7,134 +7,234 @@ import {
   Text,
   View,
 } from '@react-pdf/renderer'
-import { PAYMENT_METHOD_OPTIONS_MAP } from '@/constants'
+import { PAYMENT_METHOD_FROM_STRING_OPTIONS_MAP_LABEL } from '@/constants'
 import { formatCurrency, formatDate } from '@/lib/utils'
 
 const styles = StyleSheet.create({
   page: {
-    padding: 40,
+    padding: 20,
     fontFamily: 'Helvetica',
-    position: 'relative',
-    fontSize: 12,
-    lineHeight: 1.5,
+    fontSize: 9,
+    lineHeight: 1.4,
+    color: '#000000',
   },
+
+  // Header compact
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    borderBottomWidth: 2,
-    borderBottomColor: '#112131',
-    paddingBottom: 10,
-    marginBottom: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: '#000000',
+    paddingBottom: 8,
+    marginBottom: 15,
   },
   logo: {
-    width: 60,
-    height: 60,
+    width: 40,
+    height: 40,
   },
   schoolInfo: {
     textAlign: 'right',
+    flex: 1,
+    marginLeft: 15,
   },
   title: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    color: '#333',
-  },
-  subtitle: {
-    fontSize: 10,
-    color: '#666',
-    marginTop: 4,
-  },
-  section: {
-    marginBottom: 20,
-    padding: 10,
-    backgroundColor: '#F8F8F8',
-    borderRadius: 5,
-  },
-  sectionTitle: {
     fontSize: 16,
     fontWeight: 'bold',
-    marginBottom: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: '#ddd',
-    paddingBottom: 4,
+    color: '#000000',
+    marginBottom: 2,
   },
+  subtitle: {
+    fontSize: 8,
+    color: '#333333',
+    marginBottom: 1,
+  },
+  invoiceTitle: {
+    fontSize: 11,
+    fontWeight: 'bold',
+    color: '#000000',
+    marginTop: 2,
+    textTransform: 'uppercase',
+  },
+
+  // Sections compactes
+  section: {
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: '#000000',
+  },
+  sectionHeader: {
+    backgroundColor: '#000000',
+    padding: 4,
+  },
+  sectionTitle: {
+    fontSize: 10,
+    fontWeight: 'bold',
+    color: '#ffffff',
+    textTransform: 'uppercase',
+  },
+  sectionContent: {
+    padding: 8,
+  },
+
+  // Lignes de texte compactes
   textRow: {
     flexDirection: 'row',
-    marginBottom: 4,
+    marginBottom: 3,
+    alignItems: 'center',
   },
   label: {
-    width: 120,
+    width: 70,
     fontWeight: 'bold',
-    color: '#555',
+    color: '#000000',
+    fontSize: 8,
   },
   value: {
     flex: 1,
-    color: '#333',
+    color: '#000000',
+    fontSize: 8,
+    paddingLeft: 8,
   },
+
+  // Table compacte
   table: {
-    marginVertical: 10,
     borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 5,
-    overflow: 'hidden',
+    borderColor: '#000000',
   },
   tableHeader: {
     flexDirection: 'row',
-    backgroundColor: '#f0f0f0',
-    padding: 8,
+    backgroundColor: '#000000',
+    padding: 4,
+  },
+  tableHeaderCell: {
+    flex: 1,
+    textAlign: 'center',
+    fontSize: 8,
     fontWeight: 'bold',
+    color: '#ffffff',
   },
   tableRow: {
     flexDirection: 'row',
-    padding: 8,
+    padding: 4,
     alignItems: 'center',
-    borderBottomWidth: 1,
-    borderBottomColor: '#eee',
+    borderBottomWidth: 0.5,
+    borderBottomColor: '#cccccc',
+    minHeight: 20,
+  },
+  tableRowEven: {
+    backgroundColor: '#f5f5f5',
+  },
+  tableRowOdd: {
+    backgroundColor: '#ffffff',
   },
   tableCell: {
     flex: 1,
     textAlign: 'center',
-    fontSize: 10,
+    fontSize: 8,
+    color: '#000000',
+    paddingHorizontal: 2,
   },
+
+  // Badge méthode de paiement
+  paymentMethodText: {
+    fontSize: 7,
+    fontWeight: 'bold',
+    textTransform: 'uppercase',
+  },
+
+  // Section totaux compacte
   totalSection: {
-    marginTop: 20,
-    paddingTop: 10,
-    borderTopWidth: 1,
-    borderTopColor: '#ccc',
+    marginTop: 15,
+    borderWidth: 2,
+    borderColor: '#000000',
+    padding: 8,
+  },
+  totalSectionTitle: {
+    fontSize: 10,
+    fontWeight: 'bold',
+    color: '#000000',
+    marginBottom: 8,
+    textAlign: 'center',
+    textTransform: 'uppercase',
   },
   totalRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 4,
+    marginBottom: 3,
+    paddingVertical: 2,
+  },
+  totalRowHighlight: {
+    backgroundColor: '#f0f0f0',
+    paddingHorizontal: 4,
+    marginHorizontal: -4,
+    borderWidth: 1,
+    borderColor: '#000000',
   },
   totalLabel: {
-    fontSize: 12,
+    fontSize: 9,
     fontWeight: 'bold',
-    color: '#555',
+    color: '#000000',
   },
   totalValue: {
-    fontSize: 12,
+    fontSize: 9,
     textAlign: 'right',
-    color: '#333',
+    color: '#000000',
+    fontWeight: 'bold',
   },
+  totalValueHighlight: {
+    fontSize: 10,
+    fontWeight: 'bold',
+  },
+
+  // Footer compact
   footer: {
     position: 'absolute',
-    bottom: 20,
-    left: 40,
-    right: 40,
-    fontSize: 10,
+    bottom: 10,
+    left: 20,
+    right: 20,
+    fontSize: 7,
     textAlign: 'center',
-    color: '#888',
+    color: '#666666',
+    borderTopWidth: 0.5,
+    borderTopColor: '#cccccc',
+    paddingTop: 4,
+  },
+
+  // Divider
+  divider: {
+    height: 1,
+    backgroundColor: '#000000',
+    marginVertical: 4,
+  },
+
+  // Info compact
+  infoBox: {
+    backgroundColor: '#f8f8f8',
+    borderWidth: 1,
+    borderColor: '#000000',
+    padding: 4,
+    marginVertical: 4,
+  },
+  infoText: {
+    fontSize: 7,
+    color: '#000000',
+    textAlign: 'center',
+    fontWeight: 'bold',
   },
 })
 
 export function PaymentInvoiceDocument({ invoice }: { invoice: IPaymentInvoice }) {
+  const remainingAmount = invoice.paymentPlan.totalAmount - invoice.paymentPlan.amountPaid
+  const paymentProgress = (invoice.paymentPlan.amountPaid / invoice.paymentPlan.totalAmount) * 100
+
   return (
     <Document>
       <Page size="A4" style={styles.page}>
-        {/* Fixed Header */}
+        {/* Header compact */}
         <View style={styles.header} fixed>
-          {invoice.school?.image && <Image src={invoice.school.image} style={styles.logo} />}
+          {invoice.school?.image && (
+            <Image src={invoice.school.image} style={styles.logo} />
+          )}
           <View style={styles.schoolInfo}>
             <Text style={styles.title}>
               {invoice.school?.name || 'Non renseigné'}
@@ -144,96 +244,129 @@ export function PaymentInvoiceDocument({ invoice }: { invoice: IPaymentInvoice }
               {' '}
               {invoice.school?.code || 'N/A'}
             </Text>
+            <Text style={styles.invoiceTitle}>Facture de Paiement</Text>
           </View>
         </View>
 
-        {/* Student Information Section */}
+        {/* Section élève */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Détails de l'élève</Text>
-          <View style={styles.textRow}>
-            <Text style={styles.label}>Matricule:</Text>
-            <Text style={styles.value}>{invoice.student?.idNumber || 'N/A'}</Text>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Élève</Text>
           </View>
-          <View style={styles.textRow}>
-            <Text style={styles.label}>Nom:</Text>
-            <Text style={styles.value}>{invoice.student?.fullName || 'N/A'}</Text>
-          </View>
-          <View style={styles.textRow}>
-            <Text style={styles.label}>Parent:</Text>
-            <Text style={styles.value}>{invoice.student?.parentName || 'N/A'}</Text>
-          </View>
-          <View style={styles.textRow}>
-            <Text style={styles.label}>Contact:</Text>
-            <Text style={styles.value}>{invoice.student?.parentPhoneNumber || 'N/A'}</Text>
-          </View>
-        </View>
-
-        {/* Payment History Table Section */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Historique des paiements</Text>
-          <View style={styles.table}>
-            <View style={styles.tableHeader}>
-              <Text style={styles.tableCell}>Référence</Text>
-              <Text style={styles.tableCell}>Date</Text>
-              <Text style={styles.tableCell}>Montant</Text>
-              <Text style={styles.tableCell}>Méthode</Text>
+          <View style={styles.sectionContent}>
+            <View style={styles.textRow}>
+              <Text style={styles.label}>Matricule:</Text>
+              <Text style={styles.value}>{invoice.student?.idNumber || 'N/A'}</Text>
             </View>
-            {invoice.history?.map((payment, index) => (
-              <View
-                key={payment.reference}
-                style={[
-                  styles.tableRow,
-                  { backgroundColor: index % 2 === 0 ? '#fff' : '#fafafa' },
-                ]}
-              >
-                <Text style={styles.tableCell}>
-                  {payment.reference || 'N/A'}
-                </Text>
-                <Text style={styles.tableCell}>
-                  {formatDate(payment.paidAt)}
-                </Text>
-                <Text style={styles.tableCell}>
-                  {formatCurrency(payment.amount)}
-                </Text>
-                <Text style={styles.tableCell}>
-                  {PAYMENT_METHOD_OPTIONS_MAP[payment.method]}
-                </Text>
-              </View>
-            ))}
+            <View style={styles.textRow}>
+              <Text style={styles.label}>Nom:</Text>
+              <Text style={styles.value}>{invoice.student?.fullName || 'N/A'}</Text>
+            </View>
+            <View style={styles.textRow}>
+              <Text style={styles.label}>Parent:</Text>
+              <Text style={styles.value}>{invoice.student?.parentName || 'N/A'}</Text>
+            </View>
+            <View style={styles.textRow}>
+              <Text style={styles.label}>Contact:</Text>
+              <Text style={styles.value}>{invoice.student?.parentPhoneNumber || 'N/A'}</Text>
+            </View>
           </View>
         </View>
 
-        {/* Payment Summary Section */}
+        {/* Progression */}
+        <View style={styles.infoBox}>
+          <Text style={styles.infoText}>
+            Progression:
+            {' '}
+            {paymentProgress.toFixed(1)}
+            % payé
+          </Text>
+        </View>
+
+        {/* Table des paiements */}
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Historique Paiements</Text>
+          </View>
+          <View style={styles.sectionContent}>
+            <View style={styles.table}>
+              <View style={styles.tableHeader}>
+                <Text style={styles.tableHeaderCell}>Référence</Text>
+                <Text style={styles.tableHeaderCell}>Date</Text>
+                <Text style={styles.tableHeaderCell}>Montant</Text>
+                <Text style={styles.tableHeaderCell}>Méthode</Text>
+              </View>
+              {invoice.history?.slice(0, 8).map((payment, index) => (
+                <View
+                  key={payment.reference}
+                  style={[
+                    styles.tableRow,
+                    index % 2 === 0 ? styles.tableRowEven : styles.tableRowOdd,
+                  ]}
+                >
+                  <Text style={styles.tableCell}>
+                    {payment.reference.length > 10
+                      ? `${payment.reference.slice(0, 10)}...`
+                      : payment.reference || 'N/A'}
+                  </Text>
+                  <Text style={styles.tableCell}>
+                    {formatDate(payment.paidAt)}
+                  </Text>
+                  <Text style={styles.tableCell}>
+                    {formatCurrency(payment.amount)}
+                  </Text>
+                  <Text style={[styles.tableCell, styles.paymentMethodText]}>
+                    {PAYMENT_METHOD_FROM_STRING_OPTIONS_MAP_LABEL[payment.method]}
+                  </Text>
+                </View>
+              ))}
+            </View>
+          </View>
+        </View>
+
+        {/* Section totaux */}
         <View style={styles.totalSection}>
+          <Text style={styles.totalSectionTitle}>Résumé</Text>
+
           <View style={styles.totalRow}>
-            <Text style={styles.totalLabel}>Scolarité:</Text>
+            <Text style={styles.totalLabel}>Scolarité totale:</Text>
             <Text style={styles.totalValue}>
               {formatCurrency(invoice.paymentPlan.totalAmount)}
             </Text>
           </View>
+
           <View style={styles.totalRow}>
-            <Text style={styles.totalLabel}>Payé:</Text>
+            <Text style={styles.totalLabel}>Montant payé:</Text>
             <Text style={styles.totalValue}>
               {formatCurrency(invoice.paymentPlan.amountPaid)}
             </Text>
           </View>
-          <View style={styles.totalRow}>
-            <Text style={[styles.totalLabel, { color: 'red' }]}>
+
+          <View style={styles.divider} />
+
+          <View style={[styles.totalRow, styles.totalRowHighlight]}>
+            <Text style={[styles.totalLabel, { fontSize: 10 }]}>
               Reste à payer:
             </Text>
-            <Text style={[styles.totalValue, { color: 'red' }]}>
-              {formatCurrency(
-                invoice.paymentPlan.totalAmount - invoice.paymentPlan.amountPaid,
-              )}
+            <Text style={[styles.totalValue, styles.totalValueHighlight]}>
+              {formatCurrency(remainingAmount)}
             </Text>
           </View>
+
+          {remainingAmount === 0 && (
+            <View style={styles.infoBox}>
+              <Text style={styles.infoText}>
+                ✓ PAIEMENT COMPLET
+              </Text>
+            </View>
+          )}
         </View>
 
-        {/* Fixed Footer with Page Numbers */}
+        {/* Footer */}
         <Text
           style={styles.footer}
           render={({ pageNumber, totalPages }) =>
-            `Page ${pageNumber} of ${totalPages}`}
+            `Facture générée le ${formatDate(new Date())} | Page ${pageNumber}/${totalPages}`}
           fixed
         />
       </Page>
