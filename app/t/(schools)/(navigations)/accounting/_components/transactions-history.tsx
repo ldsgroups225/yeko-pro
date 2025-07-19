@@ -1,7 +1,7 @@
 'use client'
 import type { DateRange } from 'react-day-picker'
 import { format } from 'date-fns'
-import { CalendarIcon, Loader2, Printer, Search, X } from 'lucide-react'
+import { CalendarIcon, DownloadCloudIcon, Loader2, Printer, Search, X } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 import { useDebounce } from 'use-debounce'
@@ -34,6 +34,7 @@ export function TransactionsHistory() {
   const { isHistoricOpen, setHistoricTransactionsOpen } = useTransactionsStore()
 
   const [transactions, setTransactions] = useState<Transaction[]>([])
+  const [downloadAllPaymentHistory, setDownloadAllPaymentHistory] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [isPrinting, setIsPrinting] = useState('')
 
@@ -89,6 +90,71 @@ export function TransactionsHistory() {
     }
   }
 
+  const handleDownloadAllPaymentHistory = async () => {
+    setDownloadAllPaymentHistory(true)
+    try {
+      // Get complete payment history with all details
+      const client = await import('@/lib/supabase/client').then(m => m.createClient())
+
+      const { data: paymentHistory, error } = await client
+        .from('payment_details_view')
+        .select(`
+          first_name, last_name, id_number,
+          payment_date, payment_amount, payment_method,
+          remaining_amount, total_amount
+        `)
+        .order('payment_date', { ascending: false })
+
+      if (error) {
+        throw new Error('Erreur lors de la récupération des données')
+      }
+
+      // Transform data for Excel with proper French column headers
+      const excelData = paymentHistory.map(payment => ({
+        'Élève': `${payment.first_name || ''} ${payment.last_name || ''}`.trim(),
+        'Matricule': payment.id_number || '',
+        'Date de paiement': payment.payment_date ? new Date(payment.payment_date).toLocaleDateString('fr-FR') : '',
+        'Montant payé': payment.payment_amount || 0,
+        'Méthode de paiement': payment.payment_method || '',
+        'Montant total': payment.total_amount || 0,
+        'Reste à payer': payment.remaining_amount || 0,
+      }))
+
+      // Create Excel file
+      const XLSX = await import('xlsx')
+      const worksheet = XLSX.utils.json_to_sheet(excelData)
+
+      // Set column widths for better readability
+      const colWidths = [
+        { wch: 25 }, // Élève
+        { wch: 15 }, // Matricule
+        { wch: 15 }, // Date de paiement
+        { wch: 15 }, // Montant payé
+        { wch: 20 }, // Méthode de paiement
+        { wch: 15 }, // Montant total
+        { wch: 15 }, // Reste à payer
+      ]
+      worksheet['!cols'] = colWidths
+
+      const workbook = XLSX.utils.book_new()
+      XLSX.utils.book_append_sheet(workbook, worksheet, 'Historique des paiements')
+
+      // Generate filename with current date
+      const currentDate = new Date().toISOString().split('T')[0]
+      const filename = `historique_de_paiement_${currentDate}.xlsx`
+
+      XLSX.writeFile(workbook, filename)
+      toast.success('Téléchargement de l\'historique complet de paiement réussi.')
+    }
+    catch (error) {
+      console.error('Download error:', error)
+      toast.error('Échec du téléchargement de l\'historique complet de paiement.')
+    }
+    finally {
+      setDownloadAllPaymentHistory(false)
+    }
+  }
+
   const clearFilters = () => {
     setSearchMatricule('')
     setFilterDate(undefined)
@@ -98,7 +164,20 @@ export function TransactionsHistory() {
     <Sheet open={isHistoricOpen} onOpenChange={setHistoricTransactionsOpen}>
       <SheetContent side="right" className="w-full sm:max-w-[720px]">
         <SheetHeader>
-          <SheetTitle>Historique de paiements</SheetTitle>
+          <SheetTitle className="flex gap-x-10 mb-2">
+            Historique de paiements
+
+            <Button
+              size="sm"
+              variant="ghost"
+              disabled={downloadAllPaymentHistory}
+              onClick={handleDownloadAllPaymentHistory}
+            >
+              <DownloadCloudIcon className="mr-2 h-4 w-4" />
+              Exporter
+            </Button>
+          </SheetTitle>
+
         </SheetHeader>
 
         <div className="flex space-x-2 mb-4">

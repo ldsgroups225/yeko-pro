@@ -167,22 +167,22 @@ export function StudentCreationForm({
         </div>
 
         <FormField
-            control={studentForm.control}
-            name="idNumber"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Matricule (Optionnelle)</FormLabel>
-                <FormControl>
-                  <Input
-                    {...field}
-                  />
-                </FormControl>
-                <FormDescription>
-                  Identifiant unique de l&apos;étudiant (non modifiable)
-                </FormDescription>
-              </FormItem>
-            )}
-          />
+          control={studentForm.control}
+          name="idNumber"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Matricule (Optionnelle)</FormLabel>
+              <FormControl>
+                <Input
+                  {...field}
+                />
+              </FormControl>
+              <FormDescription>
+                Identifiant unique de l&apos;étudiant (non modifiable)
+              </FormDescription>
+            </FormItem>
+          )}
+        />
 
         {/* Gender using Wrapper */}
         <FormFieldWrapper
