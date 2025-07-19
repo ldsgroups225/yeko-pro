@@ -65,7 +65,7 @@ export function PersonalInfo({ student }: PersonalInfoProps) {
           />
           <InfoRow
             icon={<Home className="h-5 w-5 text-muted-foreground" />}
-            label="Adresse"
+            label="Lieu d'habitation"
             value={student.address || 'Non renseignée'}
           />
         </div>

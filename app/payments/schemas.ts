@@ -36,9 +36,14 @@ export const studentCreationSchema = z.object({
   })
     .trim()
     .min(1, 'Le nom est requis'),
-  gender: z.enum(['M', 'F'], {
-    required_error: 'Le genre est obligatoire',
-  }),
+    gender: z.enum(['M', 'F'], {
+      required_error: 'Le genre est obligatoire',
+    }),
+    idNumber: z.string()
+      .trim()
+      .min(8, 'Cette matricule n\'est pas correcte')
+      .max(12, 'Cette matricule n\'est pas correcte')
+      .optional(),
   birthDate: z.coerce.date({
     required_error: 'Date de naissance obligatoire.',
     invalid_type_error: 'Date invalide.',

@@ -114,7 +114,7 @@ export function Step2Confirmation({
                 {student.birthDate || 'Non spécifiée'}
               </p>
               <p>
-                <strong>Adresse:</strong>
+                <strong>Lieu d'habitation:</strong>
                 {' '}
                 {student.address || 'Non spécifiée'}
               </p>

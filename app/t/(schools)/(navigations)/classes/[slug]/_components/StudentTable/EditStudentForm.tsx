@@ -250,7 +250,7 @@ export function EditStudentForm({ studentIdNumber, onSubmit, onCancel, isLoading
                 <FormControl>
                   <Input
                     {...field}
-                    readOnly={student.idNumber.startsWith('ST')}
+                    // readOnly={student.idNumber.startsWith('ST')}
                     value={student.idNumber}
                     className={cn(!student.idNumber.startsWith('ST') && 'bg-muted')}
                   />
@@ -415,13 +415,13 @@ export function EditStudentForm({ studentIdNumber, onSubmit, onCancel, isLoading
             name="address"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Adresse</FormLabel>
+                <FormLabel>Lieu d'habitation</FormLabel>
                 <FormControl>
                   <Textarea
                     {...field}
                     value={field.value || ''}
                     disabled={isLoading}
-                    placeholder="Adresse complète"
+                    placeholder="Votre lieu d'habitation"
                     className="resize-none"
                   />
                 </FormControl>

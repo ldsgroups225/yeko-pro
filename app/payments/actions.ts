@@ -235,6 +235,7 @@ export async function createStudent(
     gender: 'M' | 'F'
     birthDate: string
     address?: string
+    idNumber?: string
     avatarUrl?: string
     medicalCondition: { description: string, severity: 'low' | 'medium' | 'high' }[]
     secondParent?: {
@@ -257,7 +258,7 @@ export async function createStudent(
       .single()
 
     const lastId = lastStudent?.id_number ? Number.parseInt(lastStudent.id_number.slice(-6)) : 0
-    const newIdNumber = `ST${(lastId + 1).toString().padStart(6, '0')}`
+    const newIdNumber = formData.idNumber ? formData.idNumber : `ST${(lastId + 1).toString().padStart(6, '0')}`
 
     // First create the student record
     const { data: studentData, error: studentError } = await client.from('students')

@@ -15,7 +15,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { Calendar } from '@/components/ui/calendar'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { InputOTP, InputOTPGroup, InputOTPSeparator, InputOTPSlot } from '@/components/ui/input-otp'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
@@ -52,6 +52,7 @@ export function StudentCreationForm({
       lastName: '',
       gender: 'M',
       birthDate: undefined,
+      idNumber: undefined,
       address: '',
       medicalCondition: [],
       secondParent: {
@@ -165,6 +166,24 @@ export function StudentCreationForm({
           </FormFieldWrapper>
         </div>
 
+        <FormField
+            control={studentForm.control}
+            name="idNumber"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Matricule (Optionnelle)</FormLabel>
+                <FormControl>
+                  <Input
+                    {...field}
+                  />
+                </FormControl>
+                <FormDescription>
+                  Identifiant unique de l&apos;étudiant (non modifiable)
+                </FormDescription>
+              </FormItem>
+            )}
+          />
+
         {/* Gender using Wrapper */}
         <FormFieldWrapper
           control={studentForm.control}
@@ -250,11 +269,11 @@ export function StudentCreationForm({
         <FormFieldWrapper
           control={studentForm.control}
           name="address"
-          label="Adresse"
+          label="Lieu d'habitation"
         >
           {({ field }) => (
             <Input
-              placeholder="Entrez l'adresse"
+              placeholder="Entrez votre lieu d'habitation"
               {...field}
               value={field.value ?? ''}
               disabled={isLoading}
