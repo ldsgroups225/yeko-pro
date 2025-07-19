@@ -25,7 +25,7 @@ export async function getStudentPerformanceMetrics(studentId: string): Promise<P
       .select('semester_average')
       .eq('student_id', studentId)
       .order('semester_id', { ascending: false })
-      .single()
+      .maybeSingle()
 
     // Get participation data
     const participationCountQs = supabase
@@ -33,8 +33,8 @@ export async function getStudentPerformanceMetrics(studentId: string): Promise<P
       .select('notes!inner(note_type)', { count: 'exact', head: true })
       .eq('student_id', studentId)
       .eq('notes.note_type', NOTE_TYPE.PARTICIPATION)
-      // TODO: If you have a semesterId, you can add this filter:
-      // .eq('notes.semester_id', semesterId)
+    // TODO: If you have a semesterId, you can add this filter:
+    // .eq('notes.semester_id', semesterId)
 
     const [
       { data: averageData, error: averageError },
@@ -49,10 +49,17 @@ export async function getStudentPerformanceMetrics(studentId: string): Promise<P
     if (averageError || semesterAverageError || participationError)
       throw averageError || semesterAverageError || participationError
 
-    const currentAverage = averageData[0]?.average_grade || 0
-    const previousAverage = averageData[1]?.average_grade || 0
-    const currentBehavior = averageData[0]?.conduite || 0
-    const previousBehavior = averageData[1]?.conduite || 0
+    let currentAverage = 0
+    let previousAverage = 0
+    let currentBehavior = 0
+    let previousBehavior = 0
+
+    if (averageData.length > 0) {
+      currentAverage = averageData[0]?.average_grade || 0
+      previousAverage = averageData[1]?.average_grade || 0
+      currentBehavior = averageData[0]?.conduite || 0
+      previousBehavior = averageData[1]?.conduite || 0
+    }
 
     return [
       {
@@ -167,6 +174,9 @@ export async function getStudentSubjectPerformance(studentId: string): Promise<S
 
     if (gradesError)
       throw gradesError
+
+    if (gradesData.length === 0)
+      return []
 
     let coefficientQs = supabase.from('coefficients').select('subject_id, coefficient')
 
