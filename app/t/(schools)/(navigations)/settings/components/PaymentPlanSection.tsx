@@ -42,6 +42,7 @@ interface PaymentPlanFormData {
   dueDate: string
   dayBeforeNotification: number
   fixedAmount: number
+  fixedAmountOfAffected: number
 }
 
 export interface PaymentPlanSectionProps {
@@ -78,6 +79,7 @@ function usePaymentPlanRowLogic(
         : new Date(plan.dueDate).toISOString().split('T')[0],
     dayBeforeNotification: plan.dayBeforeNotification ?? 0,
     fixedAmount: plan.fixedAmount ?? 0,
+    fixedAmountOfAffected: plan.fixedAmountOfAffected ?? 0,
   }
   const [isEditing, setIsEditing] = useState(false)
   const [formData, setFormData] = useState<PaymentPlanFormData>(initialFormData)
@@ -382,6 +384,43 @@ function PaymentPlanRowView({
                 )}
           </AnimatePresence>
         </TableCell>
+        {/* Oriented Amount Cell */}
+        <TableCell className="text-end">
+          <AnimatePresence mode="wait">
+            {isEditing
+              ? (
+                  <motion.div
+                    key="edit-amount-affected"
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: 10 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    <Input
+                      type="number"
+                      value={formData.fixedAmountOfAffected ?? ''}
+                      onChange={e =>
+                        setFormData(prev => ({
+                          ...prev,
+                          fixedAmountOfAffected: Number(e.target.value),
+                        }))}
+                      className="border rounded p-1 text-end pl-4 w-[120px]"
+                    />
+                  </motion.div>
+                )
+              : (
+                  <motion.div
+                    key="view-amount-affected"
+                    initial={{ opacity: 0, x: 10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -10 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    {formatCurrency(plan.fixedAmountOfAffected ?? 0)}
+                  </motion.div>
+                )}
+          </AnimatePresence>
+        </TableCell>
 
         {/* Action Buttons Cell */}
         <TableCell>
@@ -493,8 +532,8 @@ export function PaymentPlanSection({
     }, {} as Record<number, ITemplate[]>),
   )
 
-  const remainingAmount
-    = totalAmount - paymentPlans.reduce((acc, plan) => acc + (plan.fixedAmount ?? 0), 0)
+  const remainingAmount = totalAmount - paymentPlans.reduce((acc, plan) => acc + (plan.fixedAmount ?? 0), 0)
+  const remainingAmountOfAffected = totalAmount - paymentPlans.reduce((acc, plan) => acc + (plan.fixedAmountOfAffected ?? 0), 0)
 
   const maxInstallmentNumber
     = paymentPlans.reduce((acc, plan) => Math.max(acc, plan.installmentNumber), 0) + 1
@@ -531,11 +570,25 @@ export function PaymentPlanSection({
   return (
     <div className="space-y-6">
       <div className="rounded-md border">
-        {remainingAmount > 0 && (
+        {(remainingAmount > 0 || remainingAmountOfAffected > 0) && (
           <div className="rounded-md border p-4 bg-muted/50">
             <div className="flex justify-between">
               <span>Reste à distribuer</span>
-              <span className="font-medium">{formatCurrency(remainingAmount)}</span>
+
+              <div className="flex items-center gap-2">
+                {remainingAmount > 0 && (
+                  <div className="font-medium">
+                    <p className="text-xs text-muted-foreground">Non orienté</p>
+                    {formatCurrency(remainingAmount)}
+                  </div>
+                )}
+                {remainingAmountOfAffected > 0 && (
+                  <div className="font-medium">
+                    <p className="text-xs text-muted-foreground">Orienté</p>
+                    {formatCurrency(remainingAmountOfAffected)}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         )}
@@ -555,7 +608,8 @@ export function PaymentPlanSection({
                   </TooltipContent>
                 </Tooltip>
               </TableHead>
-              <TableHead className="text-end">Montant</TableHead>
+              <TableHead className="text-end">Montant non orienté</TableHead>
+              <TableHead className="text-end">Montant orienté</TableHead>
               <TableHead className="text-center">Actions</TableHead>
             </TableRow>
           </TableHeader>

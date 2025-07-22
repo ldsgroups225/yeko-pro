@@ -17,6 +17,7 @@ export const installmentTemplateSchema = z.object({
   installmentNumber: z.number().int().positive(),
   dueDate: z.date(),
   fixedAmount: z.number().nonnegative().nullable(),
+  fixedAmountOfAffected: z.number().int().nonnegative().nullable(),
   dayBeforeNotification: z.number().int().nonnegative().nullable(),
 })
 
@@ -41,6 +42,7 @@ export function serializeInstallmentTemplate(data: Partial<InstallmentTemplate>)
     installment_number: data.installmentNumber!,
     due_date: new Date(data.dueDate!).toISOString(),
     fixed_amount: data.fixedAmount,
+    amount_of_affected: data.fixedAmountOfAffected,
     day_before_notification: data.dayBeforeNotification,
   }
 }
@@ -60,6 +62,7 @@ export function deserializeInstallmentTemplate(data: InstallmentTemplateRead): I
     installmentNumber: data.installment_number,
     dueDate: new Date(data.due_date),
     fixedAmount: data.fixed_amount,
+    fixedAmountOfAffected: data.amount_of_affected,
     dayBeforeNotification: data.day_before_notification,
   }
 }

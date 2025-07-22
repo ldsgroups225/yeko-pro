@@ -131,6 +131,25 @@ export const AddInstallmentDialog: React.FC<AddInstallmentDialogProps> = ({
             />
             <FormField
               control={form.control}
+              name="fixedAmountOfAffected"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Montant orienté (FCFA)</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="number"
+                      min="0"
+                      placeholder="0.00"
+                      value={field.value === null ? '' : String(field.value)}
+                      onChange={e => field.onChange(Number(e.target.value))}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
               name="dayBeforeNotification"
               render={({ field }) => (
                 <FormItem>

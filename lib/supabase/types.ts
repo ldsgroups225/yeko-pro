@@ -693,6 +693,7 @@ export interface Database {
       }
       installment_templates: {
         Row: {
+          amount_of_affected: number | null
           day_before_notification: number | null
           due_date: string
           fixed_amount: number | null
@@ -702,6 +703,7 @@ export interface Database {
           school_id: string
         }
         Insert: {
+          amount_of_affected?: number | null
           day_before_notification?: number | null
           due_date: string
           fixed_amount?: number | null
@@ -711,6 +713,7 @@ export interface Database {
           school_id: string
         }
         Update: {
+          amount_of_affected?: number | null
           day_before_notification?: number | null
           due_date?: string
           fixed_amount?: number | null

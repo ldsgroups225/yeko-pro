@@ -55,6 +55,9 @@ export default function TuitionSettingsPage() {
     }, {} as Record<number, TuitionSettings>),
   )
 
+  const remainingAmount = optimisticTuition[selectedGradeId!]?.annualFee - paymentPlans.reduce((acc, plan) => acc + (plan.fixedAmount ?? 0), 0)
+  const remainingAmountOfAffected = optimisticTuition[selectedGradeId!]?.annualFee - paymentPlans.reduce((acc, plan) => acc + (plan.fixedAmountOfAffected ?? 0), 0)
+
   const fetchTuitionSettings = useCallback(async () => {
     try {
       await fetchTuitions()
@@ -256,22 +259,25 @@ export default function TuitionSettingsPage() {
                       </Tooltip>
                     </TooltipProvider>
 
-                    <TooltipProvider>
-                      <Tooltip delayDuration={300}>
-                        <TooltipTrigger asChild>
-                          <Button
-                            variant="default"
-                            size="icon"
-                            onClick={() => setShowAddTemplateModal(true)}
-                          >
-                            <PlusCircle className="h-4 w-4" />
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          Ajouter une tranche de paiement
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
+                    {/* Show it only if they are remaining amount to distribute */}
+                    {(remainingAmount > 0 || remainingAmountOfAffected > 0) && (
+                      <TooltipProvider>
+                        <Tooltip delayDuration={300}>
+                          <TooltipTrigger asChild>
+                            <Button
+                              variant="default"
+                              size="icon"
+                              onClick={() => setShowAddTemplateModal(true)}
+                            >
+                              <PlusCircle className="h-4 w-4" />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            Ajouter une tranche de paiement
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    )}
                   </div>
                 )}
               >
