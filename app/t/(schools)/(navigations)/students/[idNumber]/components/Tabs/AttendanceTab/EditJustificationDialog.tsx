@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 import { ImageUpload } from '@/components/ImageUpload'
 import { Button } from '@/components/ui/button'
@@ -44,6 +44,15 @@ export function EditJustificationDialog({
   const [reason, setReason] = useState(currentReason)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [showConfirmation, setShowConfirmation] = useState(false)
+
+  // Update form fields when dialog opens with new data
+  useEffect(() => {
+    if (isOpen) {
+      setJustificationImage(currentImageUrl)
+      setReason(currentReason)
+      setShowConfirmation(false)
+    }
+  }, [isOpen, currentImageUrl, currentReason])
 
   const handleImageSelected = (image: string | null) => {
     setJustificationImage(image)
