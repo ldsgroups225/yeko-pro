@@ -13,6 +13,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { NOTE_OPTIONS } from '@/constants/noteTypes'
+import { useNotesLoadingStore } from '@/store/notesLoadingStore'
 
 interface IOption {
   id: string
@@ -50,6 +51,7 @@ export function NotesFilters({ classes, subjects, semesters }: NotesFiltersProps
   )
 
   const handleSearch = useDebounceCallback((term: string) => {
+    useNotesLoadingStore.getState().setLoading(true)
     const queryString = createQueryString({
       searchTerm: term || null,
       page: '1',
@@ -58,6 +60,7 @@ export function NotesFilters({ classes, subjects, semesters }: NotesFiltersProps
   }, 500)
 
   const handleFilterChange = useCallback((key: string, value: string | null) => {
+    useNotesLoadingStore.getState().setLoading(true)
     const queryString = createQueryString({
       [key]: value,
       page: '1',

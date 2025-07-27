@@ -1,3 +1,5 @@
+/* eslint-disable react-hooks-extra/no-unnecessary-use-prefix */
+
 // Testing libraries
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'

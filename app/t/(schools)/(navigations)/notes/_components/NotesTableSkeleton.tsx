@@ -27,7 +27,7 @@ export function NotesTableSkeleton() {
                 <TableHead>
                   <Skeleton className="h-4 w-4" />
                 </TableHead>
-                {Array.from({ length: 5 }).map(() => (
+                {Array.from({ length: 10 }).map(() => (
                   <TableHead key={nanoid()}>
                     <Skeleton className="h-4 w-8" />
                   </TableHead>

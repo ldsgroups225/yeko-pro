@@ -1,3 +1,4 @@
+import { nanoid } from 'nanoid'
 import { cn } from '@/lib/utils'
 
 export function StudentPaymentsTableSkeleton() {
@@ -19,8 +20,8 @@ export function StudentPaymentsTableSkeleton() {
         </tr>
       </thead>
       <tbody className="[&_tr:last-child]:border-0">
-        {Array.from({ length: 5 }).map((_, index) => (
-          <tr key={index} className={trStyle}>
+        {Array.from({ length: 5 }).map(() => (
+          <tr key={nanoid()} className={trStyle}>
             <td className={cn(tdStyle, 'text-left')}>
               <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded animate-pulse w-32"></div>
             </td>

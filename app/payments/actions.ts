@@ -218,6 +218,7 @@ export async function fetchTuitionFees(gradeId: number) {
  * @param formData.gender - Student's gender ('M' or 'F')
  * @param formData.birthDate - Student's birth date
  * @param formData.address - Student's address (optional)
+ * @param formData.idNumber - Student's ID number (optional)
  * @param formData.medicalCondition - Student's medical condition (optional)
  * @param formData.avatarUrl - URL of student's avatar image (optional)
  * @param formData.secondParent - The second parent of the student (optional)

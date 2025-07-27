@@ -342,6 +342,39 @@ export interface RawNoteData {
   lastName: string
 }
 
+export interface AverageGradeInfo {
+  student_id: string
+  average_grade: number | null
+  rank: string | null
+}
+
+export async function getAverageGradesForClass(params: {
+  classId: string
+  subjectId: string
+  semesterId: number
+}): Promise<AverageGradeInfo[]> {
+  const { classId, subjectId, semesterId } = params
+  const supabase = await createClient()
+
+  const { data, error } = await supabase
+    .from('average_grades_view_with_rank')
+    .select('student_id, average_grade, rank')
+    .eq('class_id', classId)
+    .eq('subject_id', subjectId)
+    .eq('semester_id', semesterId)
+    .order('rank', { ascending: true, nullsFirst: false })
+
+  if (error) {
+    console.error('Error fetching average grades:', error)
+    throw error
+  }
+
+  return data.map(d => ({
+    ...d,
+    student_id: d.student_id!,
+  } satisfies AverageGradeInfo))
+}
+
 export async function getNotesForTableView(params: {
   classId: string
   subjectId: string
