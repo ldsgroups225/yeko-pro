@@ -85,7 +85,6 @@ export function AttendanceTab({ student, isLoading: initialLoading }: Attendance
 
         <AttendanceHistory
           attendances={attendances}
-          isLoading={isLoading}
           studentName={`${student.firstName} ${student.lastName}`}
           onAttendanceUpdated={handleAttendanceUpdated}
         />

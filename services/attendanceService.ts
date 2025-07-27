@@ -84,7 +84,8 @@ export async function getStudentAttendanceHistory(studentId: string): Promise<At
         reason,
         starts_at,
         ends_at,
-        semesters_id
+        semesters_id,
+        image_url
       `)
       .eq('student_id', studentId)
       .order('created_date', { ascending: false })
@@ -99,6 +100,7 @@ export async function getStudentAttendanceHistory(studentId: string): Promise<At
       status: record.is_excused ? 'justified' : 'unjustified',
       reason: record.reason || undefined,
       semester: record.semesters_id ?? -1,
+      imageUrl: record.image_url || undefined,
       duration: record.status === 'late'
         ? calculateDuration(record.starts_at, record.ends_at)
         : undefined,
@@ -138,6 +140,37 @@ export async function justifyAttendance(
   }
   catch (error) {
     console.error('Error justifying attendance:', error)
+    throw error
+  }
+}
+
+export async function updateAttendanceJustification(
+  attendanceId: string,
+  reason: string,
+  justificationImage: string,
+): Promise<void> {
+  const supabase = await createClient()
+
+  try {
+    // Upload the new justification image to storage
+    const imageUrl = await uploadImageToStorage(supabase, 'attendance_justifications', attendanceId, justificationImage)
+
+    // Update the attendance record with new justification
+    const { error } = await supabase
+      .from('attendances')
+      .update({
+        reason, // Update the text reason
+        image_url: imageUrl, // Update the image URL
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', attendanceId)
+
+    if (error) {
+      throw new Error(`Erreur lors de la mise à jour de la justification: ${error.message}`)
+    }
+  }
+  catch (error) {
+    console.error('Error updating attendance justification:', error)
     throw error
   }
 }
