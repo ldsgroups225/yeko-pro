@@ -14,6 +14,8 @@ import {
 } from '@/components/ui/select'
 import { NOTE_OPTIONS } from '@/constants/noteTypes'
 import { useNotesLoadingStore } from '@/store/notesLoadingStore'
+import useSchoolYearStore from '@/store/schoolYearStore'
+import useSubjectStore from '@/store/subjectStore'
 
 interface IOption {
   id: string
@@ -22,15 +24,16 @@ interface IOption {
 
 interface NotesFiltersProps {
   classes: IOption[]
-  subjects: IOption[]
-  semesters: { id: number, name: string }[]
 }
 
-export function NotesFilters({ classes, subjects, semesters }: NotesFiltersProps) {
+export function NotesFilters({ classes }: NotesFiltersProps) {
   const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
   const [searchTerm, setSearchTerm] = useState(searchParams?.get('searchTerm') || '')
+
+  const { semesters } = useSchoolYearStore()
+  const { subjects } = useSubjectStore()
 
   const createQueryString = useCallback(
     (params: Record<string, string | null>) => {

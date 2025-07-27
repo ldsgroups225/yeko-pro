@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import { Suspense } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { getClassesForNotes, getSemesters, getSubjects } from '@/services/noteService'
+import { getClassesForNotes } from '@/services/noteService'
 import { NotesFilters, NotesTable, NotesTableSkeleton } from './_components'
 
 export const metadata: Metadata = {
@@ -20,16 +20,14 @@ interface NotesPageProps {
 }
 
 async function getInitialData() {
-  const [classes, subjects, semesters] = await Promise.all([
+  const [classes] = await Promise.all([
     getClassesForNotes(),
-    getSubjects(),
-    getSemesters(),
+    // getSubjects(),
+    // getSemesters(),
   ])
 
   return {
     classes,
-    subjects,
-    semesters,
   }
 }
 
@@ -49,8 +47,6 @@ export default async function NotesPage({
         <CardContent className="px-6 py-3">
           <NotesFilters
             classes={initialData.classes}
-            subjects={initialData.subjects}
-            semesters={initialData.semesters}
           />
 
           <Suspense fallback={<NotesTableSkeleton />}>
