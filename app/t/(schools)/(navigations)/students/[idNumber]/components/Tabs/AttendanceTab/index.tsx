@@ -25,45 +25,38 @@ export function AttendanceTab({ student, isLoading: initialLoading }: Attendance
   const [isLoading, setIsLoading] = useState(initialLoading)
   const [error, setError] = useState<string | null>(null)
 
+  const fetchAttendanceData = async () => {
+    if (!student?.id)
+      return
+
+    try {
+      setIsLoading(true)
+      const [attendanceStats, attendanceHistory] = await Promise.all([
+        getStudentAttendanceStats(student.id),
+        getStudentAttendanceHistory(student.id),
+      ])
+
+      setStats(attendanceStats)
+      setAttendances(attendanceHistory)
+      setError(null)
+    }
+    catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to fetch attendance data')
+      console.error('Error fetching attendance data:', err)
+    }
+    finally {
+      setIsLoading(false)
+    }
+  }
+
   useEffect(() => {
-    let mounted = true
-
-    async function fetchAttendanceData() {
-      if (!student?.id)
-        return
-
-      try {
-        setIsLoading(true)
-        const [attendanceStats, attendanceHistory] = await Promise.all([
-          getStudentAttendanceStats(student.id),
-          getStudentAttendanceHistory(student.id),
-        ])
-
-        if (mounted) {
-          setStats(attendanceStats)
-          setAttendances(attendanceHistory)
-          setError(null)
-        }
-      }
-      catch (err) {
-        if (mounted) {
-          setError(err instanceof Error ? err.message : 'Failed to fetch attendance data')
-          console.error('Error fetching attendance data:', err)
-        }
-      }
-      finally {
-        if (mounted) {
-          setIsLoading(false)
-        }
-      }
-    }
-
     fetchAttendanceData()
-
-    return () => {
-      mounted = false
-    }
   }, [student?.id])
+
+  const handleAttendanceUpdated = () => {
+    // Refresh attendance data when a justification is submitted
+    fetchAttendanceData()
+  }
 
   if (error) {
     return (
@@ -93,6 +86,8 @@ export function AttendanceTab({ student, isLoading: initialLoading }: Attendance
         <AttendanceHistory
           attendances={attendances}
           isLoading={isLoading}
+          studentName={`${student.firstName} ${student.lastName}`}
+          onAttendanceUpdated={handleAttendanceUpdated}
         />
       </div>
     </Card>

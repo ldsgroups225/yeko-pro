@@ -3,6 +3,7 @@
 import { AnimatePresence, motion } from 'framer-motion'
 import { useMemo, useState } from 'react'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import {
   Select,
@@ -14,6 +15,7 @@ import {
 import { Skeleton } from '@/components/ui/skeleton'
 import { cn } from '@/lib/utils'
 import useSchoolYearStore from '@/store/schoolYearStore'
+import { JustificationDialog } from './JustificationDialog'
 
 export interface Attendance {
   id: string
@@ -28,42 +30,90 @@ export interface Attendance {
 interface AttendanceHistoryProps {
   attendances: Attendance[]
   isLoading?: boolean
+  studentName?: string
+  onAttendanceUpdated?: () => void
 }
 
-function AttendanceRow({ attendance }: { attendance: Attendance }) {
+function AttendanceRow({
+  attendance,
+  studentName,
+  onJustified,
+}: {
+  attendance: Attendance
+  studentName?: string
+  onJustified?: () => void
+}) {
+  const [showJustificationDialog, setShowJustificationDialog] = useState(false)
+
+  const handleJustifyClick = () => {
+    setShowJustificationDialog(true)
+  }
+
+  const handleJustified = () => {
+    onJustified?.()
+  }
+
   return (
-    <motion.div
-      layout
-      initial={{ opacity: 0, y: -20 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -20, transition: { duration: 0.2, ease: 'easeOut' } }}
-      transition={{ duration: 0.4, ease: [0.42, 0, 0.58, 1] }}
-      className="flex justify-between text-sm"
-    >
-      <span>{attendance.date}</span>
-      <div className="flex items-center gap-2">
-        <Badge
-          variant={attendance.type === 'absence' ? 'destructive' : 'default'}
-          className="w-24 justify-center items-center"
-        >
-          {attendance.type === 'absence' ? 'Absence' : 'Retard'}
-        </Badge>
-        <Badge
-          variant={attendance.status === 'justified' ? 'outline' : 'secondary'}
-          className="w-24 justify-center items-center"
-        >
-          {attendance.status === 'justified' ? 'Justifié' : 'Non justifié'}
-        </Badge>
-      </div>
-      <span
-        className={cn(
-          'text-muted-foreground',
-          attendance.reason && 'font-bold text-primary',
-        )}
+    <>
+      <motion.div
+        layout
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -20, transition: { duration: 0.2, ease: 'easeOut' } }}
+        transition={{ duration: 0.4, ease: [0.42, 0, 0.58, 1] }}
+        className="flex justify-between text-sm"
       >
-        {attendance.reason || 'pas de raison'}
-      </span>
-    </motion.div>
+        <span>{attendance.date}</span>
+        <div className="flex items-center gap-2">
+          <Badge
+            variant={attendance.type === 'absence' ? 'destructive' : 'default'}
+            className="w-24 justify-center items-center"
+          >
+            {attendance.type === 'absence' ? 'Absence' : 'Retard'}
+          </Badge>
+
+          {
+            attendance.status === 'justified'
+              ? (
+                  <Badge
+                    variant="outline"
+                    className="w-24 justify-center items-center"
+                  >
+                    Justifié
+                  </Badge>
+                )
+              : (
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="w-min justify-center items-center"
+                    onClick={handleJustifyClick}
+                  >
+                    Cliquer pour justifier
+                  </Button>
+                )
+          }
+        </div>
+        <span
+          className={cn(
+            'text-muted-foreground',
+            attendance.reason && 'font-bold text-primary',
+          )}
+        >
+          {attendance.reason || 'pas de raison'}
+        </span>
+      </motion.div>
+
+      <JustificationDialog
+        isOpen={showJustificationDialog}
+        onClose={() => setShowJustificationDialog(false)}
+        attendanceId={attendance.id}
+        studentName={studentName || 'l\'élève'}
+        attendanceType={attendance.type}
+        attendanceDate={attendance.date}
+        onJustified={handleJustified}
+      />
+    </>
   )
 }
 
@@ -80,7 +130,7 @@ function AttendanceRowSkeleton() {
   )
 }
 
-export function AttendanceHistory({ attendances, isLoading }: AttendanceHistoryProps) {
+export function AttendanceHistory({ attendances, isLoading, studentName, onAttendanceUpdated }: AttendanceHistoryProps) {
   const { activeSemester, semesters } = useSchoolYearStore()
 
   const [selectedSemesterByUser, setSelectedSemesterByUser] = useState<number | null>(null)
@@ -184,7 +234,12 @@ export function AttendanceHistory({ attendances, isLoading }: AttendanceHistoryP
                 {filteredAttendances.length > 0
                   ? (
                       filteredAttendances.map(atd => (
-                        <AttendanceRow key={atd.id} attendance={atd} />
+                        <AttendanceRow
+                          key={atd.id}
+                          attendance={atd}
+                          studentName={studentName}
+                          onJustified={onAttendanceUpdated}
+                        />
                       ))
                     )
                   : (

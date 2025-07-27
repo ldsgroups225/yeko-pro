@@ -3,6 +3,7 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
+import { uploadImageToStorage } from './uploadImageService'
 
 export interface AttendanceStats {
   totalDaysAbsent: number
@@ -106,6 +107,33 @@ export async function getStudentAttendanceHistory(studentId: string): Promise<At
   catch (error) {
     console.error('Error fetching absence history:', error)
     throw error
+  }
+}
+
+export async function justifyAttendance(attendanceId: string, justificationImage: string): Promise<void> {
+  const supabase = await createClient()
+
+  try {
+    // Upload the justification image to storage
+    const justificationUrl = await uploadImageToStorage(supabase, 'attendance_justifications', attendanceId, justificationImage)
+
+    // Update the attendance record to mark it as justified
+    const { error } = await supabase
+      .from('attendances')
+      .update({
+        is_excused: true,
+        reason: justificationUrl, // Store the justification image URL as the reason
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', attendanceId)
+
+    if (error) {
+      throw error
+    }
+  }
+  catch (error) {
+    console.error('Error justifying attendance:', error)
+    throw new Error('Erreur lors de la justification de l\'absence/retard')
   }
 }
 
