@@ -371,7 +371,6 @@ export function NotesTable({ searchParams }: NotesTableProps) {
                                           (
                                           {averagesMap.get(student.studentId)?.rank}
                                           )
-                                          eme
                                         </span>
                                       )}
                                     </span>
