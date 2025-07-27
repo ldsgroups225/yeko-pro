@@ -24,6 +24,7 @@ export interface Database {
           created_date: string | null
           ends_at: string
           id: string
+          image_url: string | null
           is_excused: boolean
           reason: string | null
           school_years_id: number | null
@@ -42,6 +43,7 @@ export interface Database {
           created_date?: string | null
           ends_at: string
           id?: string
+          image_url?: string | null
           is_excused?: boolean
           reason?: string | null
           school_years_id?: number | null
@@ -60,6 +62,7 @@ export interface Database {
           created_date?: string | null
           ends_at?: string
           id?: string
+          image_url?: string | null
           is_excused?: boolean
           reason?: string | null
           school_years_id?: number | null
@@ -1365,6 +1368,13 @@ export interface Database {
             foreignKeyName: 'fk_payment_plan'
             columns: ['payment_plan_id']
             isOneToOne: false
+            referencedRelation: 'payment_details_view'
+            referencedColumns: ['payment_plan_id']
+          },
+          {
+            foreignKeyName: 'fk_payment_plan'
+            columns: ['payment_plan_id']
+            isOneToOne: false
             referencedRelation: 'payment_plans'
             referencedColumns: ['id']
           },
@@ -2564,6 +2574,7 @@ export interface Database {
           payment_amount: number | null
           payment_date: string | null
           payment_method: string | null
+          payment_plan_id: string | null
           remaining_amount: number | null
           school_id: string | null
           school_year: number | null

@@ -110,30 +110,35 @@ export async function getStudentAttendanceHistory(studentId: string): Promise<At
   }
 }
 
-export async function justifyAttendance(attendanceId: string, justificationImage: string): Promise<void> {
+export async function justifyAttendance(
+  attendanceId: string,
+  reason: string,
+  justificationImage: string,
+): Promise<void> {
   const supabase = await createClient()
 
   try {
     // Upload the justification image to storage
-    const justificationUrl = await uploadImageToStorage(supabase, 'attendance_justifications', attendanceId, justificationImage)
+    const imageUrl = await uploadImageToStorage(supabase, 'attendance-justifications', attendanceId, justificationImage)
 
     // Update the attendance record to mark it as justified
     const { error } = await supabase
       .from('attendances')
       .update({
         is_excused: true,
-        reason: justificationUrl, // Store the justification image URL as the reason
+        reason, // Store the text reason
+        image_url: imageUrl, // Store the image URL
         updated_at: new Date().toISOString(),
       })
       .eq('id', attendanceId)
 
     if (error) {
-      throw error
+      throw new Error(`Erreur lors de la mise à jour de l'assiduité: ${error.message}`)
     }
   }
   catch (error) {
     console.error('Error justifying attendance:', error)
-    throw new Error('Erreur lors de la justification de l\'absence/retard')
+    throw error
   }
 }
 
