@@ -22,20 +22,28 @@ export interface Attendance {
   duration?: string
 }
 
-export async function getStudentAttendanceStats(studentId: string): Promise<AttendanceStats> {
+export async function getStudentAttendanceStats(studentId: string, semesterId?: number): Promise<AttendanceStats> {
   const supabase = await createClient()
 
   try {
-    const { data: reportData, error: reportError } = await supabase
-      .from('attendances_report_view')
-      .select('*')
+    // Build the base query
+    let query = supabase
+      .from('attendances')
+      .select('status, is_excused', { count: 'exact' })
       .eq('student_id', studentId)
-      .order('month', { ascending: false })
 
-    if (reportError)
-      throw reportError
+    // Filter by semester if provided
+    if (semesterId) {
+      query = query.eq('semesters_id', semesterId)
+    }
 
-    if (!reportData?.length) {
+    const { data: attendances, error } = await query
+
+    if (error) {
+      throw error
+    }
+
+    if (!attendances?.length) {
       return {
         totalDaysAbsent: 0,
         totalLateArrivals: 0,
@@ -44,24 +52,17 @@ export async function getStudentAttendanceStats(studentId: string): Promise<Atte
       }
     }
 
-    const { count: justifiedCount, error: justifiedError } = await supabase
-      .from('attendances')
-      .select('*', { count: 'exact', head: true })
-      .eq('student_id', studentId)
-      .eq('status', 'absent')
-      .eq('is_excused', true)
-
-    if (justifiedError)
-      throw justifiedError
-
-    const totalAbsences = reportData.reduce((acc, curr) => acc + (curr.absences || 0), 0)
-    const totalLateArrivals = reportData.reduce((acc, curr) => acc + (curr.lates || 0), 0)
+    // Calculate stats efficiently using the fetched data
+    const totalAbsences = attendances.filter(a => a.status === 'absent').length
+    const totalLateArrivals = attendances.filter(a => a.status === 'late').length
+    const justifiedAbsences = attendances.filter(a => a.status === 'absent' && a.is_excused).length
+    const unjustifiedAbsences = totalAbsences - justifiedAbsences
 
     return {
       totalDaysAbsent: totalAbsences,
       totalLateArrivals,
-      justifiedAbsences: justifiedCount || 0,
-      unjustifiedAbsences: totalAbsences - (justifiedCount || 0),
+      justifiedAbsences,
+      unjustifiedAbsences,
     }
   }
   catch (error) {
@@ -70,11 +71,11 @@ export async function getStudentAttendanceStats(studentId: string): Promise<Atte
   }
 }
 
-export async function getStudentAttendanceHistory(studentId: string): Promise<Attendance[]> {
+export async function getStudentAttendanceHistory(studentId: string, semesterId?: number): Promise<Attendance[]> {
   try {
     const supabase = await createClient()
 
-    const { data, error } = await supabase
+    let query = supabase
       .from('attendances')
       .select(`
         id,
@@ -89,13 +90,28 @@ export async function getStudentAttendanceHistory(studentId: string): Promise<At
       `)
       .eq('student_id', studentId)
       .order('created_date', { ascending: false })
+      .limit(100) // Limit to last 100 records for better performance
+
+    // Filter by semester if provided
+    if (semesterId) {
+      query = query.eq('semesters_id', semesterId)
+    }
+
+    const { data, error } = await query
 
     if (error)
       throw error
 
+    // Use more efficient date formatting
+    const dateFormatter = new Intl.DateTimeFormat('fr-FR', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    })
+
     return data.map(record => ({
       id: record.id,
-      date: new Date(record.created_date!).toLocaleDateString('fr-FR'),
+      date: dateFormatter.format(new Date(record.created_date!)),
       type: record.status === 'late' ? 'late' : 'absence',
       status: record.is_excused ? 'justified' : 'unjustified',
       reason: record.reason || undefined,

@@ -66,11 +66,18 @@ const tabs: TabConfig[] = [
 
 export default async function StudentPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ idNumber: string }>
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>
 }) {
-  // Await the params object before using it
+  // Await both params and searchParams objects before using them
   const { idNumber } = await params
+  const searchParamsResolved = await searchParams
+
+  // Extract semester from search params
+  const semesterParam = searchParamsResolved.semester
+  const semesterId = typeof semesterParam === 'string' ? Number.parseInt(semesterParam, 10) : undefined
 
   // Fetch student data server-side
   const studentDTO = await getStudentByIdNumber(idNumber).catch((error) => {
@@ -91,7 +98,7 @@ export default async function StudentPage({
 
       {/* Quick Stats Overview - Wrapped in Suspense */}
       <Suspense fallback={<QuickStatsGridSkeleton />}>
-        <QuickStatsGrid studentId={student.id} />
+        <QuickStatsGrid studentId={student.id} semesterId={semesterId} />
       </Suspense>
 
       {/* Main Content Tabs */}

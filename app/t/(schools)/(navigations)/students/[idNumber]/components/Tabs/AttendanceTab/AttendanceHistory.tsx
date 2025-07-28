@@ -2,7 +2,8 @@
 
 import { AnimatePresence, motion } from 'framer-motion'
 import { Eye } from 'lucide-react'
-import { useMemo, useState } from 'react'
+import { usePathname, useRouter, useSearchParams } from 'next/navigation'
+import { useState } from 'react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
@@ -13,6 +14,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import useSchoolYearStore from '@/store/schoolYearStore'
 import { EditJustificationDialog } from './EditJustificationDialog'
 import { ImagePreviewDialog } from './ImagePreviewDialog'
 import { JustificationDialog } from './JustificationDialog'
@@ -33,20 +35,26 @@ interface AttendanceHistoryProps {
 }
 
 export function AttendanceHistory({ attendances, studentName, onAttendanceUpdated }: AttendanceHistoryProps) {
-  const [selectedTerm, setSelectedTerm] = useState<string>('all')
+  const { semesters, activeSemester } = useSchoolYearStore()
+  const searchParams = useSearchParams()
+  const pathname = usePathname()
+  const { replace } = useRouter()
+
+  // Derive semester from URL params - single source of truth
+  const selectedSemester = searchParams.get('semester') || activeSemester?.id.toString()
+
   const [selectedAttendance, setSelectedAttendance] = useState<Attendance | null>(null)
   const [showJustificationDialog, setShowJustificationDialog] = useState(false)
   const [showEditDialog, setShowEditDialog] = useState(false)
   const [showImagePreview, setShowImagePreview] = useState(false)
   const [previewImageUrl, setPreviewImageUrl] = useState('')
-  const filteredAttendances = useMemo(() => {
-    if (selectedTerm === 'all')
-      return attendances
-    return attendances.filter((_attendance) => {
-      // Filter logic based on term - you can adjust this based on your data structure
-      return true // For now, return all
-    })
-  }, [attendances, selectedTerm])
+
+  const handleSemesterChange = (semesterId: string) => {
+    const params = new URLSearchParams(searchParams)
+    params.set('semester', semesterId)
+
+    replace(`${pathname}?${params.toString()}`)
+  }
 
   const handleJustifyClick = (attendance: Attendance) => {
     setSelectedAttendance(attendance)
@@ -125,22 +133,23 @@ export function AttendanceHistory({ attendances, studentName, onAttendanceUpdate
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h3 className="text-lg font-semibold">Dernières absences</h3>
-        <Select value={selectedTerm} onValueChange={setSelectedTerm}>
+        <Select value={selectedSemester} onValueChange={handleSemesterChange}>
           <SelectTrigger className="w-[180px]">
             <SelectValue placeholder="Sélectionner un trimestre" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">Tous les trimestres</SelectItem>
-            <SelectItem value="1">1er Trimestre</SelectItem>
-            <SelectItem value="2">2ème Trimestre</SelectItem>
-            <SelectItem value="3">3ème Trimestre</SelectItem>
+            {semesters.map(semester => (
+              <SelectItem key={semester.id} value={semester.id.toString()}>
+                {semester.name}
+              </SelectItem>
+            ))}
           </SelectContent>
         </Select>
       </div>
 
       <div className="space-y-2">
         <AnimatePresence>
-          {filteredAttendances.map(attendance => (
+          {attendances.map(attendance => (
             <motion.div
               key={attendance.id}
               initial={{ opacity: 0, y: 20 }}
@@ -181,7 +190,7 @@ export function AttendanceHistory({ attendances, studentName, onAttendanceUpdate
           ))}
         </AnimatePresence>
 
-        {filteredAttendances.length === 0 && (
+        {attendances.length === 0 && (
           <div className="text-center py-8 text-muted-foreground">
             Aucune absence enregistrée pour cette période.
           </div>

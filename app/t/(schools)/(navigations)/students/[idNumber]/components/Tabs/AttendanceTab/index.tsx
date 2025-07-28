@@ -4,6 +4,7 @@ import type { Student } from '../../../types'
 import type { Attendance } from './AttendanceHistory'
 import type { AttendanceStats } from './AttendanceSummary'
 
+import { useSearchParams } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { Card } from '@/components/ui/card'
 import {
@@ -20,10 +21,15 @@ interface AttendanceTabProps {
 }
 
 export function AttendanceTab({ student, isLoading: initialLoading }: AttendanceTabProps) {
+  const searchParams = useSearchParams()
   const [stats, setStats] = useState<AttendanceStats | null>(null)
   const [attendances, setAttendances] = useState<Attendance[]>([])
   const [isLoading, setIsLoading] = useState(initialLoading)
   const [error, setError] = useState<string | null>(null)
+
+  // Derive semester from URL params - single source of truth
+  const semesterParam = searchParams.get('semester')
+  const semesterId = semesterParam ? Number.parseInt(semesterParam, 10) : undefined
 
   const fetchAttendanceData = async () => {
     if (!student?.id)
@@ -32,8 +38,8 @@ export function AttendanceTab({ student, isLoading: initialLoading }: Attendance
     try {
       setIsLoading(true)
       const [attendanceStats, attendanceHistory] = await Promise.all([
-        getStudentAttendanceStats(student.id),
-        getStudentAttendanceHistory(student.id),
+        getStudentAttendanceStats(student.id, semesterId),
+        getStudentAttendanceHistory(student.id, semesterId),
       ])
 
       setStats(attendanceStats)
@@ -51,7 +57,7 @@ export function AttendanceTab({ student, isLoading: initialLoading }: Attendance
 
   useEffect(() => {
     fetchAttendanceData()
-  }, [student?.id])
+  }, [student?.id, semesterId])
 
   const handleAttendanceUpdated = () => {
     // Refresh attendance data when a justification is submitted

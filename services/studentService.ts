@@ -556,8 +556,10 @@ export async function bulkAddStudentsToClass(classId: string, studentIdNumber: s
     throw error
 }
 
-export async function getStudentStats(studentId: string): Promise<StudentStats> {
+export async function getStudentStats(studentId: string, semesterId?: number): Promise<StudentStats> {
   const supabase = await createClient()
+
+  let semesterIdToUse = semesterId
 
   // 1. Get current school year and semester
   const { data: currentYear } = await supabase
@@ -566,14 +568,22 @@ export async function getStudentStats(studentId: string): Promise<StudentStats> 
     .eq('is_current', true)
     .single()
 
-  const { data: currentSemester } = await supabase
-    .from('semesters')
-    .select('id')
-    .eq('is_current', true)
-    .single()
+  if (!currentYear?.id) {
+    throw new Error('Année scolaire non trouvée')
+  }
 
-  if (!currentYear?.id || !currentSemester?.id) {
-    throw new Error('Current school year or semester not found')
+  if (!semesterIdToUse) {
+    const { data: currentSemester } = await supabase
+      .from('semesters')
+      .select('id')
+      .eq('is_current', true)
+      .single()
+
+    if (!currentSemester?.id) {
+      throw new Error('Trimestre/Semestre non trouvé')
+    }
+
+    semesterIdToUse = currentSemester.id
   }
 
   // 2. Get Attendance Stats
@@ -582,7 +592,7 @@ export async function getStudentStats(studentId: string): Promise<StudentStats> 
     .select('status, is_excused')
     .eq('student_id', studentId)
     .eq('school_years_id', currentYear.id)
-    .eq('semesters_id', currentSemester.id)
+    .eq('semesters_id', semesterIdToUse)
 
   // 3. Get Academic Average
   const { data: average } = await supabase
@@ -590,7 +600,7 @@ export async function getStudentStats(studentId: string): Promise<StudentStats> 
     .select('semester_average')
     .eq('student_id', studentId)
     .eq('school_year_id', currentYear.id)
-    .eq('semester_id', currentSemester.id)
+    .eq('semester_id', semesterIdToUse)
     .single()
 
   // 4. Get Payment Status
@@ -609,7 +619,7 @@ export async function getStudentStats(studentId: string): Promise<StudentStats> 
       note_details!inner(note)
     `)
     .eq('school_year_id', currentYear.id)
-    .eq('semester_id', currentSemester.id)
+    .eq('semester_id', semesterIdToUse)
     .eq('note_type', 'behavior')
     .eq('note_details.student_id', studentId)
 
