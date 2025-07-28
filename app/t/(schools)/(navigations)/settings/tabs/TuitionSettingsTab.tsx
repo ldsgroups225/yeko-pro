@@ -56,7 +56,7 @@ export default function TuitionSettingsPage() {
   )
 
   const remainingAmount = optimisticTuition[selectedGradeId!]?.annualFee - paymentPlans.reduce((acc, plan) => acc + (plan.fixedAmount ?? 0), 0)
-  const remainingAmountOfAffected = optimisticTuition[selectedGradeId!]?.annualFee - paymentPlans.reduce((acc, plan) => acc + (plan.fixedAmountOfAffected ?? 0), 0)
+  const remainingAmountOfAffected = optimisticTuition[selectedGradeId!]?.governmentAnnualFee - paymentPlans.reduce((acc, plan) => acc + (plan.fixedAmountOfAffected ?? 0), 0)
 
   const fetchTuitionSettings = useCallback(async () => {
     try {
@@ -285,6 +285,7 @@ export default function TuitionSettingsPage() {
                   gradeId={selectedGradeId!}
                   paymentPlans={paymentPlans}
                   totalAmount={optimisticTuition[selectedGradeId!]?.annualFee || 0}
+                  totalAmountOfAffected={optimisticTuition[selectedGradeId!]?.governmentAnnualFee || 0}
                 />
               </SettingsSection>
             </motion.div>

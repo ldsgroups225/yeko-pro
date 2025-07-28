@@ -48,6 +48,7 @@ interface PaymentPlanFormData {
 export interface PaymentPlanSectionProps {
   gradeId: number
   totalAmount: number
+  totalAmountOfAffected: number
   paymentPlans: ITemplate[]
 }
 
@@ -518,6 +519,7 @@ function PaymentPlanRowContainer({
 export function PaymentPlanSection({
   gradeId,
   totalAmount,
+  totalAmountOfAffected,
   paymentPlans,
 }: PaymentPlanSectionProps) {
   const { updateInstallmentTemplate } = useTuitionStore()
@@ -533,7 +535,7 @@ export function PaymentPlanSection({
   )
 
   const remainingAmount = totalAmount - paymentPlans.reduce((acc, plan) => acc + (plan.fixedAmount ?? 0), 0)
-  const remainingAmountOfAffected = totalAmount - paymentPlans.reduce((acc, plan) => acc + (plan.fixedAmountOfAffected ?? 0), 0)
+  const remainingAmountOfAffected = totalAmountOfAffected - paymentPlans.reduce((acc, plan) => acc + (plan.fixedAmountOfAffected ?? 0), 0)
 
   const maxInstallmentNumber
     = paymentPlans.reduce((acc, plan) => Math.max(acc, plan.installmentNumber), 0) + 1
