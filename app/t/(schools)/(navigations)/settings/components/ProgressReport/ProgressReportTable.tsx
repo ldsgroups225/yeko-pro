@@ -1,6 +1,6 @@
 'use client'
 
-import type { ILessonProgressReportConfig } from '@/types'
+import type { IGrade, ILessonProgressReportConfig, ISubject } from '@/types'
 import { useEffect, useState } from 'react'
 import { Pagination } from '@/components/Pagination'
 import {
@@ -26,6 +26,8 @@ interface ProgressReportTableProps {
   page: number
   limit: number
   refresh: () => Promise<void>
+  grades?: IGrade[]
+  subjects?: ISubject[]
 }
 
 export function ProgressReportTable({
@@ -34,6 +36,8 @@ export function ProgressReportTable({
   page,
   limit,
   refresh,
+  grades = [],
+  subjects = [],
 }: ProgressReportTableProps) {
   const [loading, setLoading] = useState(true)
   const [reports, setReports] = useState<ILessonProgressReportConfig[]>([])
@@ -128,6 +132,8 @@ export function ProgressReportTable({
                           schoolYearId={filters.schoolYearId}
                           report={report}
                           refresh={refresh}
+                          grades={grades}
+                          subjects={subjects}
                         />
                       </TableCell>
                     </TableRow>

@@ -1,6 +1,6 @@
 'use client'
 
-import type { ILessonProgressReportConfig } from '@/types'
+import type { IGrade, ILessonProgressReportConfig, ISubject } from '@/types'
 import { Edit, Loader2, MoreHorizontal, Trash } from 'lucide-react'
 import { useState, useTransition } from 'react'
 import { toast } from 'sonner'
@@ -20,9 +20,11 @@ interface ProgressReportTableActionsProps {
   schoolYearId: number
   report: ILessonProgressReportConfig
   refresh: () => Promise<void>
+  grades?: IGrade[]
+  subjects?: ISubject[]
 }
 
-export function ProgressReportTableActions({ schoolYearId, report, refresh }: ProgressReportTableActionsProps) {
+export function ProgressReportTableActions({ schoolYearId, report, refresh, grades = [], subjects = [] }: ProgressReportTableActionsProps) {
   const [isEditOpen, setIsEditOpen] = useState(false)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const [isDeleting, startDeleteTransition] = useTransition()
@@ -73,6 +75,8 @@ export function ProgressReportTableActions({ schoolYearId, report, refresh }: Pr
           isOpen={isEditOpen}
           onClose={() => setIsEditOpen(false)}
           report={report}
+          grades={grades}
+          subjects={subjects}
           schoolYearId={schoolYearId}
           refresh={refresh}
         />

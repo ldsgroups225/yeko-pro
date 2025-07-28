@@ -100,6 +100,8 @@ function ProgressReportsSettingsTab() {
                   page={page}
                   limit={limit}
                   refresh={async () => await loadData()}
+                  grades={grades}
+                  subjects={subjects}
                 />
               )}
         </CardContent>

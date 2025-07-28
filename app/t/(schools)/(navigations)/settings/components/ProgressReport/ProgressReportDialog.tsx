@@ -4,7 +4,7 @@ import type { IGrade, ILessonProgressReportConfig, ISubject } from '@/types'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { AnimatePresence, motion } from 'framer-motion'
 import { Loader2 } from 'lucide-react'
-import { useTransition } from 'react'
+import { useEffect, useTransition } from 'react'
 import { useForm } from 'react-hook-form'
 import { toast } from 'sonner'
 import { z } from 'zod'
@@ -35,22 +35,38 @@ import {
 } from '@/components/ui/select'
 import { createLessonProgressReportConfig, updateLessonProgressReportConfig } from '@/services/progressReportService'
 
-// Define allowed series values
-const seriesEnum = z.enum(['A', 'C', 'D']).nullable()
-
+// Define series enums
 enum Series {
   A = 'A',
+  A1 = 'A1',
+  A2 = 'A2',
   C = 'C',
   D = 'D',
 }
 
+enum SeriesOf11ThGrade {
+  A = 'A',
+  C = 'C',
+}
+
 type SERIES = Series | null
 
-// Zod schema with conditional requirement for series when gradeId > 10
+// Define grade-specific series mappings
+function getValidSeriesForGrade(gradeId: number): string[] {
+  if (gradeId === 11) {
+    return Object.values(SeriesOf11ThGrade)
+  }
+  else if (gradeId > 11) {
+    return Object.values(Series)
+  }
+  return []
+}
+
+// Enhanced Zod schema with proper series validation
 const reportSchema = z
   .object({
     gradeId: z.number({ required_error: 'Niveau requis' }).int().positive(),
-    series: seriesEnum,
+    series: z.string().nullable(),
     subjectId: z.string({ required_error: 'Matière requise' }).uuid('Matière invalide'),
     schoolYearId: z.number({ required_error: 'Année scolaire requise' }).int().positive(),
     lessonOrder: z.coerce.number({ required_error: 'Ordre requis' }).int().positive('Ordre doit être positif'),
@@ -61,12 +77,36 @@ const reportSchema = z
       .positive('Nombre de séances doit être positif'),
   })
   .superRefine((vals, ctx) => {
-    if (vals.gradeId > 10 && !vals.series) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ['series'],
-        message: 'Série requise pour ce niveau',
-      })
+    // Series is required for grades > 10
+    if (vals.gradeId > 10) {
+      if (!vals.series) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['series'],
+          message: 'Série requise pour ce niveau',
+        })
+        return
+      }
+
+      // Validate series based on grade
+      const validSeries = getValidSeriesForGrade(vals.gradeId)
+      if (!validSeries.includes(vals.series)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['series'],
+          message: `Série invalide pour ce niveau. Séries autorisées: ${validSeries.join(', ')}`,
+        })
+      }
+    }
+    else {
+      // Series should be null for grades <= 10
+      if (vals.series !== null) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['series'],
+          message: 'Série non applicable pour ce niveau',
+        })
+      }
     }
   })
 
@@ -103,23 +143,58 @@ export function ProgressReportDialog({
   const form = useForm<ReportFormValues>({
     resolver: zodResolver(reportSchema),
     defaultValues: {
-      gradeId: report?.gradeId,
+      gradeId: report?.gradeId ?? undefined,
       series: (report?.series as SERIES) ?? null,
-      subjectId: report?.subjectId,
+      subjectId: report?.subjectId ?? '',
       schoolYearId: report?.schoolYearId ?? schoolYearId,
-      lessonOrder: report?.lessonOrder,
+      lessonOrder: report?.lessonOrder ?? undefined,
       lesson: report?.lesson ?? '',
-      sessionsCount: report?.sessionsCount,
+      sessionsCount: report?.sessionsCount ?? undefined,
     },
   })
 
-  // Watch gradeId to conditionally render series field
+  // Watch gradeId to conditionally render series field and reset series when grade changes
   const gradeIdValue = form.watch('gradeId')
+
+  // Reset series when grade changes
+  useEffect(() => {
+    if (gradeIdValue !== undefined) {
+      if (gradeIdValue <= 10) {
+        form.setValue('series', null)
+      }
+      else {
+        // Reset series to null when switching to a grade that requires series
+        // User will need to select appropriate series
+        const currentSeries = form.getValues('series')
+        const validSeries = getValidSeriesForGrade(gradeIdValue)
+
+        if (currentSeries && !validSeries.includes(currentSeries)) {
+          form.setValue('series', null)
+        }
+      }
+    }
+  }, [gradeIdValue, form])
+
+  // Reset form when dialog opens/closes
+  useEffect(() => {
+    if (isOpen) {
+      form.reset({
+        gradeId: report?.gradeId ?? undefined,
+        series: (report?.series as SERIES) ?? null,
+        subjectId: report?.subjectId ?? '',
+        schoolYearId: report?.schoolYearId ?? schoolYearId,
+        lessonOrder: report?.lessonOrder ?? undefined,
+        lesson: report?.lesson ?? '',
+        sessionsCount: report?.sessionsCount ?? undefined,
+      })
+    }
+  }, [isOpen, report, schoolYearId, form])
 
   const onSubmit = (values: ReportFormValues) => {
     startTransition(async () => {
       try {
         const { gradeId, series, subjectId, schoolYearId, lessonOrder, lesson, sessionsCount } = values
+
         const payload: CreatePayload & Partial<Pick<UpdatePayload, 'series'>> = {
           grade_id: gradeId,
           subject_id: subjectId,
@@ -127,7 +202,7 @@ export function ProgressReportDialog({
           lesson_order: lessonOrder,
           lesson,
           sessions_count: sessionsCount,
-          ...(series != null ? { series } : {}),
+          ...(series !== null ? { series } : {}),
         }
 
         if (isEditing && report) {
@@ -147,6 +222,13 @@ export function ProgressReportDialog({
         toast.error(error instanceof Error ? error.message : 'Une erreur est survenue.')
       }
     })
+  }
+
+  // Get available series options based on selected grade
+  const getSeriesOptions = () => {
+    if (!gradeIdValue || gradeIdValue <= 10)
+      return []
+    return getValidSeriesForGrade(gradeIdValue)
   }
 
   return (
@@ -170,7 +252,7 @@ export function ProgressReportDialog({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Niveau</FormLabel>
-                  <Select onValueChange={v => field.onChange(Number(v))} value={field.value?.toString()}>
+                  <Select onValueChange={v => field.onChange(Number(v))} value={field.value?.toString() ?? ''}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Choisir un niveau" />
@@ -191,7 +273,7 @@ export function ProgressReportDialog({
 
             {/* Series (conditionally rendered) */}
             <AnimatePresence initial={false}>
-              {gradeIdValue > 10 && (
+              {gradeIdValue && gradeIdValue > 10 && (
                 <motion.div
                   key="series-field"
                   initial={{ opacity: 0, height: 0 }}
@@ -205,14 +287,17 @@ export function ProgressReportDialog({
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Série</FormLabel>
-                        <Select onValueChange={v => field.onChange(v as SERIES)} value={field.value ?? undefined}>
+                        <Select
+                          onValueChange={field.onChange}
+                          value={field.value ?? ''}
+                        >
                           <FormControl>
                             <SelectTrigger>
                               <SelectValue placeholder="Choisir une série" />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            {Object.values(Series).map(s => (
+                            {getSeriesOptions().map(s => (
                               <SelectItem key={s} value={s}>
                                 {s}
                               </SelectItem>
@@ -234,7 +319,7 @@ export function ProgressReportDialog({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Matière</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
+                  <Select onValueChange={field.onChange} value={field.value ?? ''}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Choisir une matière" />
@@ -261,7 +346,7 @@ export function ProgressReportDialog({
                 <FormItem>
                   <FormLabel>Ordre de la Leçon</FormLabel>
                   <FormControl>
-                    <Input type="number" placeholder="Ex: 1" {...field} />
+                    <Input type="number" placeholder="Ex: 1" {...field} value={field.value ?? ''} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -276,7 +361,7 @@ export function ProgressReportDialog({
                 <FormItem>
                   <FormLabel>Titre de la Leçon</FormLabel>
                   <FormControl>
-                    <Input placeholder="Ex: Introduction à l'algèbre" {...field} />
+                    <Input placeholder="Ex: Introduction à l'algèbre" {...field} value={field.value ?? ''} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -291,7 +376,7 @@ export function ProgressReportDialog({
                 <FormItem>
                   <FormLabel>Nombre total de séances</FormLabel>
                   <FormControl>
-                    <Input type="number" placeholder="Ex: 5" {...field} />
+                    <Input type="number" placeholder="Ex: 5" {...field} value={field.value ?? ''} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
