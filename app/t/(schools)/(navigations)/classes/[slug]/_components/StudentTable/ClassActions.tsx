@@ -10,12 +10,12 @@ import {
 import { useRouter } from 'next/navigation'
 import { useState, useTransition } from 'react'
 import { toast } from 'sonner'
+import { ConfirmationDialog } from '@/components/ConfirmationDialog'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
@@ -27,7 +27,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { Input } from '@/components/ui/input'
 import { useClasses, useUser } from '@/hooks'
 import { SearchStudentToAdd } from '../SearchStudentToAdd'
 
@@ -52,7 +51,6 @@ export function ClassActions({
 
   const [isAddStudentOpen, setIsAddStudentOpen] = useState(false)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
-  const [deleteConfirmationText, setDeleteConfirmationText] = useState('')
   const [isDeleting, setIsDeleting] = useState(false)
 
   async function handleActivateDeactivateClass() {
@@ -69,11 +67,6 @@ export function ClassActions({
   }
 
   async function handleDeleteClass() {
-    if (deleteConfirmationText !== 'supprimer cette classe') {
-      toast.error('Veuillez saisir exactement "supprimer cette classe" pour confirmer.')
-      return
-    }
-
     if (studentCount) {
       toast.warning('Vous ne pouvez pas supprimer une classe avec des élèves.')
       return
@@ -85,7 +78,6 @@ export function ClassActions({
 
       router.push('/t/classes')
       setIsDeleteDialogOpen(false)
-      setDeleteConfirmationText('')
 
       toast.success('La classe a été supprimée avec succès.')
     }
@@ -165,54 +157,19 @@ export function ClassActions({
         </DialogContent>
       </Dialog>
 
-      <Dialog
+      <ConfirmationDialog
         open={isDeleteDialogOpen}
-        onOpenChange={(open) => {
-          if (!isDeleting) {
-            setIsDeleteDialogOpen(open)
-            if (!open)
-              setDeleteConfirmationText('')
-          }
-        }}
-      >
-        <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader>
-            <DialogTitle className="text-destructive">
-              Supprimer la classe
-            </DialogTitle>
-            <DialogDescription>
-              Cette action est irréversible. Pour confirmer, veuillez saisir "
-              <span className="select-none font-medium">supprimer cette classe</span>
-              " ci-dessous.
-            </DialogDescription>
-          </DialogHeader>
-          <Input
-            value={deleteConfirmationText}
-            onChange={e => setDeleteConfirmationText(e.target.value)}
-            className="my-4"
-            disabled={isDeleting}
-          />
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => {
-                setIsDeleteDialogOpen(false)
-                setDeleteConfirmationText('')
-              }}
-              disabled={isDeleting}
-            >
-              Annuler
-            </Button>
-            <Button
-              variant="destructive"
-              onClick={handleDeleteClass}
-              disabled={deleteConfirmationText !== 'supprimer cette classe' || isDeleting}
-            >
-              {isDeleting ? 'Suppression...' : 'Supprimer'}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+        onOpenChange={setIsDeleteDialogOpen}
+        title="Supprimer la classe"
+        description="Cette action est irréversible. Pour confirmer, veuillez saisir"
+        confirmationText="supprimer cette classe"
+        onConfirm={handleDeleteClass}
+        isLoading={isDeleting}
+        loadingText="Suppression..."
+        confirmText="Supprimer"
+        cancelText="Annuler"
+        variant="destructive"
+      />
     </>
   )
 }
