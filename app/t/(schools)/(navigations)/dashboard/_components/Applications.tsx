@@ -6,7 +6,7 @@ import { useEffect, useState, useTransition } from 'react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { formatTimePassed } from '@/lib/utils'
 import { getClassesByGrade, handleCandidature } from '@/services/dashboardService'
@@ -78,6 +78,9 @@ function StudentClassSelectionDialog({
             {' '}
             {student.name}
           </DialogTitle>
+          <DialogDescription>
+            Veuillez choisir une classe pour l&apos;élève.
+          </DialogDescription>
         </DialogHeader>
         <div className="space-y-4">
           <Select value={selectedClassId} onValueChange={setSelectedClassId}>

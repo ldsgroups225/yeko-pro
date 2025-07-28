@@ -526,43 +526,49 @@ export async function getClassesByGrade(gradeId: number): Promise<{ id: string, 
     }
 
     // Fetch classes with their associated students
-    const { data, error } = await supabase
+    const classesQs = supabase
       .from('classes')
       .select(`
         id,
         name,
-        max_student,
-        student_school_class!inner(id)
+        max_student
       `)
       .eq('grade_id', gradeId)
       .eq('school_id', schoolId)
-      .eq('student_school_class.school_year_id', schoolYear.id)
-      .eq('student_school_class.enrollment_status', 'accepted')
-      .is('student_school_class.is_active', true)
+      // .eq('student_school_class.school_year_id', schoolYear.id)
+      // .eq('student_school_class.enrollment_status', 'accepted')
+      // .is('student_school_class.is_active', true)
 
-    if (error) {
+    const seatUsedQs = supabase
+      .from('student_school_class')
+      .select('class_id', { count: 'exact', head: true })
+      .eq('grade_id', gradeId)
+      .eq('school_id', schoolId)
+      .eq('school_year_id', schoolYear.id)
+      .eq('enrollment_status', 'accepted')
+      .is('is_active', true)
+
+    const [
+      { data: classes, error: classesError },
+      { count: seatUsed, error: seatUsedError },
+    ] = await Promise.all([
+      classesQs,
+      seatUsedQs,
+    ])
+
+    if (classesError || seatUsedError) {
       throw new Error('Échec de la récupération des classes')
     }
 
-    if (!data) {
+    if (!classes) {
       return []
     }
 
-    // Process the results to calculate remaining seats
-    const classes = data.map((classData) => {
-      const totalStudents = Array.isArray(classData.student_school_class)
-        ? classData.student_school_class.length
-        : 0
-
-      return {
-        id: classData.id,
-        name: classData.name,
-        remainingSeats: Math.max(0, (classData.max_student || 0) - totalStudents),
-      }
-    })
-
-    // return classes with available seats
-    return classes.filter(c => c.remainingSeats > 0)
+    return classes.filter(c => c.max_student > (seatUsed ?? 0)).map(c => ({
+      id: c.id,
+      name: c.name,
+      remainingSeats: c.max_student - (seatUsed ?? 0),
+    }))
   }
   catch (error) {
     console.error('Error in getClassesByGrade:', error)
