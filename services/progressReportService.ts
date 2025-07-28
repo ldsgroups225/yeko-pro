@@ -242,6 +242,16 @@ export async function deleteLessonProgressReportConfig(id: string): Promise<void
   const supabase = await createClient()
   await checkAuthAndGetSchoolId(supabase)
 
+  const { error: reportError } = await supabase
+    .from('lessons_progress_reports')
+    .delete()
+    .eq('lessons_progress_reports_config_id', id)
+
+  if (reportError) {
+    console.error('[E_DELETE_PROGRESSION', reportError)
+    throw new Error('Erreur lors de la suppression du rapport de progression. Veuillez contacter l\'administrateur si le problème persiste.')
+  }
+
   const { error } = await supabase
     .from('lessons_progress_reports_config')
     .delete()

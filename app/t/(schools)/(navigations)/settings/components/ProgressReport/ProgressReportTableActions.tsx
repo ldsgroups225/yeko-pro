@@ -4,6 +4,7 @@ import type { ILessonProgressReportConfig } from '@/types'
 import { Edit, Loader2, MoreHorizontal, Trash } from 'lucide-react'
 import { useState, useTransition } from 'react'
 import { toast } from 'sonner'
+import { ConfirmationDialog } from '@/components/ConfirmationDialog'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -23,6 +24,7 @@ interface ProgressReportTableActionsProps {
 
 export function ProgressReportTableActions({ schoolYearId, report, refresh }: ProgressReportTableActionsProps) {
   const [isEditOpen, setIsEditOpen] = useState(false)
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const [isDeleting, startDeleteTransition] = useTransition()
 
   const handleDelete = () => {
@@ -30,6 +32,7 @@ export function ProgressReportTableActions({ schoolYearId, report, refresh }: Pr
       try {
         await deleteLessonProgressReportConfig(report.id)
         toast.success('Configuration de progression de cours supprimé.')
+        setIsDeleteDialogOpen(false)
         // Revalidation handled by server action
       }
       catch (error) {
@@ -57,7 +60,7 @@ export function ProgressReportTableActions({ schoolYearId, report, refresh }: Pr
             {report.is_completed ? 'Marquer comme En cours' : 'Marquer comme Terminé'}
           </DropdownMenuItem> */}
           <DropdownMenuSeparator />
-          <DropdownMenuItem onClick={handleDelete} className="text-destructive" disabled={isDeleting}>
+          <DropdownMenuItem onClick={() => setIsDeleteDialogOpen(true)} className="text-destructive" disabled={isDeleting}>
             {isDeleting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Trash className="mr-2 h-4 w-4" />}
             Supprimer
           </DropdownMenuItem>
@@ -74,6 +77,21 @@ export function ProgressReportTableActions({ schoolYearId, report, refresh }: Pr
           refresh={refresh}
         />
       )}
+
+      {/* Delete Confirmation Dialog */}
+      <ConfirmationDialog
+        open={isDeleteDialogOpen}
+        onOpenChange={setIsDeleteDialogOpen}
+        title="Supprimer la configuration"
+        description="Cette action est irréversible. Pour confirmer, veuillez saisir"
+        confirmationText="supprimer cette configuration"
+        onConfirm={handleDelete}
+        isLoading={isDeleting}
+        loadingText="Suppression..."
+        confirmText="Supprimer"
+        cancelText="Annuler"
+        variant="destructive"
+      />
     </>
   )
 }
