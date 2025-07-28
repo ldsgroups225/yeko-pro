@@ -25,6 +25,8 @@ export interface StudentStats {
   attendance: {
     lateCount: number
     absencesCount: number
+    lateExcusedCount: number
+    absencesExcusedCount: number
   }
   average: number
   payment: {

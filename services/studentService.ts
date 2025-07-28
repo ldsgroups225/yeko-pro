@@ -579,7 +579,7 @@ export async function getStudentStats(studentId: string): Promise<StudentStats> 
   // 2. Get Attendance Stats
   const { data: attendances } = await supabase
     .from('attendances')
-    .select('status')
+    .select('status, is_excused')
     .eq('student_id', studentId)
     .eq('school_years_id', currentYear.id)
     .eq('semesters_id', currentSemester.id)
@@ -616,6 +616,8 @@ export async function getStudentStats(studentId: string): Promise<StudentStats> 
   // Calculate attendance percentage
   const lateCount = attendances?.filter(a => a.status === 'late').length || 0
   const absencesCount = attendances?.filter(a => a.status === 'absent').length || 0
+  const lateExcusedCount = attendances?.filter(a => a.status === 'late' && a.is_excused).length || 0
+  const absencesExcusedCount = attendances?.filter(a => a.status === 'absent' && a.is_excused).length || 0
 
   // Calculate behavior score and status
   const behaviorScore = behavior?.length
@@ -639,7 +641,9 @@ export async function getStudentStats(studentId: string): Promise<StudentStats> 
   return {
     attendance: {
       lateCount,
+      lateExcusedCount,
       absencesCount,
+      absencesExcusedCount,
     },
     average: Number(average?.semester_average) || 0,
     payment: {

@@ -19,7 +19,7 @@ export function QuickStatsGridDisplay({ stats, className = '' }: QuickStatsGridD
   const statCards = [
     {
       title: 'Assiduité',
-      value: `${stats.attendance.absencesCount} abs - ${stats.attendance.lateCount} ret`,
+      value: `${stats.attendance.absencesCount - stats.attendance.absencesExcusedCount} abs - ${stats.attendance.lateCount - stats.attendance.lateExcusedCount} ret`,
       progress: 100,
       icon: Clock,
       iconColor: 'text-blue-500',
