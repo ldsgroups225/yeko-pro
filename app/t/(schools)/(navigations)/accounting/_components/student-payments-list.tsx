@@ -1,4 +1,7 @@
-import { getStudentsWithPaymentStatus } from '@/services/accountingService'
+'use client'
+
+import React from 'react'
+import { useAccountingData } from '@/hooks/useAccountingData'
 import { StudentPaymentsTable } from './student-payments-table'
 
 interface StudentPaymentsListProps {
@@ -6,8 +9,47 @@ interface StudentPaymentsListProps {
   searchTerm?: string
 }
 
-export async function StudentPaymentsList({ status, searchTerm }: StudentPaymentsListProps) {
-  const students = await getStudentsWithPaymentStatus({ status, searchTerm })
+export function StudentPaymentsList({ status, searchTerm }: StudentPaymentsListProps) {
+  const {
+    students,
+    isLoading,
+    isLoadingMore,
+    error,
+    hasMore,
+    loadMore,
+    setFilters,
+  } = useAccountingData({
+    filters: {
+      status,
+      searchTerm,
+    },
+  })
 
-  return <StudentPaymentsTable students={students} />
+  // Update filters when props change
+  React.useEffect(() => {
+    setFilters({
+      status,
+      searchTerm,
+    })
+  }, [status, searchTerm, setFilters])
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center h-32 text-center text-red-500">
+        Erreur:
+        {' '}
+        {error}
+      </div>
+    )
+  }
+
+  return (
+    <StudentPaymentsTable
+      students={students}
+      isLoading={isLoading}
+      isLoadingMore={isLoadingMore}
+      hasMore={hasMore}
+      onLoadMore={loadMore}
+    />
+  )
 }

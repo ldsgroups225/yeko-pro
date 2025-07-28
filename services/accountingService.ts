@@ -243,8 +243,13 @@ export async function getCollectionRateData(
 }
 
 export async function getStudentsWithPaymentStatus(
-  filters: { status?: 'paid' | 'overdue', searchTerm?: string },
-): Promise<StudentWithPaymentStatus[]> {
+  filters: {
+    status?: 'paid' | 'overdue'
+    searchTerm?: string
+    page?: number
+    limit?: number
+  },
+): Promise<{ data: StudentWithPaymentStatus[], totalCount: number }> {
   const supabase = await createClient()
 
   const userId = await checkAuthUserId(supabase)
@@ -260,9 +265,14 @@ export async function getStudentsWithPaymentStatus(
     throw new Error('Could not determine the current school year.')
   }
 
+  const page = filters.page || 1
+  const limit = filters.limit || 12
+  const from = (page - 1) * limit
+  const to = from + limit - 1
+
   let query = supabase
     .from('student_payment_status_view')
-    .select('*')
+    .select('*', { count: 'exact' })
     .eq('school_id', schoolId)
     .eq('school_year_id', currentSchoolYear.id)
     .order('last_payment_date', { ascending: false, nullsFirst: false })
@@ -276,24 +286,27 @@ export async function getStudentsWithPaymentStatus(
     query = query.or(`first_name.ilike.%${term}%,last_name.ilike.%${term}%,id_number.ilike.%${term}%`)
   }
 
-  const { data, error } = await query.limit(10)
+  const { data, error, count } = await query.range(from, to)
 
   if (error) {
     console.error('Error fetching students with payment status:', error)
     throw new Error('Failed to fetch student payment statuses.')
   }
 
-  return (
-    data?.map(student => ({
-      id: student.student_id!,
-      name: formatFullName(student.first_name, student.last_name),
-      idNumber: student.id_number!,
-      classroom: student.classroom || '-',
-      lastPaymentDate: student.last_payment_date ? new Date(student.last_payment_date) : null,
-      paymentStatus: student.is_up_to_date ? 'paid' : 'overdue',
-      remainingAmount: student.remaining_amount || 0,
-    })) || []
-  )
+  const students = data?.map(student => ({
+    id: student.student_id!,
+    name: formatFullName(student.first_name, student.last_name),
+    idNumber: student.id_number!,
+    classroom: student.classroom || '-',
+    lastPaymentDate: student.last_payment_date ? new Date(student.last_payment_date) : null,
+    paymentStatus: (student.is_up_to_date ? 'paid' : 'overdue') as 'paid' | 'overdue',
+    remainingAmount: student.remaining_amount || 0,
+  })) || []
+
+  return {
+    data: students,
+    totalCount: count || 0,
+  }
 }
 
 export async function notifyIndividualParent({ fullName, studentClassroom, studentId }: { fullName: string, studentClassroom: string, studentId: string }): Promise<void> {

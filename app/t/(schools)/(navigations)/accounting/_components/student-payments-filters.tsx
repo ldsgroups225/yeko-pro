@@ -9,9 +9,13 @@ import { Input } from '@/components/ui/input'
 
 interface StudentPaymentsFiltersProps {
   isLoading?: boolean
+  onFiltersChange?: (filters: { status?: 'paid' | 'overdue', searchTerm?: string }) => void
 }
 
-export function StudentPaymentsFilters({ isLoading = false }: StudentPaymentsFiltersProps) {
+export function StudentPaymentsFilters({
+  isLoading = false,
+  onFiltersChange,
+}: StudentPaymentsFiltersProps) {
   const searchParams = useSearchParams()
   const pathname = usePathname()
   const { replace } = useRouter()
@@ -30,6 +34,12 @@ export function StudentPaymentsFilters({ isLoading = false }: StudentPaymentsFil
       params.delete('search')
     }
     replace(`${pathname}?${params.toString()}`)
+
+    // Notify parent component of filter change
+    onFiltersChange?.({
+      status: localFilterStatus === 'all' ? undefined : localFilterStatus,
+      searchTerm: term || undefined,
+    })
   }, 300)
 
   const handleStatusFilter = (status: 'paid' | 'overdue' | 'all') => {
@@ -41,6 +51,12 @@ export function StudentPaymentsFilters({ isLoading = false }: StudentPaymentsFil
       params.set('status', status)
     }
     replace(`${pathname}?${params.toString()}`)
+
+    // Notify parent component of filter change
+    onFiltersChange?.({
+      status: status === 'all' ? undefined : status,
+      searchTerm: searchParams.get('search') || undefined,
+    })
   }
 
   const handleChangeSearchParams = useDebouncedCallback((status: 'all' | 'paid' | 'overdue' | undefined) => {
@@ -52,6 +68,7 @@ export function StudentPaymentsFilters({ isLoading = false }: StudentPaymentsFil
   useEffect(() => {
     handleChangeSearchParams(localFilterStatus)
   }, [localFilterStatus, handleChangeSearchParams])
+
   return (
     <>
       <div className="flex justify-between items-center">
