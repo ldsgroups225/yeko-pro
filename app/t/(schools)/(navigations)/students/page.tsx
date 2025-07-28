@@ -192,7 +192,7 @@ export default function StudentsPage() {
             ? (
                 <StudentsTable
                   students={students}
-                  isLoading={status === 'idle' || status === 'loading'}
+                  isLoading={status === 'loading'}
                   onSort={handleSort}
                   onParentLink={handleParentLink}
                   onStudentEdit={handleStudentEdit}
@@ -203,7 +203,7 @@ export default function StudentsPage() {
                   students={students}
                   onParentLink={handleParentLink}
                   onStudentEdit={handleStudentEdit}
-                  isLoading={status === 'idle' || status === 'loading'}
+                  isLoading={status === 'loading'}
                 />
               )}
 

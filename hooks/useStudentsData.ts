@@ -102,7 +102,9 @@ export function useStudentsData({
       return 'loading'
     if (error)
       return 'error'
-    if (students.length > 0)
+    // If we have loaded data (even if empty), return success
+    // This helps distinguish between "not loaded yet" and "loaded but empty"
+    if (hasInitializedRef.current && !isLoading)
       return 'success'
     return 'idle'
   })()
