@@ -116,7 +116,7 @@ export function NotesFilters({ classes }: NotesFiltersProps) {
         value={searchParams?.get('semesterId') ?? undefined}
       >
         <SelectTrigger className="max-w-[200px]">
-          <SelectValue placeholder="Semestre" />
+          <SelectValue placeholder="Trimestre" />
         </SelectTrigger>
         <SelectContent>
           {semesters.map(semester => (
