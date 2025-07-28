@@ -83,9 +83,9 @@ export function ClassActions({
       setIsDeleting(true)
       await deleteClass(user!.school.id!, classId)
 
+      router.push('/t/classes')
       setIsDeleteDialogOpen(false)
       setDeleteConfirmationText('')
-      router.push('/t/classes')
 
       toast.success('La classe a été supprimée avec succès.')
     }

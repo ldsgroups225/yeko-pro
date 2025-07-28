@@ -436,35 +436,31 @@ export async function deleteClass(schoolId: string, classId: string): Promise<vo
 
   // check first if class contains students
   const { data: students, error: studentError } = await supabase
-    .from('students')
+    .from('student_school_class')
     .select('id')
     .eq('class_id', classId)
+    .eq('enrollment_status', 'accepted')
+    .is('is_active', true)
     .limit(1)
+    .maybeSingle()
 
   if (studentError) {
     throw new Error('Nous n\'avons pas pu supprimer la classe, réessayez plus tard.')
   }
 
-  if (students.length) {
+  if (students) {
     throw new Error('Vous ne pouvez pas supprimer une classe avec des élèves.')
   }
 
-  const { data, error } = await supabase
+  const { error } = await supabase
     .from('classes')
     .delete()
     .eq('school_id', schoolId)
     .eq('id', classId)
-    .select('*, teacher:users(id, first_name, last_name, email)')
-    .single()
-    .throwOnError()
 
   if (error) {
     console.error('Error deleting class:', error)
     throw new Error('Échec de la suppression de la classe')
-  }
-
-  if (!data) {
-    throw new Error('Classe non trouvée')
   }
 }
 
