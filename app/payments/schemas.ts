@@ -9,21 +9,42 @@ export const searchSchema = z.object({
 })
 
 // Schema for the second parent
-const secondParentSchema = z.object({
+const rawSecondParentSchema = z.object({
   fullName: z.string({
     required_error: 'Le nom complet du deuxième parent est requis',
-  }).min(1, 'Le nom complet est requis'),
+  }).trim().optional(),
   gender: z.enum(['M', 'F'], {
     required_error: 'Le genre du deuxième parent est requis',
-  }),
+  }).optional(),
   phone: z.string({
-    required_error: 'Le numéro de téléphone est requis',
-  }).min(1, 'Le numéro de téléphone est requis'),
-  type: z.enum(['father', 'mother', 'guardian'], {
-    required_error: 'Le type de parent est requis',
-    invalid_type_error: 'Type de parent invalide',
-  }),
-}).optional()
+    required_error: 'Le numéro de téléphone du deuxième parent est requis',
+  }).trim().optional(),
+  type: z.enum(['father', 'mother', 'guardian']).optional(),
+})
+
+// If every field is empty / undefined, we treat secondParent as undefined
+const secondParentSchema = rawSecondParentSchema
+  .transform((data) => {
+    const { fullName = '', phone = '' } = data
+    // consider empty if critical fields are blank
+    if (fullName.trim() === '' && phone.trim() === '')
+      return undefined
+    return {
+      fullName: fullName.trim(),
+      phone: phone.trim(),
+      gender: data.gender ?? 'M',
+      type: data.type ?? 'guardian',
+    }
+  })
+  .refine((val) => {
+    // When provided, fullName, phone, gender and type must not be empty
+    if (!val)
+      return true // it's optional
+    return val.fullName !== '' && val.phone !== '' && val.gender !== undefined && val.type !== undefined
+  }, {
+    message: 'Veuillez renseigner le nom complet, le téléphone, le genre et le type du deuxième parent ou bien laisser la section vide.',
+  })
+  .optional()
 
 export const studentCreationSchema = z.object({
   firstName: z.string({
@@ -39,11 +60,17 @@ export const studentCreationSchema = z.object({
   gender: z.enum(['M', 'F'], {
     required_error: 'Le genre est obligatoire',
   }),
-  idNumber: z.string()
-    .trim()
-    .min(8, 'Cette matricule n\'est pas correcte')
-    .max(12, 'Cette matricule n\'est pas correcte')
-    .optional(),
+  idNumber: z.preprocess(
+    (val) => {
+      if (typeof val === 'string' && val.trim() === '')
+        return undefined
+      return val
+    },
+    z.string()
+      .trim()
+      .min(8, 'Cette matricule n\'est pas correcte')
+      .max(12, 'Cette matricule n\'est pas correcte'),
+  ).optional(),
   birthDate: z.coerce.date({
     required_error: 'Date de naissance obligatoire.',
     invalid_type_error: 'Date invalide.',

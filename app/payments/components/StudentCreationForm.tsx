@@ -175,6 +175,7 @@ export function StudentCreationForm({
               <FormControl>
                 <Input
                   {...field}
+                  value={field.value ?? ''}
                 />
               </FormControl>
               <FormDescription>
