@@ -44,6 +44,7 @@ export function StudentCreationForm({
   const [isOtpChecking, startOtpChecking] = useTransition()
   const [isSubmitting, startSubmitting] = useTransition()
   const [showSecondParent, setShowSecondParent] = useState(false)
+  const [hasMedicalCondition, setHasMedicalCondition] = useState<boolean>(false)
 
   const studentForm = useForm<StudentCreationFormData>({
     resolver: zodResolver(studentCreationSchema),
@@ -348,23 +349,60 @@ export function StudentCreationForm({
           )}
         </FormFieldWrapper>
 
-        {/* Medical condition using Wrapper */}
-        <FormFieldWrapper
-          control={studentForm.control}
-          name="medicalCondition"
-          label="Condition médicale (optionnel)"
-        >
-          {({ field }) => (
-            <MedicalConditionInput
-              value={field.value}
-              onChange={field.onChange}
-              // name={field.name} // Probably not needed if value/onChange are handled
-              // onBlur={field.onBlur} // Pass if MedicalConditionInput uses it
-              // ref={field.ref} // Pass if MedicalConditionInput needs ref
+        {/* Medical Condition Section */}
+        <div className="space-y-2">
+          <FormLabel>L'élève a-t-il une condition médicale particulière ?</FormLabel>
+          <div className="flex items-center justify-center gap-2">
+            <Button
+              type="button"
+              variant={hasMedicalCondition ? 'default' : 'outline'}
+              onClick={() => setHasMedicalCondition(true)}
               disabled={isLoading}
-            />
+            >
+              Oui
+            </Button>
+            <span className="text-sm text-muted-foreground">ou</span>
+            <Button
+              type="button"
+              variant={!hasMedicalCondition ? 'default' : 'outline'}
+              onClick={() => {
+                setHasMedicalCondition(false)
+                studentForm.setValue('medicalCondition', [])
+              }}
+              disabled={isLoading}
+            >
+              Non
+            </Button>
+          </div>
+        </div>
+
+        <AnimatePresence initial={false}>
+          {hasMedicalCondition && (
+            <motion.div
+              key="medical-condition-input"
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.3, ease: 'easeInOut' }}
+              style={{ overflow: 'hidden' }}
+              className="mt-4"
+            >
+              <FormFieldWrapper
+                control={studentForm.control}
+                name="medicalCondition"
+                label="Condition médicale (optionnel)"
+              >
+                {({ field }) => (
+                  <MedicalConditionInput
+                    value={field.value}
+                    onChange={field.onChange}
+                    disabled={isLoading}
+                  />
+                )}
+              </FormFieldWrapper>
+            </motion.div>
           )}
-        </FormFieldWrapper>
+        </AnimatePresence>
 
         {/* Second Parent Section */}
         <div className="space-y-4 border-t pt-4">
