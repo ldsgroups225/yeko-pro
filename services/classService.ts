@@ -3,7 +3,7 @@
 import type { SupabaseClient } from '@/lib/supabase/server'
 import type { ClassDetailsStudent, FilterStudentWhereNotInTheClass, IClass, IClassDetailsStats } from '@/types'
 import { createClient } from '@/lib/supabase/server'
-import { formatFullName } from '@/lib/utils'
+import { formatFullName, parseRank } from '@/lib/utils'
 
 interface FetchClassesParams {
   schoolId: string
@@ -590,11 +590,12 @@ interface GetClassStudentsProps {
  * Retrieves the students of a class based on the provided parameters.
  * @async
  * @param {GetClassStudentsProps} props - The parameters to fetch class students.
- * @param {string} props.schoolId - The ID of the school.
  * @param {string} props.classId - The ID of the class.
  * @param {number} props.page - The page number.
  * @param {number} props.limit - The number of items per page.
- * @returns {Promise<ClassDetailsStudent[]>} A promise that resolves to an array of class student data.
+ * @param {number} props.schoolYearId - The ID of the school year.
+ * @param {number} props.semesterId - The ID of the semester.
+ * @returns {Promise<{students: ClassDetailsStudent[], totalCount: number}>} A promise that resolves to an array of class student data.
  * @throws {Error} If the user is unauthorized or if there is an error fetching data.
  */
 export async function getClassStudents({
@@ -611,10 +612,22 @@ export async function getClassStudents({
 
   await checkAuthUserId(supabase)
 
-  // Fetch student data using the new student_semester_average_view
-  const { data: studentData, error, count: totalCount } = await supabase
-    .from('student_semester_average_view')
-    .select(`
+  // Parallel fetch: averages, attendance data
+  const [
+    { data: studentsData, error: studentsError, count: totalStudentCount },
+    { data: averagesData, error: averagesError },
+    { data: attendanceData, error: attendanceError },
+  ] = await Promise.all([
+    // Fetch class students, semester averages and ranks
+    supabase
+      .from('student_school_class')
+      .select(`
+      id,
+      created_at,
+      is_government_affected,
+      is_orphan,
+      is_subscribed_to_transportation,
+      is_subscribed_to_canteen,
       student:students!inner (
         id,
         id_number,
@@ -624,79 +637,78 @@ export async function getClassStudents({
         date_of_birth,
         avatar_url,
         address,
-        parent:users(id, first_name, last_name, email, phone, avatar_url),
-        student_enrollment_view!inner(school_id, class_id, enrollment_status, created_at, is_government_affected, class_name),
-        attendances(
-          status,
-          class_id,
-          is_excused,
-          created_at,
-          school_years_id,
-          semesters_id
-        )
+        parent:users(id, first_name, last_name, email, phone, avatar_url)
       ),
-      semester_average,
-      rank_in_class,
-      class_id,
-      school_year_id,
-      semester_id
+      class:classes!inner (
+        id,
+        name
+      )
     `, { count: 'exact' })
-    .eq('class_id', classId)
-    .eq('school_year_id', schoolYearId)
-    .eq('semester_id', semesterId)
-    .range(from, to)
-    .order('rank_in_class', { ascending: true, nullsFirst: false })
-    .throwOnError()
+      .eq('class_id', classId)
+      .eq('enrollment_status', 'accepted')
+      .eq('is_active', true),
 
-  if (error) {
-    console.error('Error fetching class students with rank:', error)
-    throw new Error('Failed to fetch students')
+    supabase
+      .from('student_semester_average_view')
+      .select('student_id, semester_average, rank_in_class')
+      .eq('class_id', classId)
+      .eq('school_year_id', schoolYearId)
+      .eq('semester_id', semesterId),
+    // .order('rank_in_class', { ascending: true, nullsFirst: false }),
+
+    // Fetch attendance data
+    supabase
+      .from('attendances')
+      .select('student_id, status, created_at')
+      .eq('class_id', classId)
+      .eq('school_years_id', schoolYearId)
+      .eq('semesters_id', semesterId)
+      .eq('is_excused', false),
+  ])
+
+  if (studentsError || averagesError || attendanceError) {
+    throw new Error('Oups!! nous n\'arrivons pas à trouver les données')
   }
 
-  if (!studentData) {
-    throw new Error('Failed to fetch students data')
-  }
+  // Process averages data
+  const averagesMap = new Map<string, { average: number, rank: string }>()
 
-  // Process each student's data to match the interface
-  const students = studentData.map((item) => {
-    const student = item.student // Access nested student object
+  averagesData.forEach((avg) => {
+    averagesMap.set(avg.student_id!, {
+      average: avg.semester_average ?? 0,
+      rank: avg.rank_in_class?.toString() ?? '',
+    })
+  })
 
-    if (!student) {
-      // Handle cases where the join might unexpectedly fail, though !inner should prevent this
-      console.warn(`Student data missing for rank entry: ${JSON.stringify(item)}`)
-      return null // Or throw an error, or return a default structure
+  // Process attendance data
+  const attendanceMap = new Map<string, { absentCount: number, lateCount: number, lastEvaluation: string }>()
+  const attendanceByStudent = attendanceData.reduce((acc, attendance) => {
+    if (!acc[attendance.student_id]) {
+      acc[attendance.student_id] = []
     }
+    acc[attendance.student_id].push(attendance)
+    return acc
+  }, {} as Record<string, typeof attendanceData>)
 
-    // Filter attendance for current school year and semester
-    const currentAttendance = student.attendances.filter(attendance =>
-      attendance.school_years_id === schoolYearId
-      && attendance.semesters_id === semesterId
-      && attendance.class_id === classId
-      && attendance.is_excused === false,
-    )
+  Object.entries(attendanceByStudent).forEach(([studentId, attendances]) => {
+    const absentCount = attendances.filter(a => a.status === 'absent').length
+    const lateCount = attendances.filter(a => a.status === 'late').length
 
-    // Count absences and lates
-    const absentCount = currentAttendance.filter(a => a.status === 'absent').length
-    const lateCount = currentAttendance.filter(a => a.status === 'late').length
-
-    // Get last evaluation date from attendance (best effort)
-    const validAttendances = currentAttendance.filter(a => a.created_at !== null)
-
+    // Get last evaluation date
+    const validAttendances = attendances.filter(a => a.created_at !== null)
     const lastEvaluation = validAttendances.length > 0
-      ? new Date(Math.max(...validAttendances.map(a =>
-          // We know a.created_at is not null here due to the filter above
-          new Date(a.created_at!).getTime(),
-        ))).toLocaleDateString()
-      : ''
+      ? new Date(Math.max(...validAttendances.map(a => new Date(a.created_at!).getTime()))).toLocaleDateString()
+      : '-'
 
-    const enrollment: typeof student.student_enrollment_view[0] = student.student_enrollment_view.length > 0
-      ? student.student_enrollment_view[0]
-      : { school_id: null, class_id: null, enrollment_status: null, created_at: null, is_government_affected: null, class_name: null }
+    attendanceMap.set(studentId, { absentCount, lateCount, lastEvaluation })
+  })
 
-    // Use semester_average and rank_in_class from the view
-    const gradeAverage = item.semester_average ?? 0
-    const rank = item.rank_in_class ?? 0
-
+  // Combine all data
+  const students: ClassDetailsStudent[] = studentsData.map((enrollment) => {
+    const student = enrollment.student
+    const classInfo = enrollment.class
+    const averageData = averagesMap.get(student.id)
+    const attendanceData = attendanceMap.get(student.id)
     const parent = student.parent as any
 
     return {
@@ -708,20 +720,20 @@ export async function getClassStudents({
       birthDate: student.date_of_birth,
       avatarUrl: student.avatar_url,
       address: student.address,
-      classId: enrollment.class_id,
-      className: enrollment.class_name,
+      classId: classInfo.id,
+      className: classInfo.name,
       dateJoined: enrollment.created_at,
       isGouvernentAffected: enrollment.is_government_affected || false,
-      isOrphan: false,
-      hasSubscribedTransportationService: false,
-      hasSubscribedCanteenService: false,
-      gradeAverage,
-      absentCount,
-      lateCount,
-      lastEvaluation,
-      teacherNotes: '', // TODO: Placeholder
-      status: 'active', // TODO: Placeholder
-      rank,
+      isOrphan: enrollment.is_orphan || false,
+      hasSubscribedTransportationService: enrollment.is_subscribed_to_transportation || false,
+      hasSubscribedCanteenService: enrollment.is_subscribed_to_canteen || false,
+      gradeAverage: averageData?.average ?? 0,
+      rank: averageData?.rank ?? '',
+      absentCount: attendanceData?.absentCount ?? 0,
+      lateCount: attendanceData?.lateCount ?? 0,
+      lastEvaluation: attendanceData?.lastEvaluation ?? '-',
+      teacherNotes: '', // TODO: Implement if needed
+      status: 'active', // TODO: Implement proper status logic if needed
       parent: parent
         ? {
             id: parent.id,
@@ -732,11 +744,40 @@ export async function getClassStudents({
           }
         : undefined,
     }
-  }).filter(s => s !== null) as ClassDetailsStudent[] // Filter out any nulls if handled that way
+  })
 
-  // No need for manual sorting/ranking anymore
+  // Sort by rank (students with no rank go to the end), then by name
+  students.sort((a, b) => {
+    const aParsed = parseRank(a.rank)
+    const bParsed = parseRank(b.rank)
 
-  return { students, totalCount: totalCount ?? 0 }
+    // Rankless students go last
+    if (!aParsed && !bParsed) {
+      return a.lastName.localeCompare(b.lastName) || a.firstName.localeCompare(b.firstName)
+    }
+    if (!aParsed)
+      return 1
+    if (!bParsed)
+      return -1
+
+    // Sort by rank value ascending
+    if (aParsed.value !== bParsed.value) {
+      return aParsed.value - bParsed.value
+    }
+
+    // Tie ranks (e.g., 1x) go after solo ranks (e.g., 1)
+    if (aParsed.isTie !== bParsed.isTie) {
+      return aParsed.isTie ? 1 : -1
+    }
+
+    // Fallback: alphabetical
+    return a.lastName.localeCompare(b.lastName) || a.firstName.localeCompare(b.firstName)
+  })
+
+  // Apply pagination after sorting
+  const paginatedStudents = students.slice(from, to + 1)
+
+  return { students: paginatedStudents, totalCount: totalStudentCount ?? 0 }
 }
 
 export async function filterStudentWhereNotInTheClass(

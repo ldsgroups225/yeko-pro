@@ -219,7 +219,7 @@ export interface IClassDetailsStats {
 
 export interface ClassDetailsStudent {
   id: string
-  rank: number
+  rank: string
   status: string
   idNumber: string
   lastName: string
