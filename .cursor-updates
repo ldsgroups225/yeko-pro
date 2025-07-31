@@ -4,4 +4,5 @@
 - Added student enrollment date (dateJoined) to PersonalInfo component using data from student_school_class.created_at
 - Updated studentService.ts to fetch created_at from student_school_class table
 - Updated transformStudentDTO to map createdAt to dateJoined field
-- Fixed test issues by using getAllByTestId instead of getByTestId for duplicate elements 
+- Fixed test issues by using getAllByTestId instead of getByTestId for duplicate elements
+- Added Excel export functionality to notes page with NotesExportButton component for exporting all student notes data

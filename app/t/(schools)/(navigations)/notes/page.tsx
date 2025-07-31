@@ -3,6 +3,7 @@ import { Suspense } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { getClassesForNotes } from '@/services/noteService'
 import { NotesFilters, NotesTable, NotesTableSkeleton } from './_components'
+import { NotesExportButton } from './_components/NotesExportButton'
 
 export const metadata: Metadata = {
   title: 'Yeko | Notes',
@@ -42,6 +43,7 @@ export default async function NotesPage({
       <Card className="bg-card">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle>Gestion des Notes</CardTitle>
+          <NotesExportButton />
         </CardHeader>
 
         <CardContent className="px-6 py-3">
