@@ -27,8 +27,8 @@ export interface Database {
           image_url: string | null
           is_excused: boolean
           reason: string | null
-          school_years_id: number | null
-          semesters_id: number | null
+          school_years_id: number
+          semesters_id: number
           starts_at: string
           status: string
           student_id: string
@@ -46,8 +46,8 @@ export interface Database {
           image_url?: string | null
           is_excused?: boolean
           reason?: string | null
-          school_years_id?: number | null
-          semesters_id?: number | null
+          school_years_id: number
+          semesters_id: number
           starts_at: string
           status: string
           student_id: string
@@ -65,8 +65,8 @@ export interface Database {
           image_url?: string | null
           is_excused?: boolean
           reason?: string | null
-          school_years_id?: number | null
-          semesters_id?: number | null
+          school_years_id?: number
+          semesters_id?: number
           starts_at?: string
           status?: string
           student_id?: string
@@ -2032,6 +2032,7 @@ export interface Database {
           medical_condition: Json | null
           nationality: string
           parent_id: string
+          search_document: unknown | null
           updated_at: string | null
           updated_by: string | null
         }
@@ -2051,6 +2052,7 @@ export interface Database {
           medical_condition?: Json | null
           nationality?: string
           parent_id: string
+          search_document?: unknown | null
           updated_at?: string | null
           updated_by?: string | null
         }
@@ -2070,6 +2072,7 @@ export interface Database {
           medical_condition?: Json | null
           nationality?: string
           parent_id?: string
+          search_document?: unknown | null
           updated_at?: string | null
           updated_by?: string | null
         }
@@ -2423,6 +2426,7 @@ export interface Database {
           month: string | null
           month_numeric: number | null
           school_years_id: number | null
+          semester_id: number | null
           student_id: string | null
         }
         Relationships: [
@@ -2446,6 +2450,27 @@ export interface Database {
             isOneToOne: false
             referencedRelation: 'student_semester_average_view'
             referencedColumns: ['school_year_id']
+          },
+          {
+            foreignKeyName: 'attendances_semesters_foreign'
+            columns: ['semester_id']
+            isOneToOne: false
+            referencedRelation: 'average_grades_view_with_rank'
+            referencedColumns: ['semester_id']
+          },
+          {
+            foreignKeyName: 'attendances_semesters_foreign'
+            columns: ['semester_id']
+            isOneToOne: false
+            referencedRelation: 'semesters'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'attendances_semesters_foreign'
+            columns: ['semester_id']
+            isOneToOne: false
+            referencedRelation: 'student_semester_average_view'
+            referencedColumns: ['semester_id']
           },
           {
             foreignKeyName: 'attendances_student_id_fkey'
@@ -2865,6 +2890,7 @@ export interface Database {
           remaining_amount: number | null
           school_id: string | null
           school_year_id: number | null
+          search_document: unknown | null
           student_id: string | null
         }
         Relationships: [
@@ -2983,6 +3009,14 @@ export interface Database {
       create_attendance_and_participator_and_homework: {
         Args: { attendances: Json, participators: Json, homework?: Json }
         Returns: string
+      }
+      distribute_extra_fee: {
+        Args: {
+          p_amount: number
+          p_number_of_installment: number
+          p_multiplier: number
+        }
+        Returns: Database['public']['CompositeTypes']['distribute_installment_extra_fee_result'][]
       }
       generate_invite_teacher_otp: {
         Args: { p_school_id: string }
@@ -3133,7 +3167,9 @@ export interface Database {
       status_enum: 'pending' | 'accepted' | 'rejected'
     }
     CompositeTypes: {
-      [_ in never]: never
+      distribute_installment_extra_fee_result: {
+        amount: number | null
+      }
     }
   }
 }

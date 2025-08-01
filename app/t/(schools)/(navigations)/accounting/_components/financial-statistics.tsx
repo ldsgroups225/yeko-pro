@@ -94,7 +94,7 @@ export function FinancialStatistics() {
         {
           title: 'Chiffre attendu (ans)',
           value: formatCurrency(metrics.revenue.total, false),
-          description: `${metrics.revenue.previousMonthPercentage > 0 ? '+' : ''}${metrics.revenue.previousMonthPercentage.toFixed(1)}% du mois dernier`,
+          description: `${metrics.revenue.previousMonthPercentage > 0 ? '+' : ''}${metrics.revenue.previousMonthPercentage.toFixed(1)}% de l'année dernière`,
           icon: 'F CFA',
           // icon: <DollarSign className="h-4 w-4 text-muted-foreground" />,
         },
