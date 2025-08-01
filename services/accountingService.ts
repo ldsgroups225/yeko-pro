@@ -282,8 +282,16 @@ export async function getStudentsWithPaymentStatus(
   }
 
   if (filters.searchTerm) {
-    const term = filters.searchTerm.toLowerCase()
-    query = query.or(`first_name.ilike.%${term}%,last_name.ilike.%${term}%,id_number.ilike.%${term}%`)
+    // Use PostgreSQL full-text search on the generated `search_document` column (tsvector)
+    // `plain` search type splits the input on spaces and looks for each term.
+    query = query.textSearch(
+      'search_document',
+      filters.searchTerm.trim(),
+      {
+        type: 'plain',
+        config: 'simple', // same config used when generating the tsvector
+      },
+    )
   }
 
   const { data, error, count } = await query.range(from, to)
