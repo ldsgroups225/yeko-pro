@@ -30,14 +30,17 @@ interface ProgressReportTableProps {
   subjects?: ISubject[]
 }
 
+const DEFAULT_GRADES: IGrade[] = []
+const DEFAULT_SUBJECTS: ISubject[] = []
+
 export function ProgressReportTable({
   schoolId,
   filters,
   page,
   limit,
   refresh,
-  grades = [],
-  subjects = [],
+  grades = DEFAULT_GRADES,
+  subjects = DEFAULT_SUBJECTS,
 }: ProgressReportTableProps) {
   const [loading, setLoading] = useState(true)
   const [reports, setReports] = useState<ILessonProgressReportConfig[]>([])

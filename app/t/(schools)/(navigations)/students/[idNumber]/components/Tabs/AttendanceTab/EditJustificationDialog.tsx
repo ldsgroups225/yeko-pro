@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { toast } from 'sonner'
 import { ImageUpload } from '@/components/ImageUpload'
 import { Button } from '@/components/ui/button'
@@ -40,38 +40,31 @@ export function EditJustificationDialog({
   currentImageUrl,
   onJustified,
 }: EditJustificationDialogProps) {
-  const [justificationImage, setJustificationImage] = useState<string | null>(currentImageUrl)
-  const [reason, setReason] = useState(currentReason)
+  const [formState, setFormState] = useState({
+    justificationImage: currentImageUrl as string | null,
+    reason: currentReason,
+    showConfirmation: false,
+  })
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [showConfirmation, setShowConfirmation] = useState(false)
-
-  // Update form fields when dialog opens with new data
-  useEffect(() => {
-    if (isOpen) {
-      setJustificationImage(currentImageUrl)
-      setReason(currentReason)
-      setShowConfirmation(false)
-    }
-  }, [isOpen, currentImageUrl, currentReason])
 
   const handleImageSelected = (image: string | null) => {
-    setJustificationImage(image)
+    setFormState(prev => ({ ...prev, justificationImage: image }))
   }
 
   const handleSubmit = async () => {
-    if (!justificationImage) {
+    if (!formState.justificationImage) {
       toast.error('Veuillez sélectionner une image de justification')
       return
     }
 
-    if (!reason.trim()) {
+    if (!formState.reason.trim()) {
       toast.error('Veuillez saisir une raison pour la justification')
       return
     }
 
     setIsSubmitting(true)
     try {
-      await updateAttendanceJustification(attendanceId, reason.trim(), justificationImage)
+      await updateAttendanceJustification(attendanceId, formState.reason.trim(), formState.justificationImage)
       toast.success('Justification mise à jour avec succès')
       onJustified()
       onClose()
@@ -86,35 +79,37 @@ export function EditJustificationDialog({
 
   const handleClose = () => {
     if (!isSubmitting) {
-      setJustificationImage(currentImageUrl)
-      setReason(currentReason)
-      setShowConfirmation(false)
+      setFormState({
+        justificationImage: currentImageUrl,
+        reason: currentReason,
+        showConfirmation: false,
+      })
       onClose()
     }
   }
 
   const handleShowConfirmation = () => {
-    if (!justificationImage) {
+    if (!formState.justificationImage) {
       toast.error('Veuillez sélectionner une image de justification')
       return
     }
 
-    if (!reason.trim()) {
+    if (!formState.reason.trim()) {
       toast.error('Veuillez saisir une raison pour la justification')
       return
     }
 
-    setShowConfirmation(true)
+    setFormState(prev => ({ ...prev, showConfirmation: true }))
   }
 
   const handleConfirmSubmit = () => {
-    setShowConfirmation(false)
+    setFormState(prev => ({ ...prev, showConfirmation: false }))
     handleSubmit()
   }
 
   return (
     <>
-      <Dialog open={isOpen} onOpenChange={handleClose}>
+      <Dialog open={isOpen} onOpenChange={handleClose} key={isOpen ? 'open' : 'closed'}>
         <DialogContent className="sm:max-w-[500px]">
           <DialogHeader>
             <DialogTitle>
@@ -144,8 +139,8 @@ export function EditJustificationDialog({
               <Textarea
                 id="reason"
                 placeholder="Saisissez la raison de la justification..."
-                value={reason}
-                onChange={e => setReason(e.target.value)}
+                value={formState.reason}
+                onChange={e => setFormState(prev => ({ ...prev, reason: e.target.value }))}
                 disabled={isSubmitting}
                 rows={3}
               />
@@ -154,7 +149,7 @@ export function EditJustificationDialog({
             <div className="space-y-2">
               <Label>Image de justification *</Label>
               <ImageUpload
-                value={justificationImage}
+                value={formState.justificationImage}
                 onChange={handleImageSelected}
                 disabled={isSubmitting}
                 label="image de justification"
@@ -174,7 +169,7 @@ export function EditJustificationDialog({
             <Button
               type="button"
               onClick={handleShowConfirmation}
-              disabled={!justificationImage || !reason.trim() || isSubmitting}
+              disabled={!formState.justificationImage || !formState.reason.trim() || isSubmitting}
             >
               Confirmer et mettre à jour
             </Button>
@@ -183,14 +178,14 @@ export function EditJustificationDialog({
       </Dialog>
 
       <ConfirmationDialog
-        isOpen={showConfirmation}
-        onClose={() => setShowConfirmation(false)}
+        isOpen={formState.showConfirmation}
+        onClose={() => setFormState(prev => ({ ...prev, showConfirmation: false }))}
         onConfirm={handleConfirmSubmit}
         studentName={studentName}
         attendanceType={attendanceType}
         attendanceDate={attendanceDate}
-        reason={reason}
-        imagePreview={justificationImage}
+        reason={formState.reason}
+        imagePreview={formState.justificationImage}
         isSubmitting={isSubmitting}
       />
     </>

@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useEffect, useState } from 'react'
+import React, { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -39,29 +39,17 @@ export function ConfirmationDialog({
   cancelText = 'Annuler',
   variant = 'destructive',
 }: ConfirmationDialogProps) {
-  const [inputText, setInputText] = useState('')
-
-  useEffect(() => {
-    if (!open) {
-      setInputText('')
-    }
-  }, [open])
-
-  const handleOpenChange = (newOpen: boolean) => {
-    if (!isLoading) {
-      onOpenChange(newOpen)
-    }
-  }
+  const [state, setState] = useState({ inputText: '' })
 
   const handleConfirm = () => {
     onConfirm()
-    setInputText('')
+    setState({ inputText: '' })
   }
 
-  const isConfirmDisabled = inputText !== confirmationText || isLoading
+  const isConfirmDisabled = state.inputText !== confirmationText || isLoading
 
   return (
-    <Dialog open={open} onOpenChange={handleOpenChange}>
+    <Dialog open={open} onOpenChange={onOpenChange} key={open ? 'open' : 'closed'}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle className={variant === 'destructive' ? 'text-destructive' : ''}>
@@ -78,8 +66,8 @@ export function ConfirmationDialog({
           </DialogDescription>
         </DialogHeader>
         <Input
-          value={inputText}
-          onChange={e => setInputText(e.target.value)}
+          value={state.inputText}
+          onChange={e => setState({ inputText: e.target.value })}
           className="my-4"
           disabled={isLoading}
           placeholder="Tapez le texte de confirmation..."
@@ -87,7 +75,7 @@ export function ConfirmationDialog({
         <DialogFooter>
           <Button
             variant="outline"
-            onClick={() => handleOpenChange(false)}
+            onClick={() => onOpenChange(false)}
             disabled={isLoading}
           >
             {cancelText}

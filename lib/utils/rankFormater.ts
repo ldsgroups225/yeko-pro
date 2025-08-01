@@ -6,8 +6,9 @@
  * - "2"  => "2ème"
  * - "1x" => "1er ex" or "1ère ex" (for tied ranks)
  *
- * @param rank - A string representing the rank (e.g., "1", "2x", "3", etc.)
- * @param gender - Gender of the subject ('M' for masculine, 'F' for feminine)
+ * @param rank - An object containing the rank string and gender
+ * @param rank.rank - A string representing the rank (e.g., "1", "2x", "3", etc.)
+ * @param rank.gender - Gender of the subject ('M' for masculine, 'F' for feminine)
  * @returns A formatted rank string with the correct suffix, or '-' if invalid
  */
 export function formatRank({

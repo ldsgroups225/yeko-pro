@@ -3,7 +3,7 @@
 import type { SupabaseClient } from '@/lib/supabase/server'
 import type { ICandidature, IGradeNote, IPonctualite } from '@/types'
 import { revalidatePath } from 'next/cache'
-import { NOTE_OPTIONS_MAP, NOTE_TYPE } from '@/constants'
+import { NOTE_LABELS, NOTE_TYPE } from '@/constants'
 import { createClient } from '@/lib/supabase/server'
 import { formatFullName } from '@/lib/utils'
 import { ERole } from '@/types'
@@ -227,7 +227,7 @@ export async function getNoteDetails(noteId: string): Promise<DetailedNote> {
   const minNote = validNotes.length ? Math.min(...validNotes) : 0
   const maxNote = validNotes.length ? Math.max(...validNotes) : 0
 
-  const noteTypeLabel = NOTE_OPTIONS_MAP[note.note_type as NOTE_TYPE] || note.note_type
+  const noteTypeLabel = NOTE_LABELS[note.note_type as NOTE_TYPE] || note.note_type
 
   return {
     id: note.id,

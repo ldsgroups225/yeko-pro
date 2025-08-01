@@ -24,7 +24,10 @@ interface ProgressReportTableActionsProps {
   subjects?: ISubject[]
 }
 
-export function ProgressReportTableActions({ schoolYearId, report, refresh, grades = [], subjects = [] }: ProgressReportTableActionsProps) {
+const DEFAULT_GRADES: IGrade[] = []
+const DEFAULT_SUBJECTS: ISubject[] = []
+
+export function ProgressReportTableActions({ schoolYearId, report, refresh, grades = DEFAULT_GRADES, subjects = DEFAULT_SUBJECTS }: ProgressReportTableActionsProps) {
   const [isEditOpen, setIsEditOpen] = useState(false)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const [isDeleting, startDeleteTransition] = useTransition()
