@@ -24,8 +24,17 @@ export function Step6Success({
   onComplete,
 }: Omit<Step6SuccessProps, 'gradeId'>) {
   const handleDownloadReceipt = () => {
-    // TODO: Implement receipt download
-    console.warn('Receipt download not yet implemented')
+    if (!student.id || !school.id) {
+      console.error('Missing student or school ID for receipt generation')
+      return
+    }
+
+    // Generate receipt ID using student ID, school ID, and timestamp
+    const receiptId = `${student.id}_${school.id}_${Date.now()}`
+    const receiptUrl = `/api/generate-receipt-pdf/${receiptId}`
+
+    // Open the PDF in a new tab
+    window.open(receiptUrl, '_blank')
   }
 
   return (

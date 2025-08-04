@@ -1,0 +1,172 @@
+/* app/receipt/receipt.module.css */
+
+.receipt {
+  max-width: 210mm;
+  margin: 0 auto;
+  padding: 20mm;
+  font-family: 'Arial', sans-serif;
+  font-size: 12px;
+  line-height: 1.4;
+  color: #000;
+  background: white;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 30px;
+  padding-bottom: 20px;
+  border-bottom: 2px solid #000;
+}
+
+.headerLeft {
+  flex: 1;
+}
+
+.headerCenter {
+  flex: 2;
+  text-align: center;
+}
+
+.headerRight {
+  flex: 1;
+  text-align: right;
+}
+
+.receiptTitle {
+  font-size: 24px;
+  font-weight: bold;
+  margin: 10px 0;
+  text-transform: uppercase;
+}
+
+.receiptNumber {
+  font-size: 14px;
+  font-weight: bold;
+  color: #666;
+}
+
+.schoolInfo {
+  margin-bottom: 25px;
+}
+
+.schoolName {
+  font-size: 16px;
+  font-weight: bold;
+  margin-bottom: 5px;
+}
+
+.infoSection {
+  margin-bottom: 20px;
+}
+
+.sectionTitle {
+  font-size: 14px;
+  font-weight: bold;
+  margin-bottom: 10px;
+  padding: 8px;
+  background-color: #f5f5f5;
+  border-left: 4px solid #007bff;
+}
+
+.infoGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.infoItem {
+  display: flex;
+  margin-bottom: 8px;
+}
+
+.infoLabel {
+  font-weight: bold;
+  min-width: 120px;
+  color: #333;
+}
+
+.infoValue {
+  color: #000;
+}
+
+.paymentSection {
+  background-color: #f8f9fa;
+  padding: 20px;
+  border-radius: 8px;
+  margin: 20px 0;
+  border: 1px solid #dee2e6;
+}
+
+.paymentAmount {
+  font-size: 20px;
+  font-weight: bold;
+  color: #28a745;
+  text-align: center;
+  margin: 15px 0;
+  padding: 15px;
+  background-color: white;
+  border-radius: 5px;
+  border: 2px solid #28a745;
+}
+
+.stateAssigned {
+  background-color: #d4edda;
+  color: #155724;
+  padding: 10px;
+  border-radius: 5px;
+  text-align: center;
+  font-weight: bold;
+  margin: 15px 0;
+  border: 1px solid #c3e6cb;
+}
+
+.footer {
+  margin-top: 40px;
+  padding-top: 20px;
+  border-top: 1px solid #ccc;
+  text-align: center;
+  font-size: 11px;
+  color: #666;
+}
+
+.signatures {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 40px;
+}
+
+.signatureBox {
+  text-align: center;
+  width: 200px;
+}
+
+.signatureLabel {
+  font-weight: bold;
+  margin-bottom: 50px;
+  border-bottom: 1px solid #000;
+  padding-bottom: 5px;
+}
+
+.signatureSpace {
+  height: 60px;
+  border-bottom: 1px solid #ccc;
+  margin-bottom: 10px;
+}
+
+@media print {
+  .receipt {
+    margin: 0;
+    padding: 15mm;
+  }
+  
+  .header {
+    page-break-inside: avoid;
+  }
+  
+  .paymentSection {
+    page-break-inside: avoid;
+  }
+}

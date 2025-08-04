@@ -4,9 +4,10 @@
 
 import type { SearchFormData } from './schemas'
 import type { ISchool, IStudent, SearchResult } from './types'
+import type { ReceiptData } from '@/app/receipt/types'
 import type { SupabaseClient } from '@/lib/supabase/server'
 import { createClient } from '@/lib/supabase/server'
-import { parseMedicalCondition } from '@/lib/utils'
+import { formatFullName, parseMedicalCondition } from '@/lib/utils'
 import { uploadImageToStorage } from '@/services/uploadImageService'
 import { searchSchema } from './schemas'
 
@@ -421,5 +422,111 @@ export async function enrollStudent({
       .from('parent_otp_requests')
       .update({ is_used: true })
       .eq('otp', otp)
+  }
+}
+
+/**
+ * Function to generate receipt data for a payment
+ * @param receiptId - The receipt ID in format: studentId_schoolId_timestamp
+ * @returns Receipt data for PDF generation or null if not found
+ */
+export async function getReceiptDataForPayment(receiptId: string): Promise<ReceiptData | null> {
+  const supabase = await createClient()
+
+  try {
+    // Parse receiptId to extract payment/enrollment info
+    // Format: studentId_schoolId_timestamp
+    const parts = receiptId.split('_')
+    const [studentId, schoolId, _timestamp] = parts
+
+    if (!studentId || !schoolId || parts.length !== 3) {
+      console.error('Invalid receipt ID format:', receiptId)
+      return null
+    }
+
+    // Fetch enrollment data with related information
+    const { data: enrollment, error: enrollmentError } = await supabase
+      .from('student_school_class')
+      .select(`
+        id,
+        created_at,
+        is_government_affected,
+        student:students!inner(
+          id,
+          id_number,
+          first_name,
+          last_name,
+          gender,
+          date_of_birth,
+          address
+        ),
+        class:classes!inner(
+          id,
+          name,
+          grade:grades!inner(id, name)
+        ),
+        school:schools!inner(
+          id,
+          name,
+          address,
+          phone,
+          code
+        ),
+        school_year:school_years!inner(
+          id,
+          academic_year_name
+        )
+      `)
+      .eq('student.id', studentId)
+      .eq('school.id', schoolId)
+      .eq('enrollment_status', 'accepted')
+      .single()
+
+    if (enrollmentError || !enrollment) {
+      console.error('Error fetching enrollment data:', enrollmentError)
+      return null
+    }
+
+    // Generate receipt data
+    const receiptNumber = `REC-${Date.now().toString().slice(-8)}`
+    const currentDate = new Date().toLocaleDateString('fr-FR')
+
+    return {
+      receiptNumber,
+      receiptDate: currentDate,
+      academicYear: enrollment.school_year.academic_year_name || 'N/A',
+
+      schoolName: enrollment.school.name,
+      schoolAddress: enrollment.school.address || 'N/A',
+      schoolPhone: enrollment.school.phone || 'N/A',
+      schoolCode: enrollment.school.code || 'N/A',
+
+      studentFullName: formatFullName(
+        enrollment.student.first_name,
+        enrollment.student.last_name,
+      ),
+      studentIdNumber: enrollment.student.id_number,
+      studentGender: enrollment.student.gender === 'M' ? 'Masculin' : 'Féminin',
+      studentDateOfBirth: enrollment.student.date_of_birth
+        ? new Date(enrollment.student.date_of_birth).toLocaleDateString('fr-FR')
+        : 'N/A',
+      studentAddress: enrollment.student.address || 'N/A',
+
+      paymentAmount: 50000, // Default amount - should be dynamic based on actual payment
+      paymentMethod: 'Espèces',
+      paymentDate: currentDate,
+      paymentReference: `PAY-${receiptNumber}`,
+      isStateAssigned: enrollment.is_government_affected || false,
+
+      gradeName: enrollment.class.grade.name,
+      academicLevel: enrollment.class.name,
+
+      paymentDescription: 'Frais d\'inscription scolaire',
+      footerText: `${enrollment.school.name} - Reçu généré le ${currentDate}`,
+    }
+  }
+  catch (error) {
+    console.error('Error generating receipt data:', error)
+    return null
   }
 }
