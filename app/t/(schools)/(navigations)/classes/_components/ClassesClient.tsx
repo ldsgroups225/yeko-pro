@@ -3,7 +3,9 @@
 import type { IClass, IGrade } from '@/types'
 
 import { PlusIcon } from '@radix-ui/react-icons'
+import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import React, { useState } from 'react'
+import { useDebouncedCallback } from 'use-debounce'
 import { Pagination } from '@/components/Pagination'
 import { Button } from '@/components/ui/button'
 import {
@@ -35,17 +37,53 @@ export default function ClassesClient({
   currentPage,
   searchParams,
 }: ClassesClientProps) {
+  const router = useRouter()
+  const pathname = usePathname()
+  const currentSearchParams = useSearchParams()
+
   const [isTableViewMode, setIsTableViewMode] = useState(true)
   const [showClassModal, setShowClassModal] = useState(false)
   const [showImportModal, setShowImportModal] = useState(false)
   const [classToEdit, setClassToEdit] = useState<IClass | null>(null)
 
-  // Handlers for filters (these should update the URL/searchParams for SSR navigation)
-  // For now, just placeholders; in a real app, use router.push or similar
-  const handleGradeChange = (_grade?: string) => {}
-  const handleSearchChange = (_search: string) => {}
-  const handleActiveChange = (_active?: boolean) => {}
-  const handleTeacherChange = (_teacher?: boolean) => {}
+  const updateUrlParams = (updates: Record<string, string | undefined>) => {
+    const params = new URLSearchParams(currentSearchParams.toString())
+
+    Object.entries(updates).forEach(([key, value]) => {
+      if (value === undefined || value === '' || value === 'all') {
+        params.delete(key)
+      }
+      else {
+        params.set(key, value)
+      }
+    })
+
+    // Reset to page 1 when filters change
+    params.delete('page')
+
+    const search = params.toString()
+    router.push(`${pathname}${search ? `?${search}` : ''}`)
+  }
+
+  const handleGradeChange = (grade?: string) => {
+    updateUrlParams({ grade })
+  }
+
+  const debouncedSearchUpdate = useDebouncedCallback((search: string) => {
+    updateUrlParams({ search })
+  }, 300)
+
+  const handleSearchChange = (search: string) => {
+    debouncedSearchUpdate(search)
+  }
+
+  const handleActiveChange = (active?: boolean) => {
+    updateUrlParams({ active: active?.toString() })
+  }
+
+  const handleTeacherChange = (teacher?: boolean) => {
+    updateUrlParams({ teacher: teacher?.toString() })
+  }
 
   const handleClassEdit = (classData: string) => {
     const parsedClass = JSON.parse(classData)
