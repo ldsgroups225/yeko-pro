@@ -61,11 +61,8 @@ export function AssignClassesDialog({
   currentAssignments,
   onClose,
 }: AssignClassesDialogProps) {
-  const { results: classes } = useClassesData({
-    initialItemsPerPage: 100,
-    filters: {},
-  })
-  const { subjects } = useSubject()
+  const { results: classes, status: classStatus } = useClassesData({ initialItemsPerPage: 100, filters: {} })
+  const { subjects, isLoading } = useSubject()
   const { toast } = useToast()
   const router = useRouter()
   const hasShownSuccess = useRef(false)
@@ -92,13 +89,6 @@ export function AssignClassesDialog({
         isMainTeacher: assignment.isMainTeacher,
       })),
     },
-  })
-
-  const onSubmit = form.handleSubmit((values) => {
-    hasShownSuccess.current = false
-    startTransition(() => {
-      submitAction(values)
-    })
   })
 
   // Gérer les erreurs et le succès avec useEffect
@@ -129,6 +119,30 @@ export function AssignClassesDialog({
       hasShownSuccess.current = false
     }
   }, [])
+
+  const onSubmit = form.handleSubmit((values) => {
+    hasShownSuccess.current = false
+    startTransition(() => {
+      submitAction(values)
+    })
+  })
+
+  if (classStatus === 'loading' || isLoading) {
+    return (
+      <DialogContent className="sm:max-w-[625px] h-[80vh] flex flex-col">
+        <DialogHeader className="sticky top-0 bg-background z-10 pb-4 -mx-6 px-6 border-b">
+          <DialogTitle className="truncate">
+            Assigner des classes à
+            {' '}
+            {teacherName}
+          </DialogTitle>
+        </DialogHeader>
+        <div className="flex items-center justify-center flex-1">
+          <div className="text-sm text-muted-foreground">Chargement des données...</div>
+        </div>
+      </DialogContent>
+    )
+  }
 
   return (
     <DialogContent className="sm:max-w-[625px] h-[80vh] flex flex-col">

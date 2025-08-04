@@ -35,10 +35,14 @@ export function TeachersTable({
 
   const [teachers, setTeachers] = useState<ITeacherDTO[]>([])
   const [totalCount, setTotalCount] = useState(0)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   const totalPages = Math.ceil((totalCount || 0) / limit!)
 
   async function fetchTeachers() {
+    setLoading(true)
+    setError(null)
     try {
       const { data, totalCount } = await getTeachers({
         sort,
@@ -53,7 +57,15 @@ export function TeachersTable({
       setTeachers(data)
       setTotalCount(totalCount ?? 0)
     }
-    catch {}
+    catch (err) {
+      console.error('Failed to fetch teachers:', err)
+      setError('Erreur lors du chargement des enseignants')
+      setTeachers([])
+      setTotalCount(0)
+    }
+    finally {
+      setLoading(false)
+    }
   }
 
   const handleSort = (field: string, direction: 'asc' | 'desc') => {
@@ -73,6 +85,33 @@ export function TeachersTable({
     selectedClasses,
     selectedSubjects,
   ])
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-8">
+        <div className="text-sm text-muted-foreground">Chargement des enseignants...</div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center py-8 space-y-2">
+        <div className="text-sm text-destructive">{error}</div>
+        <Button variant="outline" size="sm" onClick={fetchTeachers}>
+          Réessayer
+        </Button>
+      </div>
+    )
+  }
+
+  if (teachers.length === 0) {
+    return (
+      <div className="flex items-center justify-center py-8">
+        <div className="text-sm text-muted-foreground">Aucun enseignant trouvé</div>
+      </div>
+    )
+  }
 
   return (
     <>
