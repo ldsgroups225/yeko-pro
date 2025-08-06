@@ -1651,6 +1651,66 @@ export interface Database {
           },
         ]
       }
+      school_subjects: {
+        Row: {
+          created_at: string
+          id: string
+          school_id: string
+          school_year_id: number
+          subject_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          school_id: string
+          school_year_id: number
+          subject_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          school_id?: string
+          school_year_id?: number
+          subject_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'school_subjects_school_id_fkey'
+            columns: ['school_id']
+            isOneToOne: false
+            referencedRelation: 'schools'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'school_subjects_school_year_id_fkey'
+            columns: ['school_year_id']
+            isOneToOne: false
+            referencedRelation: 'average_grades_view_with_rank'
+            referencedColumns: ['school_year_id']
+          },
+          {
+            foreignKeyName: 'school_subjects_school_year_id_fkey'
+            columns: ['school_year_id']
+            isOneToOne: false
+            referencedRelation: 'school_years'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'school_subjects_school_year_id_fkey'
+            columns: ['school_year_id']
+            isOneToOne: false
+            referencedRelation: 'student_semester_average_view'
+            referencedColumns: ['school_year_id']
+          },
+          {
+            foreignKeyName: 'school_subjects_subject_id_fkey'
+            columns: ['subject_id']
+            isOneToOne: false
+            referencedRelation: 'subjects'
+            referencedColumns: ['id']
+          },
+        ]
+      }
       school_years: {
         Row: {
           academic_year_name: string | null

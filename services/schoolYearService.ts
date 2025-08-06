@@ -16,16 +16,20 @@ export async function fetchSchoolYears(): Promise<ISchoolYear[]> {
 
   const { data, error } = await supabase
     .from('school_years')
-    .select('id, name:academic_year_name')
+    .select('id, academic_year_name, start_year, end_year, is_current')
     .order('end_year', { ascending: false })
-    .throwOnError()
 
   if (error) {
     console.error('Error fetching school years:', error)
     throw new Error('Failed to fetch school years')
   }
 
-  return data ?? []
+  // Map the data and create a proper name if academic_year_name is null
+  return (data ?? []).map(item => ({
+    id: item.id,
+    name: item.academic_year_name || `${item.start_year}-${item.end_year}`,
+    isCurrent: item.is_current,
+  }))
 }
 
 export async function fetchSemesters(schoolYearId: number): Promise<ISemester[]> {

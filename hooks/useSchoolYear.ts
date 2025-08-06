@@ -1,4 +1,5 @@
 import type { ISchoolYear, ISemester } from '@/types'
+import { useCallback } from 'react'
 import useSchoolYearStore from '@/store/schoolYearStore'
 
 interface ReturnType {
@@ -45,12 +46,12 @@ export function useSchoolYear(): ReturnType {
   } = useSchoolYearStore()
 
   /**
-   * Loads grades for a specific cycle.
-   * Wraps the store's fetchGrades function with error handling.
+   * Loads school years with stable reference.
+   * Wraps the store's fetchSchoolYears function with error handling.
    *
    * @returns {Promise<void>}
    */
-  const loadSchoolYears = async (): Promise<void> => {
+  const loadSchoolYearsStable = useCallback(async (): Promise<void> => {
     try {
       await fetchSchoolYears()
     }
@@ -58,7 +59,7 @@ export function useSchoolYear(): ReturnType {
       console.error('Failed to load school years:', error)
       throw error
     }
-  }
+  }, [fetchSchoolYears])
 
   /**
    * Checks if there are any school years loaded.
@@ -79,7 +80,7 @@ export function useSchoolYear(): ReturnType {
 
     // Actions
     fetchSemesters,
-    loadSchoolYears,
+    loadSchoolYears: loadSchoolYearsStable,
     clearSchoolYears,
     getSchoolYearById,
     setSelectedSchoolYearId,

@@ -1,4 +1,5 @@
 import type { ISubject } from '@/types'
+import { useCallback } from 'react'
 import useSubjectStore from '@/store/subjectStore'
 
 interface ReturnType {
@@ -9,6 +10,13 @@ interface ReturnType {
   loadSubjects: () => Promise<void>
   getSubjectById: (subjectId: string) => ISubject | undefined
   clearSubjects: () => void
+  selectedSubjectIds: string[]
+  setSelectedSubjects: (ids: string[]) => void
+  loadSchoolSubjects: (schoolId: string) => Promise<void>
+  saveSelectedSubjects: (schoolId: string) => Promise<void>
+  loadSchoolSubjectsForYear: (schoolId: string, schoolYearId: number) => Promise<void>
+  saveSelectedSubjectsForYear: (schoolId: string, schoolYearId: number) => Promise<void>
+  isSubjectSelected: (id: string) => boolean
 }
 
 /**
@@ -23,6 +31,11 @@ interface ReturnType {
  *   - loadSubjects: Function to fetch subjects for a cycle
  *   - getSubjectById: Function to get a specific subject
  *   - clearSubjects: Function to clear all subjects data
+ *   - selectedSubjectIds: Array of selected subject IDs
+ *   - setSelectedSubjects: Function to set selected subject IDs
+ *   - loadSchoolSubjects: Function to load selected subjects for a school
+ *   - saveSelectedSubjects: Function to save selected subjects for a school
+ *   - isSubjectSelected: Helper function to check if a subject is selected
  */
 export function useSubject(): ReturnType {
   const {
@@ -32,7 +45,21 @@ export function useSubject(): ReturnType {
     fetchSubjects,
     getSubjectById,
     clearSubjects,
+    setSelectedSubjects,
+    loadSchoolSubjects,
+    saveSelectedSubjects,
+    loadSchoolSubjectsForYear,
+    saveSelectedSubjectsForYear,
+    selectedSubjectIds,
   } = useSubjectStore()
+
+  /**
+   * Checks if a specific subject is selected.
+   *
+   * @param {string} id - The ID of the subject to check.
+   * @returns {boolean} True if the subject is selected.
+   */
+  const isSubjectSelected = useCallback((id: string): boolean => selectedSubjectIds.includes(id), [selectedSubjectIds])
 
   /**
    * Loads subjects for a specific cycle.
@@ -40,7 +67,7 @@ export function useSubject(): ReturnType {
    *
    * @returns {Promise<void>}
    */
-  const loadSubjects = async (): Promise<void> => {
+  const loadSubjectsStable = useCallback(async (): Promise<void> => {
     try {
       await fetchSubjects()
     }
@@ -48,7 +75,13 @@ export function useSubject(): ReturnType {
       console.error('Failed to load subjects:', error)
       throw error
     }
-  }
+  }, [fetchSubjects])
+
+  /**
+   * Stable versions of store functions
+   */
+  const loadSchoolSubjectsForYearStable = useCallback(loadSchoolSubjectsForYear, [loadSchoolSubjectsForYear])
+  const saveSelectedSubjectsForYearStable = useCallback(saveSelectedSubjectsForYear, [saveSelectedSubjectsForYear])
 
   /**
    * Checks if there are any subjects loaded.
@@ -65,8 +98,15 @@ export function useSubject(): ReturnType {
     hasNoSubjects,
 
     // Actions
-    loadSubjects,
+    loadSubjects: loadSubjectsStable,
     getSubjectById,
     clearSubjects,
+    setSelectedSubjects,
+    loadSchoolSubjects,
+    saveSelectedSubjects,
+    loadSchoolSubjectsForYear: loadSchoolSubjectsForYearStable,
+    saveSelectedSubjectsForYear: saveSelectedSubjectsForYearStable,
+    selectedSubjectIds,
+    isSubjectSelected,
   }
 }

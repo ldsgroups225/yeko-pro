@@ -1,6 +1,6 @@
 'use client'
 
-import { BookOpen, ListChecks, School, User } from 'lucide-react'
+import { BookOpen, GraduationCap, ListChecks, School, User } from 'lucide-react'
 import { useState } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
@@ -9,6 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import ProfileSettingsTab from './tabs/ProfileSettingsTab'
 import ProgressReportsSettingsTab from './tabs/ProgressReportsSettingsTab'
 import SchoolSettingsTab from './tabs/SchoolSettingsTab'
+import SchoolSubjectsSettingsTab from './tabs/SchoolSubjectsSettingsTab'
 import TuitionSettingsTab from './tabs/TuitionSettingsTab'
 
 export default function SettingsPage() {
@@ -54,6 +55,10 @@ export default function SettingsPage() {
             <BookOpen className="h-4 w-4" />
             <span>Scolarité</span>
           </TabsTrigger>
+          <TabsTrigger value="subjects" className="space-x-2">
+            <GraduationCap className="h-4 w-4" />
+            <span>Matières</span>
+          </TabsTrigger>
           <TabsTrigger value="progress-reports" className="space-x-2">
             <ListChecks className="h-4 w-4" />
             <span>Conf. Suivi Pédagogique</span>
@@ -82,6 +87,10 @@ export default function SettingsPage() {
 
         <TabsContent value="tuition">
           <TuitionSettingsTab />
+        </TabsContent>
+
+        <TabsContent value="subjects">
+          <SchoolSubjectsSettingsTab />
         </TabsContent>
 
         <TabsContent value="progress-reports">
