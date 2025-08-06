@@ -1,5 +1,6 @@
 export * from './attendanceService'
 export * from './classService'
+export * from './conductService'
 export * from './gradeService'
 export * from './noteService'
 export * from './parentService'

@@ -1,5 +1,5 @@
 import type { ElementType } from 'react'
-import { BookOpen, Calendar, Home, ListChecks, NotebookIcon, Settings, Users, UsersRound, Wallet2Icon } from 'lucide-react'
+import { BookOpen, Calendar, Home, ListChecks, NotebookIcon, Settings, Shield, Users, UsersRound, Wallet2Icon } from 'lucide-react'
 
 interface ISidebarItem {
   icon: ElementType
@@ -50,6 +50,12 @@ export const sidebarItems: ISidebarItem[] = [
     label: 'Notes et moyennes',
     href: '/t/notes',
     ariaLabel: 'Voir les notes',
+  },
+  {
+    icon: Shield,
+    label: 'Conduite',
+    href: '/t/conducts',
+    ariaLabel: 'Gérer la conduite des élèves',
   },
   {
     icon: ListChecks,

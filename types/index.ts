@@ -451,3 +451,6 @@ export interface ILessonProgressReport {
   updatedAt: string
   completedAt: string | null
 }
+
+// Re-export conduct types
+export * from './conduct'

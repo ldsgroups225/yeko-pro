@@ -50,19 +50,20 @@ export function ConductFilterSection({
   }
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h4 className="font-medium mb-3">Filtres de Conduite</h4>
+    <div className="space-y-6 p-1">
+      <div className="pb-2">
+        <h4 className="font-semibold text-slate-900">Filtres de Conduite</h4>
+        <p className="text-sm text-slate-500 mt-1">Affiner les résultats selon vos critères</p>
       </div>
 
       {/* Class Filter */}
-      <div className="space-y-2">
-        <Label className="text-sm font-medium">Classe</Label>
+      <div className="space-y-3">
+        <Label className="text-sm font-medium text-slate-700">Classe</Label>
         <Select value={selectedClass || 'all'} onValueChange={onClassChange} disabled={isLoading}>
-          <SelectTrigger>
+          <SelectTrigger className="bg-white/80 border-slate-200 hover:bg-white focus:ring-2 focus:ring-blue-500/20">
             <SelectValue placeholder={isLoading ? 'Chargement...' : 'Toutes les classes'} />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent className="bg-white/95 backdrop-blur-sm border-slate-200">
             <SelectItem value="all">Toutes les classes</SelectItem>
             {!isLoading && safeClasses.map(classItem => (
               <SelectItem key={classItem.id} value={classItem.id}>
@@ -74,36 +75,64 @@ export function ConductFilterSection({
       </div>
 
       {/* Grade Filter */}
-      <div className="space-y-2">
-        <Label className="text-sm font-medium">Appréciation</Label>
+      <div className="space-y-3">
+        <Label className="text-sm font-medium text-slate-700">Appréciation</Label>
         <Select value={selectedGrade || 'all'} onValueChange={onGradeFilterChange}>
-          <SelectTrigger>
+          <SelectTrigger className="bg-white/80 border-slate-200 hover:bg-white focus:ring-2 focus:ring-blue-500/20">
             <SelectValue placeholder="Toutes les appréciations" />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent className="bg-white/95 backdrop-blur-sm border-slate-200">
             <SelectItem value="all">Toutes les appréciations</SelectItem>
-            <SelectItem value="TRES_BONNE">Très bonne conduite</SelectItem>
-            <SelectItem value="BONNE">Bonne conduite</SelectItem>
-            <SelectItem value="PASSABLE">Conduite passable</SelectItem>
-            <SelectItem value="MAUVAISE">Mauvaise conduite</SelectItem>
-            <SelectItem value="BLAME">Blâme</SelectItem>
+            <SelectItem value="TRES_BONNE">
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded-full bg-emerald-500" />
+                <span>Très bonne conduite</span>
+              </div>
+            </SelectItem>
+            <SelectItem value="BONNE">
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded-full bg-blue-500" />
+                <span>Bonne conduite</span>
+              </div>
+            </SelectItem>
+            <SelectItem value="PASSABLE">
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded-full bg-amber-500" />
+                <span>Conduite passable</span>
+              </div>
+            </SelectItem>
+            <SelectItem value="MAUVAISE">
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded-full bg-orange-500" />
+                <span>Mauvaise conduite</span>
+              </div>
+            </SelectItem>
+            <SelectItem value="BLAME">
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded-full bg-red-500" />
+                <span>Blâme</span>
+              </div>
+            </SelectItem>
           </SelectContent>
         </Select>
       </div>
 
       {/* Score Range Filter */}
-      <div className="space-y-3">
-        <Label className="text-sm font-medium">
-          Plage de notes:
-          {' '}
-          {localScoreRange[0]}
-          {' '}
-          -
-          {' '}
-          {localScoreRange[1]}
-          /20
-        </Label>
-        <div className="px-2">
+      <div className="space-y-4">
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <Label className="text-sm font-medium text-slate-700">Plage de notes</Label>
+            <div className="px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-xs font-medium">
+              {localScoreRange[0]}
+              {' '}
+              -
+              {localScoreRange[1]}
+              /20
+            </div>
+          </div>
+        </div>
+
+        <div className="px-3 py-2 bg-slate-50/80 rounded-lg">
           <Slider
             value={localScoreRange}
             onValueChange={handleScoreRangeChange}
@@ -112,28 +141,29 @@ export function ConductFilterSection({
             step={0.5}
             className="w-full"
           />
+          <div className="flex justify-between text-xs text-slate-500 mt-2">
+            <span>0</span>
+            <span>10</span>
+            <span>20</span>
+          </div>
         </div>
-        <div className="flex justify-between text-xs text-muted-foreground">
-          <span>0</span>
-          <span>10</span>
-          <span>20</span>
-        </div>
+
         <Button
           variant="outline"
           size="sm"
           onClick={applyScoreRange}
-          className="w-full"
+          className="w-full bg-white/80 border-slate-200 hover:bg-white transition-all duration-200"
         >
           Appliquer la plage
         </Button>
       </div>
 
       {/* Reset Filters */}
-      <div className="pt-4 border-t">
+      <div className="pt-4 border-t border-slate-200">
         <Button
           variant="outline"
           onClick={resetFilters}
-          className="w-full"
+          className="w-full bg-red-50 border-red-200 text-red-700 hover:bg-red-100 hover:border-red-300 transition-all duration-200"
         >
           Réinitialiser les filtres
         </Button>

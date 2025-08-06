@@ -2,6 +2,7 @@
 
 import type { ISubject } from '@/types'
 import { AlertCircle, BookOpen, CheckCircle2, Circle, Filter, GraduationCap, Save, Search, Sparkles } from 'lucide-react'
+import { nanoid } from 'nanoid'
 import React, { useEffect, useMemo, useState } from 'react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -143,7 +144,9 @@ function SchoolSubjectsManager({ schoolId, schoolName }: SchoolSubjectsManagerPr
               <div>
                 <h2 className="text-xl font-bold text-foreground">Configuration des Matières</h2>
                 <p className="text-sm text-muted-foreground">
-                  {schoolName && `${schoolName} • `}Année scolaire {selectedSchoolYear?.name || 'Non sélectionnée'}
+                  {schoolName && `${schoolName} • `}
+                  Année scolaire
+                  {selectedSchoolYear?.name || 'Non sélectionnée'}
                 </p>
               </div>
             </div>
@@ -154,11 +157,17 @@ function SchoolSubjectsManager({ schoolId, schoolName }: SchoolSubjectsManagerPr
                 <Sparkles className="h-5 w-5" />
                 {selectedSubjectIds.length}
                 <span className="text-sm font-normal text-muted-foreground">
-                  / {subjects.length}
+                  /
+                  {' '}
+                  {subjects.length}
                 </span>
               </div>
               <p className="text-xs text-muted-foreground mt-1">
-                matière{selectedSubjectIds.length !== 1 ? 's' : ''} sélectionnée{selectedSubjectIds.length !== 1 ? 's' : ''}
+                matière
+                {selectedSubjectIds.length !== 1 ? 's' : ''}
+                {' '}
+                sélectionnée
+                {selectedSubjectIds.length !== 1 ? 's' : ''}
               </p>
             </div>
             <Button
@@ -166,17 +175,19 @@ function SchoolSubjectsManager({ schoolId, schoolName }: SchoolSubjectsManagerPr
               disabled={isSaving || !selectedSchoolYearId}
               className="px-6 py-2 h-10 rounded-lg font-medium"
             >
-              {isSaving ? (
-                <div className="flex items-center gap-2">
-                  <div className="w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
-                  Sauvegarde...
-                </div>
-              ) : (
-                <div className="flex items-center gap-2">
-                  <Save className="h-4 w-4" />
-                  Sauvegarder
-                </div>
-              )}
+              {isSaving
+                ? (
+                    <div className="flex items-center gap-2">
+                      <div className="w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
+                      Sauvegarde...
+                    </div>
+                  )
+                : (
+                    <div className="flex items-center gap-2">
+                      <Save className="h-4 w-4" />
+                      Sauvegarder
+                    </div>
+                  )}
             </Button>
           </div>
         </div>
@@ -230,7 +241,13 @@ function SchoolSubjectsManager({ schoolId, schoolName }: SchoolSubjectsManagerPr
             </Button>
           </div>
           <p className="text-xs text-muted-foreground">
-            {filteredSubjects.length} matière{filteredSubjects.length !== 1 ? 's' : ''} trouvée{filteredSubjects.length !== 1 ? 's' : ''}
+            {filteredSubjects.length}
+            {' '}
+            matière
+            {filteredSubjects.length !== 1 ? 's' : ''}
+            {' '}
+            trouvée
+            {filteredSubjects.length !== 1 ? 's' : ''}
           </p>
         </div>
       </div>
@@ -266,88 +283,94 @@ function SchoolSubjectsManager({ schoolId, schoolName }: SchoolSubjectsManagerPr
 
       {/* Subjects Grid - Two Column Layout */}
       <div className="rounded-xl bg-card border border-border overflow-hidden">
-        {isLoading ? (
-          <div className="p-6 space-y-4">
-            {[...Array.from({ length: 6 })].map((_, index) => (
-              <div key={index} className="flex items-center gap-4 p-4 rounded-lg border border-border">
-                <Skeleton className="h-6 w-12 rounded-full" />
-                <Skeleton className="h-4 flex-1" />
-                <Skeleton className="h-6 w-16" />
+        {isLoading
+          ? (
+              <div className="p-6 space-y-4">
+                {[...Array.from({ length: 6 })].map(() => (
+                  <div key={`skeleton-${nanoid()}`} className="flex items-center gap-4 p-4 rounded-lg border border-border">
+                    <Skeleton className="h-6 w-12 rounded-full" />
+                    <Skeleton className="h-4 flex-1" />
+                    <Skeleton className="h-6 w-16" />
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
-        ) : (
-          <div className="p-4">
-            {filteredSubjects.length === 0 ? (
-              <div className="p-12 text-center">
-                <div className="mx-auto w-20 h-20 bg-muted rounded-full flex items-center justify-center mb-4">
-                  <BookOpen className="h-8 w-8 text-muted-foreground" />
-                </div>
-                <h3 className="text-sm font-medium text-foreground mb-1">
-                  {searchTerm ? 'Aucun résultat trouvé' : 'Aucune matière disponible'}
-                </h3>
-                <p className="text-xs text-muted-foreground">
-                  {searchTerm ? `Essayez de modifier votre recherche "${searchTerm}"` : 'Les matières apparaîtront ici une fois configurées.'}
-                </p>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                {filteredSubjects.map((subject: ISubject) => {
-                  const isSelected = selectedSubjectIds.includes(subject.id)
-                  return (
-                    <div
-                      key={subject.id}
-                      className={`group relative flex items-center gap-4 p-3 rounded-lg transition-all duration-200 hover:bg-accent/50 border ${
-                        isSelected ? 'bg-primary/5 border-primary/20' : 'border-border'
-                      }`}
-                    >
-                      <div className="flex items-center gap-4 flex-1">
-                        <div className="relative">
-                          <Switch
-                            checked={isSelected}
-                            onCheckedChange={() => toggleSubject(subject.id)}
-                            className="data-[state=checked]:bg-primary"
-                          />
+            )
+          : (
+              <div className="p-4">
+                {filteredSubjects.length === 0
+                  ? (
+                      <div className="p-12 text-center">
+                        <div className="mx-auto w-20 h-20 bg-muted rounded-full flex items-center justify-center mb-4">
+                          <BookOpen className="h-8 w-8 text-muted-foreground" />
                         </div>
-                        
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-3">
-                            <div className={`w-3 h-3 rounded-full transition-colors ${
-                              isSelected
-                                ? 'bg-primary'
-                                : 'bg-muted-foreground/30'
-                            }`}
-                            />
-                            <label
-                              className="text-sm font-medium text-foreground cursor-pointer truncate"
-                              onClick={() => toggleSubject(subject.id)}
+                        <h3 className="text-sm font-medium text-foreground mb-1">
+                          {searchTerm ? 'Aucun résultat trouvé' : 'Aucune matière disponible'}
+                        </h3>
+                        <p className="text-xs text-muted-foreground">
+                          {searchTerm ? `Essayez de modifier votre recherche "${searchTerm}"` : 'Les matières apparaîtront ici une fois configurées.'}
+                        </p>
+                      </div>
+                    )
+                  : (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                        {filteredSubjects.map((subject: ISubject) => {
+                          const isSelected = selectedSubjectIds.includes(subject.id)
+                          return (
+                            <div
+                              key={subject.id}
+                              className={`group relative flex items-center gap-4 p-3 rounded-lg transition-all duration-200 hover:bg-accent/50 border ${
+                                isSelected ? 'bg-primary/5 border-primary/20' : 'border-border'
+                              }`}
                             >
-                              {subject.name}
-                            </label>
-                          </div>
-                        </div>
+                              <div className="flex items-center gap-4 flex-1">
+                                <div className="relative">
+                                  <Switch
+                                    checked={isSelected}
+                                    onCheckedChange={() => toggleSubject(subject.id)}
+                                    className="data-[state=checked]:bg-primary"
+                                  />
+                                </div>
+
+                                <div className="flex-1 min-w-0">
+                                  <div className="flex items-center gap-3">
+                                    <div className={`w-3 h-3 rounded-full transition-colors ${
+                                      isSelected
+                                        ? 'bg-primary'
+                                        : 'bg-muted-foreground/30'
+                                    }`}
+                                    />
+                                    <label
+                                      className="text-sm font-medium text-foreground cursor-pointer truncate"
+                                      onClick={() => toggleSubject(subject.id)}
+                                    >
+                                      {subject.name}
+                                    </label>
+                                  </div>
+                                </div>
+                              </div>
+
+                              <div className="flex items-center gap-2">
+                                {isSelected
+                                  ? (
+                                      <Badge className="bg-primary/10 text-primary border-primary/20 text-xs px-2 py-1">
+                                        <CheckCircle2 className="h-3 w-3 mr-1" />
+                                        Activée
+                                      </Badge>
+                                    )
+                                  : (
+                                      <Badge variant="outline" className="text-xs px-2 py-1 text-muted-foreground">
+                                        <Circle className="h-3 w-3 mr-1" />
+                                        Inactive
+                                      </Badge>
+                                    )}
+                              </div>
+                            </div>
+                          )
+                        })}
                       </div>
-                      
-                      <div className="flex items-center gap-2">
-                        {isSelected ? (
-                          <Badge className="bg-primary/10 text-primary border-primary/20 text-xs px-2 py-1">
-                            <CheckCircle2 className="h-3 w-3 mr-1" />
-                            Activée
-                          </Badge>
-                        ) : (
-                          <Badge variant="outline" className="text-xs px-2 py-1 text-muted-foreground">
-                            <Circle className="h-3 w-3 mr-1" />
-                            Inactive
-                          </Badge>
-                        )}
-                      </div>
-                    </div>
-                  )
-                })}
+                    )}
               </div>
             )}
-          </div>
-        )}
       </div>
     </div>
   )

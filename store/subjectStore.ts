@@ -55,7 +55,7 @@ const useSubjectStore = create<SubjectState & SubjectActions>((set, get) => ({
   clearSubjects: () => set({ subjects: [], error: null, isLoading: false }),
   setSelectedSubjects: ids => set({ selectedSubjectIds: ids }),
 
-  loadSchoolSubjects: async (schoolId) => {
+  loadSchoolSubjects: async (_schoolId) => {
     // This function is deprecated - use loadSchoolSubjectsForYear instead
     console.warn('loadSchoolSubjects is deprecated - use loadSchoolSubjectsForYear instead')
     set({ isLoading: true, error: null })
