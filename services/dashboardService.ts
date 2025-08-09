@@ -557,6 +557,7 @@ export async function getClassesByGrade(gradeId: number): Promise<{ id: string, 
     ])
 
     if (classesError || seatUsedError) {
+      console.error('Error fetching classes:', classesError?.message, seatUsedError?.message)
       throw new Error('Échec de la récupération des classes')
     }
 

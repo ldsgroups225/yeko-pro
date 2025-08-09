@@ -250,13 +250,13 @@ export function EditStudentForm({ studentIdNumber, onSubmit, onCancel, isLoading
                 <FormControl>
                   <Input
                     {...field}
-                    // readOnly={student.idNumber.startsWith('ST')}
-                    value={student.idNumber}
+                    disabled={isLoading}
+                    placeholder="Saisir le matricule de l'étudiant"
                     className={cn(!student.idNumber.startsWith('ST') && 'bg-muted')}
                   />
                 </FormControl>
                 <FormDescription>
-                  Identifiant unique de l&apos;étudiant (non modifiable)
+                  Identifiant unique de l&apos;étudiant
                 </FormDescription>
               </FormItem>
             )}
