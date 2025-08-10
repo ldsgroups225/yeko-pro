@@ -3326,11 +3326,64 @@ export interface Database {
           lates: number | null
           morality_score: number | null
           recent_incidents: number | null
+          school_id: string | null
+          school_year_id: number | null
+          semester_id: number | null
           student_id: string | null
           total_score: number | null
           total_sessions: number | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: 'classes_school_id_fkey'
+            columns: ['school_id']
+            isOneToOne: false
+            referencedRelation: 'schools'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'fk_conduct_scores_school_year'
+            columns: ['school_year_id']
+            isOneToOne: false
+            referencedRelation: 'average_grades_view_with_rank'
+            referencedColumns: ['school_year_id']
+          },
+          {
+            foreignKeyName: 'fk_conduct_scores_school_year'
+            columns: ['school_year_id']
+            isOneToOne: false
+            referencedRelation: 'school_years'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'fk_conduct_scores_school_year'
+            columns: ['school_year_id']
+            isOneToOne: false
+            referencedRelation: 'student_semester_average_view'
+            referencedColumns: ['school_year_id']
+          },
+          {
+            foreignKeyName: 'fk_conduct_scores_semester'
+            columns: ['semester_id']
+            isOneToOne: false
+            referencedRelation: 'average_grades_view_with_rank'
+            referencedColumns: ['semester_id']
+          },
+          {
+            foreignKeyName: 'fk_conduct_scores_semester'
+            columns: ['semester_id']
+            isOneToOne: false
+            referencedRelation: 'semesters'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'fk_conduct_scores_semester'
+            columns: ['semester_id']
+            isOneToOne: false
+            referencedRelation: 'student_semester_average_view'
+            referencedColumns: ['semester_id']
+          },
+        ]
       }
       student_enrollment_view: {
         Row: {
@@ -3825,6 +3878,14 @@ export interface Database {
       }
       update_published_notes: {
         Args: { p_date: string }
+        Returns: undefined
+      }
+      update_student_conduct_scores: {
+        Args: {
+          p_student_id: string
+          p_school_year_id: number
+          p_semester_id: number
+        }
         Returns: undefined
       }
     }

@@ -36,8 +36,9 @@ export function IncidentModal({ studentId, onClose, onIncidentCreated }: Inciden
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   // Predefined incident types with their point deductions
+  // Note: Late arrival is commented out as per ministry guidelines update
   const incidentTypes = [
-    { id: 'late_arrival', name: 'Retard', category: 'attendance', points: CONDUCT_DEDUCTIONS.LATE_ARRIVAL },
+    // { id: 'late_arrival', name: 'Retard', category: 'attendance', points: CONDUCT_DEDUCTIONS.LATE_ARRIVAL },
     { id: 'unjustified_absence', name: 'Absence injustifiée', category: 'attendance', points: CONDUCT_DEDUCTIONS.UNJUSTIFIED_ABSENCE_HOUR },
     { id: 'dress_violation', name: 'Tenue non conforme', category: 'dresscode', points: CONDUCT_DEDUCTIONS.DRESS_CODE_VIOLATION },
     { id: 'fraud_attempt', name: 'Tentative de fraude', category: 'morality', points: CONDUCT_DEDUCTIONS.FRAUD_ATTEMPT },
@@ -61,13 +62,13 @@ export function IncidentModal({ studentId, onClose, onIncidentCreated }: Inciden
     }
   }
 
-  const handleCustomPointsToggle = () => {
-    setForm(prev => ({
-      ...prev,
-      customPoints: !prev.customPoints,
-      pointsDeducted: prev.customPoints ? 0 : prev.pointsDeducted,
-    }))
-  }
+  // const handleCustomPointsToggle = () => {
+  //   setForm(prev => ({
+  //     ...prev,
+  //     customPoints: !prev.customPoints,
+  //     pointsDeducted: prev.customPoints ? 0 : prev.pointsDeducted,
+  //   }))
+  // }
 
   const adjustPoints = (delta: number) => {
     setForm(prev => ({
@@ -89,26 +90,31 @@ export function IncidentModal({ studentId, onClose, onIncidentCreated }: Inciden
       return
     }
 
+    if (form.description.length < 10) {
+      toast.error('La description doit contenir au moins 10 caractères')
+      return
+    }
+
     setIsSubmitting(true)
 
     try {
-      // Get current school year and semester
+      const { createConductIncident } = await import('@/services/conductService')
+
       const currentDate = new Date().toISOString()
 
-      const _incident: Omit<IConductIncident, 'id' | 'createdAt' | 'updatedAt'> = {
+      const incident: Omit<IConductIncident, 'id' | 'createdAt' | 'updatedAt'> = {
         studentId,
         categoryId: form.categoryId,
         description: form.description,
         pointsDeducted: form.pointsDeducted,
-        reportedBy: 'current-user-id', // This would come from auth context
+        reportedBy: '', // Will be set by the service from auth context
         reportedAt: currentDate,
-        schoolYearId: 1, // This would come from current school year
-        semesterId: 1, // This would come from current semester
+        schoolYearId: 0, // Will be set by the service from current school year
+        semesterId: 0, // Will be set by the service from current semester
         isActive: true,
       }
 
-      // In a real implementation, this would call the service
-      // await createConductIncident(incident)
+      await createConductIncident(incident)
 
       toast.success('Incident enregistré avec succès')
       onIncidentCreated()
@@ -116,7 +122,8 @@ export function IncidentModal({ studentId, onClose, onIncidentCreated }: Inciden
     }
     catch (error) {
       console.error('Error creating incident:', error)
-      toast.error('Erreur lors de l\'enregistrement de l\'incident')
+      const errorMessage = error instanceof Error ? error.message : 'Erreur lors de l\'enregistrement de l\'incident'
+      toast.error(errorMessage)
     }
     finally {
       setIsSubmitting(false)
@@ -179,7 +186,7 @@ export function IncidentModal({ studentId, onClose, onIncidentCreated }: Inciden
 
         {/* Points Deduction */}
         <div className="space-y-3">
-          <div className="flex items-center justify-between">
+          {/* <div className="flex items-center justify-between">
             <Label className="text-sm font-medium">Points déduits *</Label>
             <Button
               type="button"
@@ -190,7 +197,7 @@ export function IncidentModal({ studentId, onClose, onIncidentCreated }: Inciden
             >
               {form.customPoints ? 'Utiliser valeur standard' : 'Personnaliser'}
             </Button>
-          </div>
+          </div> */}
 
           {form.customPoints
             ? (

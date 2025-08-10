@@ -93,47 +93,11 @@ BEGIN
     GET DIAGNOSTICS incident_count = ROW_COUNT;
     RAISE NOTICE 'Created % incidents for absent attendances', incident_count;
     
-    -- Insert conduct incidents for LATE attendances
-    INSERT INTO conduct_incidents (
-        student_id,
-        category_id,
-        description,
-        points_deducted,
-        reported_by,
-        reported_at,
-        school_year_id,
-        semester_id,
-        is_active
-    )
-    SELECT DISTINCT
-        a.student_id,
-        'attendance' as category_id,
-        'Retard du ' || COALESCE(TO_CHAR(a.created_date::date, 'DD/MM/YYYY'), TO_CHAR(CURRENT_DATE, 'DD/MM/YYYY')) || ' à ' || a.starts_at ||
-        CASE 
-            WHEN a.reason IS NOT NULL AND a.reason != '' THEN ' - Raison: ' || a.reason
-            ELSE ''
-        END as description,
-        0.5 as points_deducted,  -- 0.5 points per late arrival
-        system_user_id as reported_by,
-        COALESCE(a.created_date, CURRENT_DATE)::timestamp + a.starts_at::time as reported_at,
-        current_school_year_id as school_year_id,
-        current_semester_id as semester_id,
-        true as is_active
-    FROM attendances a
-    WHERE a.status = 'late'
-        AND a.school_years_id = current_school_year_id
-        AND a.semesters_id = current_semester_id
-        -- Avoid duplicates by checking if incident doesn't already exist
-        AND NOT EXISTS (
-            SELECT 1 FROM conduct_incidents ci 
-            WHERE ci.student_id = a.student_id 
-                AND ci.category_id = 'attendance'
-                AND ci.reported_at::date = COALESCE(a.created_date::date, CURRENT_DATE)
-                AND ci.description LIKE '%Retard%'
-        );
+    -- LATE ATTENDANCES PROCESSING COMMENTED OUT
+    -- As per ministry guidelines update, only absent status is processed
+    -- Original late processing logic removed to align with new requirements
     
-    GET DIAGNOSTICS incident_count = ROW_COUNT;
-    RAISE NOTICE 'Created % incidents for late attendances', incident_count;
+    RAISE NOTICE 'Late attendance processing skipped as per ministry guidelines update';
     
     -- Now let's update conduct scores based on the incidents we just created
     -- First, let's calculate attendance scores for each student

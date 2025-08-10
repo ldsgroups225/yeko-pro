@@ -41,6 +41,63 @@ async function getUserSchoolId(client: SupabaseClient, userId: string): Promise<
 }
 
 /**
+ * Updates conduct scores after creating an incident
+ */
+async function updateConductScoresAfterIncident(
+  client: SupabaseClient,
+  studentId: string,
+  schoolYearId: number,
+  semesterId: number,
+  // categoryId: string,
+  // pointsDeducted: number,
+): Promise<void> {
+  // Get existing conduct score or create default values
+  const { data: categoryIncidents } = await client
+    .from('conduct_incidents')
+    .select('category_id, points_deducted')
+    .eq('student_id', studentId)
+    .eq('school_year_id', schoolYearId)
+    .eq('semester_id', semesterId)
+    .eq('is_active', true)
+
+  // Group incidents by category and sum points
+  const categoryTotals = (categoryIncidents || []).reduce((acc, incident) => {
+    acc[incident.category_id] = (acc[incident.category_id] || 0) + incident.points_deducted
+    return acc
+  }, {} as Record<string, number>)
+
+  // Calculate new scores based on category maximums minus deductions
+  const attendanceScore = Math.max(0, 6 - (categoryTotals.attendance || 0))
+  const dresscodeScore = Math.max(0, 3 - (categoryTotals.dresscode || 0))
+  const moralityScore = Math.max(0, 4 - (categoryTotals.morality || 0))
+  const disciplineScore = Math.max(0, 7 - (categoryTotals.discipline || 0))
+
+  const totalScore = attendanceScore + dresscodeScore + moralityScore + disciplineScore
+  const grade = calculateConductGrade(totalScore)
+
+  // Upsert the conduct score
+  const { error } = await client
+    .from('conduct_scores')
+    .upsert({
+      student_id: studentId,
+      school_year_id: schoolYearId,
+      semester_id: semesterId,
+      attendance_score: attendanceScore,
+      dresscode_score: dresscodeScore,
+      morality_score: moralityScore,
+      discipline_score: disciplineScore,
+      grade,
+    }, {
+      onConflict: 'student_id,school_year_id,semester_id',
+    })
+
+  if (error) {
+    console.error('Error updating conduct scores after incident:', error)
+    throw new Error('Erreur lors de la mise à jour des scores de conduite')
+  }
+}
+
+/**
  * Calculates attendance score based on attendance data
  */
 async function calculateAttendanceScore(
@@ -69,6 +126,7 @@ async function calculateAttendanceScore(
   let deductions = 0
 
   // Deduct for absences (0.5 points per hour, assuming 1 hour sessions)
+  // According to ministry document: "1 heure d'absence injustifiée entraîne le retrait de 0,5 point"
   deductions += absences * CONDUCT_DEDUCTIONS.UNJUSTIFIED_ABSENCE_HOUR
 
   // Additional deduction after 10 hours of absence
@@ -76,8 +134,8 @@ async function calculateAttendanceScore(
     deductions += CONDUCT_DEDUCTIONS.UNJUSTIFIED_ABSENCE_10H
   }
 
-  // Deduct for lates (0.5 points per late after warning)
-  deductions += Math.max(0, lates - 2) * CONDUCT_DEDUCTIONS.LATE_ARRIVAL
+  // Note: Late arrival deductions are commented out as per ministry guidelines update
+  // Original logic: deductions += Math.max(0, lates - 2) * CONDUCT_DEDUCTIONS.LATE_ARRIVAL
 
   const score = Math.max(0, 6 - deductions)
   const attendanceRate = totalSessions > 0 ? ((totalSessions - absences) / totalSessions) * 100 : 100
@@ -141,7 +199,25 @@ export async function fetchConductStudents(params: IConductQueryParams): Promise
 }> {
   const supabase = await createClient()
   const userId = await checkAuthUserId(supabase)
-  const _schoolId = await getUserSchoolId(supabase, userId)
+
+  // Get current school year and semester for default values
+  const [
+    schoolId,
+    { data: currentSchoolYear },
+    { data: currentSemester },
+  ] = await Promise.all([
+    getUserSchoolId(supabase, userId),
+    supabase
+      .from('school_years')
+      .select('id')
+      .eq('is_current', true)
+      .single(),
+    supabase
+      .from('semesters')
+      .select('id')
+      .eq('is_current', true)
+      .single(),
+  ])
 
   const {
     page = 1,
@@ -153,10 +229,17 @@ export async function fetchConductStudents(params: IConductQueryParams): Promise
     sort = { column: 'last_name', direction: 'asc' },
   } = params
 
+  if (!currentSchoolYear || !currentSemester) {
+    throw new Error('Aucune année scolaire ou semestre en cours trouvée')
+  }
+
   // Use the student_conduct_summary_view for efficient querying
   let query = supabase
     .from('student_conduct_summary_view')
     .select('*', { count: 'exact' })
+    .eq('school_id', schoolId)
+    .eq('school_year_id', currentSchoolYear.id)
+    .eq('semester_id', currentSemester.id)
 
   // Apply filters
   if (searchTerm) {
@@ -197,18 +280,49 @@ export async function fetchConductStudents(params: IConductQueryParams): Promise
     throw new Error('Erreur lors du chargement des étudiants')
   }
 
-  // Get current school year and semester for default values
-  const { data: currentSchoolYear } = await supabase
-    .from('school_years')
-    .select('id')
-    .eq('is_current', true)
-    .single()
+  // Get recent incidents for all students in batch
+  const studentIds = (studentsData || [])
+    .map(s => s.student_id)
+    .filter((id): id is string => Boolean(id))
+  const { data: recentIncidentsData } = await supabase
+    .from('conduct_incidents')
+    .select(`
+      id,
+      student_id,
+      category_id,
+      description,
+      points_deducted,
+      reported_at,
+      conduct_categories(name, color)
+    `)
+    .in('student_id', studentIds)
+    .eq('school_year_id', currentSchoolYear.id)
+    .eq('semester_id', currentSemester.id)
+    .eq('is_active', true)
+    .gte('reported_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()) // Last 30 days
+    .order('reported_at', { ascending: false })
 
-  const { data: currentSemester } = await supabase
-    .from('semesters')
-    .select('id')
-    .eq('is_current', true)
-    .single()
+  // Group incidents by student
+  const incidentsByStudent = (recentIncidentsData || []).reduce((acc, incident) => {
+    if (!acc[incident.student_id]) {
+      acc[incident.student_id] = []
+    }
+    acc[incident.student_id].push({
+      id: incident.id,
+      studentId: incident.student_id,
+      categoryId: incident.category_id,
+      description: incident.description,
+      pointsDeducted: incident.points_deducted,
+      reportedBy: '', // Not needed for recent incidents display
+      reportedAt: incident.reported_at,
+      schoolYearId: currentSchoolYear.id,
+      semesterId: currentSemester.id,
+      isActive: true,
+      createdAt: incident.reported_at,
+      updatedAt: incident.reported_at,
+    })
+    return acc
+  }, {} as Record<string, IConductIncident[]>)
 
   // Transform the view data to match our interface
   const students: IConductStudent[] = (studentsData || []).map((student) => {
@@ -243,7 +357,7 @@ export async function fetchConductStudents(params: IConductQueryParams): Promise
       className: student.class_name || 'Non assigné',
       classId: student.class_id || '',
       currentScore: conductScore,
-      recentIncidents: [], // Will be populated from incidents if needed
+      recentIncidents: incidentsByStudent[student.student_id!] || [],
       attendanceStats: {
         totalSessions: student.total_sessions || 0,
         absences: student.absences || 0,
@@ -253,16 +367,45 @@ export async function fetchConductStudents(params: IConductQueryParams): Promise
     }
   })
 
-  // Get statistics from the conduct_stats_view
-  const { data: statsData } = await supabase
-    .from('conduct_stats_view')
-    .select('*')
-    .limit(1)
-    .single()
+  // Get statistics from the conduct_stats_view and calculate additional metrics
+  const [
+    { data: statsData },
+    { count: recentIncidentsCount },
+    { data: previousStats },
+  ] = await Promise.all([
+    supabase
+      .from('conduct_stats_view')
+      .select('*')
+      .eq('school_year_id', currentSchoolYear.id)
+      .eq('semester_id', currentSemester.id)
+      .single(),
+    supabase
+      .from('conduct_incidents')
+      .select('id', { count: 'exact' })
+      .eq('school_year_id', currentSchoolYear.id)
+      .eq('semester_id', currentSemester.id)
+      .eq('is_active', true)
+      .gte('reported_at', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()), // Last 7 days
+    supabase
+      .from('conduct_stats_view')
+      .select('average_score')
+      .eq('school_year_id', currentSchoolYear.id)
+      .lt('semester_id', currentSemester.id)
+      .order('semester_id', { ascending: false })
+      .limit(1)
+      .single(),
+  ])
+
+  // Calculate improvement trend (comparing current vs previous semester)
+  const currentAverage = statsData?.average_score || 0
+  const previousAverage = previousStats?.average_score || currentAverage
+  const improvementTrend = previousAverage > 0
+    ? ((currentAverage - previousAverage) / previousAverage) * 100
+    : 0
 
   const stats: IConductStats = {
     totalStudents: totalCount || 0,
-    averageScore: statsData?.average_score || 0,
+    averageScore: currentAverage,
     gradeDistribution: {
       BLAME: statsData?.blame_count || 0,
       MAUVAISE: statsData?.mauvaise_count || 0,
@@ -270,8 +413,8 @@ export async function fetchConductStudents(params: IConductQueryParams): Promise
       BONNE: statsData?.bonne_count || 0,
       TRES_BONNE: statsData?.tres_bonne_count || 0,
     },
-    recentIncidents: 0, // Will be calculated from recent incidents view
-    improvementTrend: 0, // Will be calculated from historical data
+    recentIncidents: recentIncidentsCount || 0,
+    improvementTrend: Math.round(improvementTrend * 10) / 10, // Round to 1 decimal place
   }
 
   return {
@@ -288,15 +431,40 @@ export async function createConductIncident(incident: Omit<IConductIncident, 'id
   const supabase = await createClient()
   const userId = await checkAuthUserId(supabase)
 
-  // Verify user has permission to create incidents
-  const { data: userRole } = await supabase
-    .from('user_roles')
-    .select('role_id')
-    .eq('user_id', userId)
-    .single()
+  // Verify user has permission to create incidents and get current school year/semester in parallel
+  const [
+    { data: userRole },
+    { data: currentSchoolYear },
+    { data: currentSemester },
+  ] = await Promise.all([
+    supabase
+      .from('user_roles')
+      .select('role_id')
+      .eq('user_id', userId)
+      .in('role_id', [ERole.DIRECTOR, 4])
+      .single(),
+    supabase
+      .from('school_years')
+      .select('id')
+      .eq('is_current', true)
+      .single(),
+    supabase
+      .from('semesters')
+      .select('id')
+      .eq('is_current', true)
+      .single(),
+  ])
 
   if (!userRole || ![ERole.DIRECTOR, ERole.TEACHER].includes(userRole.role_id)) {
     throw new Error('Vous n\'avez pas l\'autorisation de créer des incidents de conduite')
+  }
+
+  if (!currentSchoolYear) {
+    throw new Error('Aucune année scolaire active trouvée. Veuillez configurer l\'année scolaire courante.')
+  }
+
+  if (!currentSemester) {
+    throw new Error('Aucun trimestre actif trouvé. Veuillez configurer le trimestre courant.')
   }
 
   // Insert the incident into the database
@@ -309,8 +477,8 @@ export async function createConductIncident(incident: Omit<IConductIncident, 'id
       points_deducted: incident.pointsDeducted,
       reported_by: userId,
       reported_at: incident.reportedAt,
-      school_year_id: incident.schoolYearId,
-      semester_id: incident.semesterId,
+      school_year_id: currentSchoolYear.id,
+      semester_id: currentSemester.id,
       is_active: incident.isActive,
     })
     .select()
@@ -335,6 +503,23 @@ export async function createConductIncident(incident: Omit<IConductIncident, 'id
     isActive: insertedIncident.is_active,
     createdAt: insertedIncident.created_at || new Date().toISOString(),
     updatedAt: insertedIncident.updated_at || new Date().toISOString(),
+  }
+
+  // Update or create conduct scores for the student after creating the incident
+  try {
+    await updateConductScoresAfterIncident(
+      supabase,
+      incident.studentId,
+      currentSchoolYear.id,
+      currentSemester.id,
+      // incident.categoryId,
+      // incident.pointsDeducted,
+    )
+  }
+  catch (scoreError) {
+    console.error('Error updating conduct scores after incident creation:', scoreError)
+    // Don't throw here - the incident was created successfully,
+    // we just log the score update error
   }
 
   return newIncident
@@ -610,6 +795,13 @@ export async function deactivateConductIncident(incidentId: string): Promise<voi
     throw new Error('Vous n\'avez pas l\'autorisation de supprimer des incidents de conduite')
   }
 
+  // Get incident details before deactivating to update scores
+  const { data: incident } = await supabase
+    .from('conduct_incidents')
+    .select('student_id, school_year_id, semester_id, category_id, points_deducted')
+    .eq('id', incidentId)
+    .single()
+
   const { error } = await supabase
     .from('conduct_incidents')
     .update({ is_active: false })
@@ -618,6 +810,24 @@ export async function deactivateConductIncident(incidentId: string): Promise<voi
   if (error) {
     console.error('Error deactivating conduct incident:', error)
     throw new Error('Erreur lors de la suppression de l\'incident de conduite')
+  }
+
+  // Update conduct scores after deactivating the incident
+  if (incident) {
+    try {
+      await updateConductScoresAfterIncident(
+        supabase,
+        incident.student_id,
+        incident.school_year_id,
+        incident.semester_id,
+        // incident.category_id,
+        // 0, // Pass 0 since we're recalculating from all active incidents
+      )
+    }
+    catch (scoreError) {
+      console.error('Error updating conduct scores after incident deactivation:', scoreError)
+      // Don't throw here - the incident was deactivated successfully
+    }
   }
 }
 
