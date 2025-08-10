@@ -111,6 +111,7 @@ export const StudentsTable: React.FC<StudentsTableProps> = ({
 
       await updateStudent({
         id: selectedStudent.id,
+        idNumber: values.idNumber,
         gender: values.gender,
         address: values.address,
         lastName: values.lastName,

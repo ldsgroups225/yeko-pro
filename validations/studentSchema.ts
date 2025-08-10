@@ -26,7 +26,7 @@ const secondParentSchema = z.object({
 
 export const studentFormSchema = z.object({
   id: z.string(),
-  idNumber: z.string(),
+  idNumber: z.string().min(1, 'Le matricule est requis').trim(),
   firstName: z.string().min(2, 'Le prénom doit contenir au moins 2 caractères'),
   lastName: z.string().min(2, 'Le nom de famille doit contenir au moins 2 caractères'),
   gender: z.enum(['M', 'F'], { required_error: 'Veuillez sélectionner le genre' }).nullable(),

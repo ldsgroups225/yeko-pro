@@ -303,7 +303,23 @@ export async function createStudent(params: Omit<IStudentDTO, 'id' | 'createdAt'
 export async function updateStudent(params: Partial<IStudentDTO> & { id: string }): Promise<IStudentDTO> {
   const client = await createClient()
 
-  delete params.idNumber
+  // Validate idNumber uniqueness if it's being updated
+  if (params.idNumber) {
+    const { data: existingStudent, error: checkError } = await client
+      .from('students')
+      .select('id')
+      .eq('id_number', params.idNumber)
+      .neq('id', params.id)
+      .single()
+
+    if (checkError && checkError.code !== 'PGRST116') {
+      throw new Error('Erreur lors de la vérification du matricule')
+    }
+
+    if (existingStudent) {
+      throw new Error('Ce matricule est déjà utilisé par un autre étudiant')
+    }
+  }
 
   const isBase64 = params.avatarUrl?.startsWith('data:image')
   if (!isBase64) {

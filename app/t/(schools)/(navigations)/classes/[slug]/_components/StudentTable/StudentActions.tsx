@@ -56,14 +56,26 @@ export function StudentActions({ student }: StudentActionsProps) {
     setIsSubmitting(true)
 
     try {
+      const secondParent = val.secondParent?.fullName
+        ? {
+            id: '',
+            fullName: val.secondParent.fullName!,
+            phone: val.secondParent.phone!,
+            gender: val.secondParent.gender!,
+            type: val.secondParent.type!,
+          }
+        : undefined
+
       await updateStudent({
         id: val.id,
+        idNumber: val.idNumber,
         gender: val.gender,
         address: val.address,
         lastName: val.lastName,
         firstName: val.firstName,
         avatarUrl: val.avatarUrl,
         dateOfBirth: val.dateOfBirth?.toISOString(),
+        secondParent,
       },
       )
 
