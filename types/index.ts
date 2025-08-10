@@ -134,6 +134,7 @@ export interface IStudentDTO {
 
   classId?: string | null
   parentId?: string
+  enrollmentId?: string | null
 
   createdAt?: string | null
   createdBy?: string | null

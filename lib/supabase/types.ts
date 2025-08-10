@@ -3863,6 +3863,14 @@ export interface Database {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
+      toggle_student_service: {
+        Args: {
+          p_enrollment_id: string
+          p_service_type: string
+          p_is_subscribing: boolean
+        }
+        Returns: string
+      }
       update_existing_class_slugs: {
         Args: Record<PropertyKey, never>
         Returns: undefined

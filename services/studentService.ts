@@ -218,7 +218,7 @@ export async function getStudentByIdNumber(idNumber: string): Promise<IStudentDT
 
   const { data: classroom, error: classroomError } = await client
     .from('student_school_class')
-    .select('class_id, is_orphan, is_government_affected, is_subscribed_to_transportation, is_subscribed_to_canteen, created_at, class:classes(id, name, slug)')
+    .select('id, class_id, is_orphan, is_government_affected, is_subscribed_to_transportation, is_subscribed_to_canteen, created_at, class:classes(id, name, slug)')
     .eq('student_id', student!.id)
     .eq('enrollment_status', 'accepted')
     .is('is_active', true)
@@ -263,6 +263,7 @@ export async function getStudentByIdNumber(idNumber: string): Promise<IStudentDT
           name: classroom.class.name,
         }
       : undefined,
+    enrollmentId: classroom?.id || null,
     createdAt: classroom?.created_at || student.created_at,
     createdBy: student.created_by,
     updatedAt: student.updated_at,
@@ -826,5 +827,80 @@ export async function getStudentAcademicData(studentId: string) {
     semesters: semesterData,
     subjects: processedSubjects,
     observations: processedObservations,
+  }
+}
+// Student Services Management
+
+export interface StudentServices {
+  transport: boolean
+  cafeteria: boolean
+}
+
+export async function getStudentServices(enrollmentId: string): Promise<StudentServices> {
+  const client = await createClient()
+
+  const { data, error } = await client
+    .from('student_school_class')
+    .select('is_subscribed_to_transportation, is_subscribed_to_canteen')
+    .eq('id', enrollmentId)
+    .single()
+
+  if (error) {
+    console.error('Error fetching student services:', error)
+    throw new Error('Erreur lors de la récupération des services de l\'étudiant')
+  }
+
+  return {
+    transport: data.is_subscribed_to_transportation || false,
+    cafeteria: data.is_subscribed_to_canteen || false,
+  }
+}
+
+export async function toggleStudentService(
+  enrollmentId: string,
+  serviceType: 'transport' | 'cafeteria',
+  isSubscribing: boolean,
+): Promise<string> {
+  const client = await createClient()
+
+  // Map UI service types to database service types
+  const serviceMapping = {
+    transport: 'transportation',
+    cafeteria: 'canteen',
+  }
+
+  const dbServiceType = serviceMapping[serviceType]
+
+  try {
+    const { data, error } = await client.rpc('toggle_student_service', {
+      p_enrollment_id: enrollmentId,
+      p_service_type: dbServiceType,
+      p_is_subscribing: isSubscribing,
+    })
+
+    if (error) {
+      console.error('Error toggling student service:', error)
+
+      // Handle specific business logic errors with user-friendly messages
+      if (error.message.includes('No payment plan found')) {
+        throw new Error('Aucun plan de paiement trouvé pour cet étudiant')
+      }
+      if (error.message.includes('no unpaid installments')) {
+        throw new Error('Impossible de modifier les services. Aucune échéance impayée disponible')
+      }
+      if (error.message.includes('already in the desired subscription state')) {
+        throw new Error(`L'étudiant est déjà ${isSubscribing ? 'abonné à' : 'désabonné de'} ce service`)
+      }
+
+      throw new Error('Erreur lors de la modification du service')
+    }
+
+    return data || 'Service modifié avec succès'
+  }
+  catch (error) {
+    if (error instanceof Error) {
+      throw error
+    }
+    throw new Error('Erreur inattendue lors de la modification du service')
   }
 }

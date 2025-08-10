@@ -18,6 +18,7 @@ export interface Student {
     id: string
     name: string
   }
+  enrollmentId?: string
   dateJoined?: string
 }
 
@@ -63,6 +64,7 @@ export function transformStudentDTO(dto: IStudentDTO): Student {
           name: dto.classroom.name,
         }
       : undefined,
+    enrollmentId: dto.enrollmentId || undefined,
     dateJoined: dto.createdAt || undefined,
   }
 }
