@@ -956,3 +956,24 @@ export async function initializeConductScores(): Promise<{ initialized: number, 
 
   return { initialized, errors }
 }
+
+export async function fetchClassesForFilter(): Promise<{ id: string, name: string }[]> {
+  const supabase = await createClient()
+  const userId = await checkAuthUserId(supabase)
+  const schoolId = await getUserSchoolId(supabase, userId)
+
+  const { data: classes, error } = await supabase
+    .from('classes')
+    .select('id, name')
+    .eq('school_id', schoolId)
+    .eq('is_active', true)
+    .order('grade_id')
+    .order('name')
+
+  if (error) {
+    console.error('Error fetching classes:', error)
+    throw new Error('Erreur lors du chargement des classes')
+  }
+
+  return classes || []
+}

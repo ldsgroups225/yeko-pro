@@ -37,6 +37,7 @@ export default function ConductsPage() {
   const [isGeneratingReport, setIsGeneratingReport] = useState(false)
 
   const {
+    classes,
     students,
     stats,
     isLoading,
@@ -49,13 +50,27 @@ export default function ConductsPage() {
     fetchStats,
     setFilters,
     setCurrentPage,
+    fetchClassesForFilter,
   } = useConduct()
 
   // Initialize data on component mount
+  async function initializeData() {
+    try {
+      await Promise.all([
+        fetchStudents(defaultQueryParams),
+        fetchStats(),
+        fetchClassesForFilter(),
+      ])
+    }
+    catch (error) {
+      console.error('Error initializing data:', error)
+      toast.error('Une erreur est survenue lors de la récupération des données.')
+    }
+  }
+
   React.useEffect(() => {
-    fetchStudents(defaultQueryParams)
-    fetchStats()
-  }, [fetchStudents, fetchStats])
+    initializeData()
+  }, [fetchStudents, fetchStats, fetchClassesForFilter])
 
   // Filter handlers
   const handleSearchTermChange = useDebouncedCallback((searchTerm: string) => {
@@ -337,6 +352,7 @@ export default function ConductsPage() {
                 </PopoverTrigger>
                 <PopoverContent className="w-80 bg-white/95 backdrop-blur-sm border-slate-200">
                   <ConductFilterSection
+                    classes={classes}
                     onClassChange={handleClassChange}
                     onGradeFilterChange={handleGradeFilterChange}
                     onScoreRangeChange={handleScoreRangeChange}

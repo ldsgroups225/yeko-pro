@@ -1,11 +1,12 @@
 import type { IConductQueryParams, IConductStats, IConductStudent } from '@/types'
 import { create } from 'zustand'
-import { fetchConductStats, fetchConductStudents } from '@/services'
+import { fetchClassesForFilter, fetchConductStats, fetchConductStudents } from '@/services'
 
 // Define the state interface
 interface ConductState {
   students: IConductStudent[]
   stats: IConductStats | null
+  classes: { id: string, name: string }[]
   isLoading: boolean
   error: string | null
   totalCount: number
@@ -17,12 +18,14 @@ interface ConductState {
 interface ConductActions {
   setStudents: (students: IConductStudent[]) => void
   setStats: (stats: IConductStats) => void
+  setClasses: (classes: { id: string, name: string }[]) => void
   setLoading: (loading: boolean) => void
   setError: (error: string | null) => void
   setFilters: (filters: Partial<IConductQueryParams>) => void
   setCurrentPage: (page: number) => void
   fetchStudents: (params?: IConductQueryParams) => Promise<void>
   fetchStats: () => Promise<void>
+  fetchClassesForFilter: () => Promise<void>
   clearData: () => void
   refreshData: () => Promise<void>
 }
@@ -32,6 +35,7 @@ const useConductStore = create<ConductState & ConductActions>((set, get) => ({
   // Initial state
   students: [],
   stats: null,
+  classes: [],
   isLoading: false,
   error: null,
   totalCount: 0,
@@ -46,6 +50,8 @@ const useConductStore = create<ConductState & ConductActions>((set, get) => ({
   setStudents: students => set({ students, error: null }),
 
   setStats: stats => set({ stats, error: null }),
+
+  setClasses: classes => set({ classes, error: null }),
 
   setLoading: isLoading => set({ isLoading }),
 
@@ -98,9 +104,22 @@ const useConductStore = create<ConductState & ConductActions>((set, get) => ({
     }
   },
 
+  fetchClassesForFilter: async () => {
+    try {
+      const classes = await fetchClassesForFilter()
+      set({ classes })
+    }
+    catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Erreur lors du chargement des classes'
+      set({ error: errorMessage })
+      throw error
+    }
+  },
+
   clearData: () => set({
     students: [],
     stats: null,
+    classes: [],
     error: null,
     isLoading: false,
     totalCount: 0,

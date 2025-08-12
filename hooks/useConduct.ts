@@ -4,6 +4,7 @@ import useConductStore from '@/store/conductStore'
 
 interface ReturnType {
   // State
+  classes: { id: string, name: string }[]
   students: IConductStudent[]
   stats: IConductStats | null
   isLoading: boolean
@@ -15,6 +16,7 @@ interface ReturnType {
   // Actions
   fetchStudents: (params?: IConductQueryParams) => Promise<void>
   fetchStats: () => Promise<void>
+  fetchClassesForFilter: () => Promise<void>
   setFilters: (filters: Partial<IConductQueryParams>) => void
   setCurrentPage: (page: number) => void
   clearData: () => void
@@ -31,6 +33,7 @@ interface ReturnType {
  * Provides access to conduct students, statistics, and related actions.
  *
  * @returns {ReturnType} Object containing:
+ *   - classes: Array of available classes of the school
  *   - students: Array of conduct student data
  *   - stats: Conduct statistics
  *   - isLoading: Loading state
@@ -50,6 +53,7 @@ interface ReturnType {
  */
 export function useConduct(): ReturnType {
   const {
+    classes,
     students,
     stats,
     isLoading,
@@ -59,6 +63,7 @@ export function useConduct(): ReturnType {
     filters,
     fetchStudents,
     fetchStats,
+    fetchClassesForFilter,
     setFilters,
     setCurrentPage,
     clearData,
@@ -121,6 +126,7 @@ export function useConduct(): ReturnType {
 
   return {
     // State
+    classes,
     students,
     stats,
     isLoading,
@@ -132,6 +138,7 @@ export function useConduct(): ReturnType {
     // Actions
     fetchStudents: fetchStudentsStable,
     fetchStats: fetchStatsStable,
+    fetchClassesForFilter,
     setFilters,
     setCurrentPage,
     clearData,

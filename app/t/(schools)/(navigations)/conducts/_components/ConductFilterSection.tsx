@@ -1,13 +1,14 @@
 'use client'
 
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
+import { Combobox } from '@/components/Combobox'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Slider } from '@/components/ui/slider'
-import { useClasses } from '@/hooks'
 
 interface ConductFilterSectionProps {
+  classes: { id: string, name: string }[]
   onClassChange: (classId: string) => void
   onGradeFilterChange: (grade: string) => void
   onScoreRangeChange: (min: number, max: number) => void
@@ -17,6 +18,7 @@ interface ConductFilterSectionProps {
 }
 
 export function ConductFilterSection({
+  classes,
   onClassChange,
   onGradeFilterChange,
   onScoreRangeChange,
@@ -24,15 +26,10 @@ export function ConductFilterSection({
   selectedGrade,
   scoreRange,
 }: ConductFilterSectionProps) {
-  const { classes, isLoading } = useClasses()
-
   const [localScoreRange, setLocalScoreRange] = useState<[number, number]>([
     scoreRange?.min ?? 0,
     scoreRange?.max ?? 20,
   ])
-
-  // Fallback classes data to prevent errors
-  const safeClasses = classes || []
 
   const handleScoreRangeChange = (values: number[]) => {
     setLocalScoreRange([values[0], values[1]])
@@ -40,6 +37,17 @@ export function ConductFilterSection({
 
   const applyScoreRange = () => {
     onScoreRangeChange(localScoreRange[0], localScoreRange[1])
+  }
+
+  // Enhanced class options with "all" option for Combobox
+  const enhancedClassOptions = useMemo(() => {
+    const allOption = { id: 'all', name: 'Toutes les classes' }
+    return [allOption, ...classes]
+  }, [classes])
+
+  // Handle class selection from Combobox
+  const handleClassSelect = (option: { id: string, name: string }) => {
+    onClassChange(option.id)
   }
 
   const resetFilters = () => {
@@ -58,20 +66,17 @@ export function ConductFilterSection({
 
       {/* Class Filter */}
       <div className="space-y-3">
-        <Label className="text-sm font-medium text-slate-700">Classe</Label>
-        <Select value={selectedClass || 'all'} onValueChange={onClassChange} disabled={isLoading}>
-          <SelectTrigger className="bg-white/80 border-slate-200 hover:bg-white focus:ring-2 focus:ring-blue-500/20">
-            <SelectValue placeholder={isLoading ? 'Chargement...' : 'Toutes les classes'} />
-          </SelectTrigger>
-          <SelectContent className="bg-white/95 backdrop-blur-sm border-slate-200">
-            <SelectItem value="all">Toutes les classes</SelectItem>
-            {!isLoading && safeClasses.map(classItem => (
-              <SelectItem key={classItem.id} value={classItem.id}>
-                {classItem.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <Combobox
+          value={selectedClass || 'all'}
+          options={enhancedClassOptions}
+          onSelect={handleClassSelect}
+          label="Classe"
+          placeholder="Toutes les classes"
+          searchPlaceholder="Rechercher une classe..."
+          emptyText="Aucune classe trouvée"
+          searchFrom="name"
+          className="bg-white/80 border-slate-200 hover:bg-white focus:ring-2 focus:ring-blue-500/20"
+        />
       </div>
 
       {/* Grade Filter */}
