@@ -106,13 +106,14 @@ export async function fetchUserProfile(): Promise<IUserProfileDTO> {
 }
 
 /**
- * Signs up a new user with email and password
+ * Signs up a new user with full name, email and password
  *
+ * @param fullName - User's full name
  * @param email - User's email address
  * @param password - User's password
  * @returns Object containing success status and any error message
  */
-export async function signUp(email: string, password: string) {
+export async function signUp(fullName: string, email: string, password: string) {
   const env = getEnvOrThrowServerSide()
   const supabase = await createClient()
 
@@ -121,6 +122,9 @@ export async function signUp(email: string, password: string) {
     password,
     options: {
       emailRedirectTo: `${env.NEXT_PUBLIC_SITE_URL}/auth/callback`,
+      data: {
+        full_name: fullName,
+      },
     },
   })
 
@@ -130,7 +134,7 @@ export async function signUp(email: string, password: string) {
 
   return {
     success: true,
-    message: 'Please check your email to confirm your account',
+    message: 'Veuillez vérifier votre boîte mail pour confirmer votre compte',
   }
 }
 

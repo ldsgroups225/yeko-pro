@@ -21,7 +21,7 @@ interface UserActions {
   setUser: (user: IUserProfileDTO | null) => void
   getFullName: () => string
   fetchUser: () => Promise<IUserProfileDTO>
-  signUp: (email: string, password: string) => Promise<any>
+  signUp: (fullName: string, email: string, password: string) => Promise<any>
   signIn: (email: string, password: string) => Promise<any>
   signOut: () => Promise<void>
   handleAuthCallback: (code: string) => Promise<any>
@@ -52,8 +52,8 @@ const useUserStore = create<UserState & UserActions>((set, get) => ({
       throw error
     }
   },
-  signUp: async (email, password) => {
-    const result = await signUp(email, password)
+  signUp: async (fullName, email, password) => {
+    const result = await signUp(fullName, email, password)
     if (result.success) {
       // Optionally update state or perform other actions on success
     }

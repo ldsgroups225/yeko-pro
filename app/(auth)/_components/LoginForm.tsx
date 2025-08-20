@@ -129,10 +129,23 @@ export function LoginForm() {
         )}
 
         <SubmitButton label="Se connecter" disabled={isPending} />
-        <div className="mt-4 text-center">
-          <Link href="/forgot-password" className="text-sm hover:underline text-muted-foreground">
-            Mot de passe oublié ?
-          </Link>
+
+        <div className="space-y-3">
+          <div className="text-center">
+            <Link href="/forgot-password" className="text-sm hover:underline text-muted-foreground">
+              Mot de passe oublié ?
+            </Link>
+          </div>
+
+          <div className="flex items-center justify-center gap-1 text-sm text-muted-foreground">
+            <span>Vous n'avez pas de compte ?</span>
+            <Link
+              href="/sign-up"
+              className="font-medium text-primary hover:text-primary/80 underline underline-offset-2"
+            >
+              S'inscrire
+            </Link>
+          </div>
         </div>
       </form>
     </Form>
