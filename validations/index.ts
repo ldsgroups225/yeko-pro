@@ -1,3 +1,4 @@
+export * from './forgotPassword'
 export * from './installmentTemplate'
 export * from './linkStudentParentSchema'
 export * from './login'
