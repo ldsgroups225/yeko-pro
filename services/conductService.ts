@@ -376,6 +376,7 @@ export async function fetchConductStudents(params: IConductQueryParams): Promise
     supabase
       .from('conduct_stats_view')
       .select('*')
+      .eq('school_id', schoolId)
       .eq('school_year_id', currentSchoolYear.id)
       .eq('semester_id', currentSemester.id)
       .single(),
@@ -404,6 +405,7 @@ export async function fetchConductStudents(params: IConductQueryParams): Promise
     : 0
 
   const stats: IConductStats = {
+    excellenceRate: statsData?.excellence_rate || 0,
     totalStudents: totalCount || 0,
     averageScore: currentAverage,
     gradeDistribution: {
@@ -563,6 +565,7 @@ export async function fetchConductStats(): Promise<IConductStats> {
   const { data: statsData } = await supabase
     .from('conduct_stats_view')
     .select('*')
+    .eq('school_id', schoolId)
     .eq('school_year_id', currentSchoolYear.id)
     .eq('semester_id', currentSemester.id)
     .single()
@@ -574,12 +577,11 @@ export async function fetchConductStats(): Promise<IConductStats> {
     .eq('school_year_id', currentSchoolYear.id)
     .eq('semester_id', currentSemester.id)
     .eq('is_active', true)
-    .gte('reported_at', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()) // Last 7 days
 
   // Calculate improvement trend (simplified - comparing current vs previous period)
   const { data: previousStats } = await supabase
     .from('conduct_stats_view')
-    .select('average_score')
+    .select('average_score, excellence_rate')
     .eq('school_year_id', currentSchoolYear.id)
     .lt('semester_id', currentSemester.id)
     .order('semester_id', { ascending: false })
@@ -593,6 +595,7 @@ export async function fetchConductStats(): Promise<IConductStats> {
     : 0
 
   return {
+    excellenceRate: statsData?.excellence_rate || 0,
     totalStudents: totalStudents || 0,
     averageScore: currentAverage,
     gradeDistribution: {
@@ -606,6 +609,7 @@ export async function fetchConductStats(): Promise<IConductStats> {
     improvementTrend: Math.round(improvementTrend * 10) / 10, // Round to 1 decimal place
   }
 }
+
 /**
  * Updates or creates conduct scores for a student
  */
@@ -868,6 +872,7 @@ export async function fetchConductCategories(): Promise<Array<{
     isActive: category.is_active,
   }))
 }
+
 /**
  * Initializes conduct scores for students who don't have them yet
  * This should be run when setting up the conduct system for the first time

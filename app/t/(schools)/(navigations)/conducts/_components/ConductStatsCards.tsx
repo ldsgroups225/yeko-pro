@@ -13,6 +13,7 @@ export function ConductStatsCards({ stats }: ConductStatsCardsProps) {
   const {
     totalStudents,
     averageScore,
+    excellenceRate,
     gradeDistribution,
     recentIncidents,
     improvementTrend,
@@ -22,7 +23,6 @@ export function ConductStatsCards({ stats }: ConductStatsCardsProps) {
     return totalStudents > 0 ? (count / totalStudents) * 100 : 0
   }
 
-  const excellenceRate = getGradePercentage(gradeDistribution.TRES_BONNE + gradeDistribution.BONNE)
   const isImproving = improvementTrend >= 0
 
   return (
@@ -119,7 +119,7 @@ export function ConductStatsCards({ stats }: ConductStatsCardsProps) {
                 </div>
                 <div>
                   <p className="text-3xl font-bold text-slate-900">{recentIncidents}</p>
-                  <p className="text-sm text-slate-600">Cette semaine</p>
+                  <p className="text-sm text-slate-600">Ce trimestre</p>
                 </div>
               </div>
               <div className={`rounded-2xl p-3 transition-colors ${

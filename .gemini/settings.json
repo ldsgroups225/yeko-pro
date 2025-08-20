@@ -1,0 +1,22 @@
+{
+  "mcpServers": {
+    "git": {
+      "command": "uvx",
+      "args": [
+        "mcp-server-git",
+        "--repository",
+        "/home/darius-kassi/Desktop/yeko-pro"
+      ],
+      "disabled": false
+    },
+    "filesystem": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-filesystem",
+        "/home/darius-kassi/Desktop/yeko-pro"
+      ],
+      "disabled": false
+    }
+  }
+}

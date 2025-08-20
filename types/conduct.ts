@@ -70,6 +70,7 @@ export interface IConductQueryParams {
 export interface IConductStats {
   totalStudents: number
   averageScore: number
+  excellenceRate: number
   gradeDistribution: {
     BLAME: number
     MAUVAISE: number
