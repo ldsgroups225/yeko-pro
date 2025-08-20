@@ -22,7 +22,7 @@ interface UserActions {
   getFullName: () => string
   fetchUser: () => Promise<IUserProfileDTO>
   signUp: (fullName: string, email: string, password: string) => Promise<any>
-  signIn: (email: string, password: string) => Promise<any>
+  signIn: (email: string, password: string) => Promise<{ success: boolean, error?: string, userId?: string }>
   signOut: () => Promise<void>
   handleAuthCallback: (code: string) => Promise<any>
   resetPassword: (email: string) => Promise<any>
@@ -62,7 +62,18 @@ const useUserStore = create<UserState & UserActions>((set, get) => ({
   signIn: async (email, password) => {
     const result = await signIn(email, password)
     if (result.success) {
-      await get().fetchUser()
+      try {
+        // Fetch user profile (now supports all roles)
+        await get().fetchUser()
+
+        // Let middleware handle the redirect based on user role
+        // No need to handle navigation here as middleware will detect the auth state
+        // and redirect appropriately
+      }
+      catch (error) {
+        console.error('Error during post-auth process:', error)
+        // If there's an error fetching profile, let middleware handle the redirect
+      }
     }
     return result
   },

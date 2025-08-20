@@ -2,6 +2,7 @@ import type { NextRequest } from 'next/server'
 import type { Database } from './types'
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse } from 'next/server'
+import { checkMiddlewareAuth } from '@/lib/auth/middlewareAuth'
 import { getEnvOrThrowServerSide } from '@/lib/utils/EnvServer'
 
 export async function updateSession(request: NextRequest) {
@@ -43,38 +44,41 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser()
 
-  if (
-    !user
-    && !request.nextUrl.pathname.match(/^\/\/?$/)
-    && !request.nextUrl.pathname.startsWith('/login')
-    && !request.nextUrl.pathname.startsWith('/sign-in')
-    && !request.nextUrl.pathname.startsWith('/sign-up')
-    && !request.nextUrl.pathname.startsWith('/forgot-password')
-    && !request.nextUrl.pathname.startsWith('/auth')
-    && !request.nextUrl.pathname.startsWith('/error')
-  ) {
-    // no user, potentially respond by redirecting the user to the login page
-    const url = request.nextUrl.clone()
-    url.pathname = '/sign-in'
-    return NextResponse.redirect(url)
-  }
+  // Enhanced role-based authentication logic
+  try {
+    const authResult = await checkMiddlewareAuth(request, user)
 
-  if (
-    user
-    && (
-      request.nextUrl.pathname.match(/^\/\/?$/)
-      || request.nextUrl.pathname.startsWith('/auth')
-      || request.nextUrl.pathname.startsWith('/login')
-      || request.nextUrl.pathname.startsWith('/sign-in')
-      || request.nextUrl.pathname.startsWith('/sign-up')
-      || request.nextUrl.pathname.startsWith('/forgot-password')
-      || request.nextUrl.pathname.startsWith('/error')
-    )
-  ) {
-    // authenticated user, potentially respond by redirecting the user to the home page
-    const url = request.nextUrl.clone()
-    url.pathname = '/t/home'
-    return NextResponse.redirect(url)
+    if (authResult.shouldRedirect && authResult.redirectTo) {
+      const url = request.nextUrl.clone()
+      url.pathname = authResult.redirectTo
+
+      // Create new response with redirect
+      const redirectResponse = NextResponse.redirect(url)
+
+      // Copy over cookies from supabase response to maintain session
+      for (const cookie of supabaseResponse.cookies.getAll()) {
+        redirectResponse.cookies.set(cookie.name, cookie.value, cookie)
+      }
+
+      return redirectResponse
+    }
+  }
+  catch (error) {
+    console.error('Middleware authentication error:', error)
+
+    // On error, fall back to safe behavior
+    if (user && request.nextUrl.pathname.startsWith('/t/')) {
+      // If trying to access protected routes but role check failed, redirect to unauthorized
+      const url = request.nextUrl.clone()
+      url.pathname = '/unauthorized'
+
+      const redirectResponse = NextResponse.redirect(url)
+      for (const cookie of supabaseResponse.cookies.getAll()) {
+        redirectResponse.cookies.set(cookie.name, cookie.value, cookie)
+      }
+
+      return redirectResponse
+    }
   }
 
   // IMPORTANT: You *must* return the supabaseResponse object as it is. If you're

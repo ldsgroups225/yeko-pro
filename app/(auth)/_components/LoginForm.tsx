@@ -21,12 +21,13 @@ import {
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { useUser } from '@/hooks'
+import { getUserRolesCached } from '@/services/authorizationService'
 import { loginSchema } from '@/validations'
 
 export function LoginForm() {
-  const router = useRouter()
   const [isPending, startTransition] = useTransition()
   const { signIn } = useUser()
+  const router = useRouter()
 
   const [error, setError] = useState<string | null>(null)
   const form = useForm<ILogin>({
@@ -43,8 +44,20 @@ export function LoginForm() {
     startTransition(async () => {
       try {
         const result = await signIn(values.email, values.password)
-        if (result.success) {
-          router.replace('/t/home')
+        if (result.success && result.userId) {
+          // Get user roles to determine proper redirect
+          try {
+            const roleInfo = await getUserRolesCached(result.userId)
+
+            // Use same logic as middleware: directors to /t/home, others to /unauthorized
+            const redirectTo = roleInfo?.hasDirectorAccess ? '/t/home' : '/unauthorized'
+            router.replace(redirectTo)
+          }
+          catch (roleError) {
+            console.error('Error fetching user roles after login:', roleError)
+            // Fallback to /unauthorized for safety
+            router.replace('/unauthorized')
+          }
         }
         else {
           setError(result.error || 'Une erreur est survenue lors de la connexion.')

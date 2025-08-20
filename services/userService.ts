@@ -6,7 +6,7 @@ import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { getEnvOrThrowServerSide } from '@/lib/utils/EnvServer'
-import { ERole, roleToString } from '@/types'
+import { ERole } from '@/types'
 
 /**
  * Gets the current authenticated user's basic information.
@@ -22,12 +22,12 @@ export async function getUserId(): Promise<string | null> {
 }
 
 /**
- * Fetches the complete user profile including role information for a director.
+ * Fetches the complete user profile including role information for any user type.
+ * Now supports directors, teachers, and parents with role-based data loading.
  *
- * @returns {Promise<IUserProfileDTO>} The user's complete profile or null if not found
+ * @returns {Promise<IUserProfileDTO>} The user's complete profile
  * @throws {Error} With message 'Unauthorized' if user is not authenticated
  * @throws {Error} With message 'Profile not found' if profile fetch fails
- * @throws {Error} With message 'School not found' if school fetch fails
  */
 export async function fetchUserProfile(): Promise<IUserProfileDTO> {
   const supabase = await createClient()
@@ -37,6 +37,7 @@ export async function fetchUserProfile(): Promise<IUserProfileDTO> {
     throw new Error('Unauthorized')
   }
 
+  // Get user basic profile and ALL roles (removed DIRECTOR restriction)
   const { data: profile, error: profileError } = await supabase
     .from('users')
     .select(`
@@ -45,64 +46,94 @@ export async function fetchUserProfile(): Promise<IUserProfileDTO> {
       first_name,
       last_name,
       phone,
-      user_roles(role_id),
-      school_id
+      school_id,
+      user_roles(role_id)
     `)
     .eq('id', userId)
-    .eq('user_roles.role_id', ERole.DIRECTOR)
     .single()
 
   if (profileError) {
     throw new Error('Profile not found')
   }
 
-  const { count: studentCount, error: studentCountError } = await supabase
-    .from('student_school_class')
-    .select('*', { count: 'estimated' })
-    .eq('school_id', profile.school_id!)
-    .eq('enrollment_status', 'accepted')
-    .is('is_active', true)
-    // TODO: .eq('school_years_id', 2023)  // Filter by school year
+  // Get user roles using the authorization service
+  const { getUserRoles, getRoleDisplayName } = await import('./authorizationService')
+  const roleInfo = await getUserRoles(userId)
 
-  if (studentCountError) {
-    throw new Error('Failed to fetch student count')
-  }
+  // Determine primary role and role string
+  const primaryRole = roleInfo.primaryRole || ERole.PARENT // Default fallback
+  const roleString = await getRoleDisplayName(primaryRole)
 
-  const {
-    data: school,
-    error: schoolError,
-  } = await supabase.from('schools').select('*, classes(count)').eq('id', profile.school_id!).single()
-
-  if (schoolError || !school) {
-    throw new Error('School not found')
-  }
-
-  return {
+  // Build base user profile
+  const baseProfile: IUserProfileDTO = {
     id: userId,
     email: profile.email!,
     firstName: profile.first_name ?? '',
     lastName: profile.last_name ?? '',
-    fullName: `${profile.first_name} ${profile.last_name}`,
+    fullName: `${profile.first_name ?? ''} ${profile.last_name ?? ''}`.trim(),
     phoneNumber: profile.phone ?? '',
-    role: roleToString(ERole.DIRECTOR),
+    role: roleString,
     school: {
-      id: school.id,
-      name: school.name,
-      code: school.code,
-      city: school.city,
-      phone: school.phone,
-      email: school.email,
-      address: school.address,
-      cycleId: school.cycle_id,
-      imageUrl: school.image_url ?? '',
-      classCount: (school.classes[0] as any)?.count ?? 0,
-      studentCount: studentCount ?? 0,
-      createdAt: school.created_at ?? '',
-      createdBy: school.created_by ?? '',
-      updatedAt: school.updated_at ?? '',
-      updatedBy: school.updated_by ?? '',
+      id: '',
+      name: '',
+      code: '',
+      city: '',
+      phone: '',
+      email: '',
+      address: '',
+      cycleId: '',
+      imageUrl: '',
+      classCount: 0,
+      studentCount: 0,
+      createdAt: '',
+      createdBy: '',
+      updatedAt: '',
+      updatedBy: '',
     },
   }
+
+  // Load role-specific data (only for directors with school access)
+  if (roleInfo.hasDirectorAccess && profile.school_id) {
+    try {
+      const [schoolResult, studentCountResult] = await Promise.all([
+        supabase.from('schools')
+          .select('*, classes(count)')
+          .eq('id', profile.school_id)
+          .single(),
+        supabase.from('student_school_class')
+          .select('*', { count: 'estimated' })
+          .eq('school_id', profile.school_id)
+          .eq('enrollment_status', 'accepted')
+          .is('is_active', true),
+      ])
+
+      if (schoolResult.data) {
+        baseProfile.school = {
+          id: schoolResult.data.id,
+          name: schoolResult.data.name,
+          code: schoolResult.data.code,
+          city: schoolResult.data.city ?? '',
+          phone: schoolResult.data.phone ?? '',
+          email: schoolResult.data.email ?? '',
+          address: schoolResult.data.address ?? '',
+          cycleId: schoolResult.data.cycle_id,
+          imageUrl: schoolResult.data.image_url ?? '',
+          classCount: (schoolResult.data.classes[0] as any)?.count ?? 0,
+          studentCount: studentCountResult.count ?? 0,
+          createdAt: schoolResult.data.created_at ?? '',
+          createdBy: schoolResult.data.created_by ?? '',
+          updatedAt: schoolResult.data.updated_at ?? '',
+          updatedBy: schoolResult.data.updated_by ?? '',
+        }
+      }
+    }
+    catch (error) {
+      // Non-critical error - user profile still works without school data
+      console.warn('Failed to load school data:', error)
+    }
+  }
+
+  return baseProfile
 }
 
 /**
@@ -145,10 +176,10 @@ export async function signUp(fullName: string, email: string, password: string) 
  * @param password - User's password
  * @returns Object containing success status and any error message
  */
-export async function signIn(email: string, password: string) {
+export async function signIn(email: string, password: string): Promise<{ success: boolean, error?: string, userId?: string }> {
   const supabase = await createClient()
 
-  const { error } = await supabase.auth.signInWithPassword({
+  const { data, error } = await supabase.auth.signInWithPassword({
     email,
     password,
   })
@@ -157,7 +188,7 @@ export async function signIn(email: string, password: string) {
     return { success: false, error: error.message }
   }
 
-  return { success: true }
+  return { success: true, userId: data.user.id }
 }
 
 /**
