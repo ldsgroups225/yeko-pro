@@ -1,6 +1,6 @@
 'use client'
 
-import { BookOpen, GraduationCap, ListChecks, School, User } from 'lucide-react'
+import { BookOpen, GraduationCap, ListChecks, School, Shield, User } from 'lucide-react'
 import { useState } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
@@ -8,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
 import ProfileSettingsTab from './tabs/ProfileSettingsTab'
 import ProgressReportsSettingsTab from './tabs/ProgressReportsSettingsTab'
+import RoleManagementTab from './tabs/RoleManagementTab'
 import SchoolSettingsTab from './tabs/SchoolSettingsTab'
 import SchoolSubjectsSettingsTab from './tabs/SchoolSubjectsSettingsTab'
 import TuitionSettingsTab from './tabs/TuitionSettingsTab'
@@ -42,7 +43,7 @@ export default function SettingsPage() {
       </Card>
 
       <Tabs defaultValue="school" className="space-y-3">
-        <TabsList className="grid w-full grid-cols-2 lg:grid-cols-6">
+        <TabsList className="grid w-full grid-cols-3 lg:grid-cols-6">
           <TabsTrigger value="school" className="space-x-2">
             <School className="h-4 w-4" />
             <span>École</span>
@@ -61,7 +62,11 @@ export default function SettingsPage() {
           </TabsTrigger>
           <TabsTrigger value="progress-reports" className="space-x-2">
             <ListChecks className="h-4 w-4" />
-            <span>Conf. Suivi Pédagogique</span>
+            <span>Progrès</span>
+          </TabsTrigger>
+          <TabsTrigger value="roles" className="space-x-2">
+            <Shield className="h-4 w-4" />
+            <span>Personnel</span>
           </TabsTrigger>
           {/* <TabsTrigger value="notifications" className="space-x-2">
             <Bell className="h-4 w-4" />
@@ -95,6 +100,10 @@ export default function SettingsPage() {
 
         <TabsContent value="progress-reports">
           <ProgressReportsSettingsTab />
+        </TabsContent>
+
+        <TabsContent value="roles">
+          <RoleManagementTab />
         </TabsContent>
 
         {/* <TabsContent value="notifications">

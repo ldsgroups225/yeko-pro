@@ -30,110 +30,122 @@ export async function getUserId(): Promise<string | null> {
  * @throws {Error} With message 'Profile not found' if profile fetch fails
  */
 export async function fetchUserProfile(): Promise<IUserProfileDTO> {
-  const supabase = await createClient()
+  try {
+    const supabase = await createClient()
+    const userId = await getUserId()
 
-  const userId = await getUserId()
-  if (!userId) {
-    throw new Error('Unauthorized')
-  }
+    if (!userId) {
+      throw new Error('Unauthorized')
+    }
 
-  // Get user basic profile and ALL roles (removed DIRECTOR restriction)
-  const { data: profile, error: profileError } = await supabase
-    .from('users')
-    .select(`
-      id,
-      email,
-      first_name,
-      last_name,
-      phone,
-      school_id,
-      user_roles(role_id)
-    `)
-    .eq('id', userId)
-    .single()
+    // Get user basic profile and ALL roles (removed DIRECTOR restriction)
+    const { data: profile, error: profileError } = await supabase
+      .from('users')
+      .select(`
+        id,
+        email,
+        first_name,
+        last_name,
+        phone,
+        school_id,
+        user_roles(role_id)
+      `)
+      .eq('id', userId)
+      .single()
 
-  if (profileError) {
-    throw new Error('Profile not found')
-  }
+    if (profileError) {
+      throw new Error('Profile not found')
+    }
 
-  // Get user roles using the authorization service
-  const { getUserRoles, getRoleDisplayName } = await import('./authorizationService')
-  const roleInfo = await getUserRoles(userId)
+    // Get user roles using the authorization service
+    const { getUserRoles, getRoleDisplayName } = await import('./authorizationService')
+    const roleInfo = await getUserRoles(userId)
 
-  // Determine primary role and role string
-  const primaryRole = roleInfo.primaryRole || ERole.PARENT // Default fallback
-  const roleString = await getRoleDisplayName(primaryRole)
+    // Determine primary role and role string
+    const primaryRole = roleInfo.primaryRole || ERole.PARENT // Default fallback
+    const roleString = await getRoleDisplayName(primaryRole)
 
-  // Build base user profile
-  const baseProfile: IUserProfileDTO = {
-    id: userId,
-    email: profile.email!,
-    firstName: profile.first_name ?? '',
-    lastName: profile.last_name ?? '',
-    fullName: `${profile.first_name ?? ''} ${profile.last_name ?? ''}`.trim(),
-    phoneNumber: profile.phone ?? '',
-    role: roleString,
-    school: {
-      id: '',
-      name: '',
-      code: '',
-      city: '',
-      phone: '',
-      email: '',
-      address: '',
-      cycleId: '',
-      imageUrl: '',
-      classCount: 0,
-      studentCount: 0,
-      createdAt: '',
-      createdBy: '',
-      updatedAt: '',
-      updatedBy: '',
-    },
-  }
+    // Build base user profile
+    const baseProfile: IUserProfileDTO = {
+      id: userId,
+      email: profile.email!,
+      firstName: profile.first_name ?? '',
+      lastName: profile.last_name ?? '',
+      fullName: `${profile.first_name ?? ''} ${profile.last_name ?? ''}`.trim(),
+      phoneNumber: profile.phone ?? '',
+      role: roleString,
+      school: {
+        id: '',
+        name: '',
+        code: '',
+        city: '',
+        phone: '',
+        email: '',
+        address: '',
+        cycleId: '',
+        imageUrl: '',
+        classCount: 0,
+        studentCount: 0,
+        createdAt: '',
+        createdBy: '',
+        updatedAt: '',
+        updatedBy: '',
+      },
+    }
 
-  // Load role-specific data (only for directors with school access)
-  if (roleInfo.hasDirectorAccess && profile.school_id) {
-    try {
-      const [schoolResult, studentCountResult] = await Promise.all([
-        supabase.from('schools')
-          .select('*, classes(count)')
-          .eq('id', profile.school_id)
-          .single(),
-        supabase.from('student_school_class')
-          .select('*', { count: 'estimated' })
-          .eq('school_id', profile.school_id)
-          .eq('enrollment_status', 'accepted')
-          .is('is_active', true),
-      ])
+    // Load role-specific data (only for directors with school access)
+    if (roleInfo.hasDirectorAccess && profile.school_id) {
+      try {
+        const [schoolResult, studentCountResult] = await Promise.all([
+          supabase.from('schools')
+            .select('*, classes(count)')
+            .eq('id', profile.school_id)
+            .single(),
+          supabase.from('student_school_class')
+            .select('*', { count: 'estimated' })
+            .eq('school_id', profile.school_id)
+            .eq('enrollment_status', 'accepted')
+            .is('is_active', true),
+        ])
 
-      if (schoolResult.data) {
-        baseProfile.school = {
-          id: schoolResult.data.id,
-          name: schoolResult.data.name,
-          code: schoolResult.data.code,
-          city: schoolResult.data.city ?? '',
-          phone: schoolResult.data.phone ?? '',
-          email: schoolResult.data.email ?? '',
-          address: schoolResult.data.address ?? '',
-          cycleId: schoolResult.data.cycle_id,
-          imageUrl: schoolResult.data.image_url ?? '',
-          classCount: (schoolResult.data.classes[0] as any)?.count ?? 0,
-          studentCount: studentCountResult.count ?? 0,
-          createdAt: schoolResult.data.created_at ?? '',
-          createdBy: schoolResult.data.created_by ?? '',
-          updatedAt: schoolResult.data.updated_at ?? '',
-          updatedBy: schoolResult.data.updated_by ?? '',
+        if (schoolResult.data) {
+          baseProfile.school = {
+            id: schoolResult.data.id,
+            name: schoolResult.data.name,
+            code: schoolResult.data.code,
+            city: schoolResult.data.city ?? '',
+            phone: schoolResult.data.phone ?? '',
+            email: schoolResult.data.email ?? '',
+            address: schoolResult.data.address ?? '',
+            cycleId: schoolResult.data.cycle_id,
+            imageUrl: schoolResult.data.image_url ?? '',
+            classCount: (schoolResult.data.classes[0] as any)?.count ?? 0,
+            studentCount: studentCountResult.count ?? 0,
+            createdAt: schoolResult.data.created_at ?? '',
+            createdBy: schoolResult.data.created_by ?? '',
+            updatedAt: schoolResult.data.updated_at ?? '',
+            updatedBy: schoolResult.data.updated_by ?? '',
+          }
         }
       }
+      catch (error) {
+        // Non-critical error - user profile still works without school data
+        console.warn('Failed to load school data:', error)
+      }
     }
-    catch (error) {
-      // Non-critical error - user profile still works without school data
-      console.warn('Failed to load school data:', error)
-    }
-  }
 
-  return baseProfile
+    return baseProfile
+  }
+  catch (error) {
+    // Re-throw known errors with their original messages
+    if (error instanceof Error && (error.message === 'Unauthorized' || error.message === 'Profile not found')) {
+      throw error
+    }
+
+    // Handle unexpected errors
+    console.error('Unexpected error in fetchUserProfile:', error)
+    throw new Error('Failed to fetch user profile')
+  }
 }
 
 /**

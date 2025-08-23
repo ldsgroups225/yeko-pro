@@ -1080,31 +1080,44 @@ export interface Database {
         Row: {
           created_at: string
           created_by: string | null
+          email: string | null
           expired_at: string
           id: string
           is_used: boolean
           otp: string
           school_id: string
+          use_for: string | null
         }
         Insert: {
           created_at?: string
           created_by?: string | null
+          email?: string | null
           expired_at?: string
           id?: string
           is_used?: boolean
           otp: string
           school_id: string
+          use_for?: string | null
         }
         Update: {
           created_at?: string
           created_by?: string | null
+          email?: string | null
           expired_at?: string
           id?: string
           is_used?: boolean
           otp?: string
           school_id?: string
+          use_for?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: 'invite_to_school_email_fkey'
+            columns: ['email']
+            isOneToOne: false
+            referencedRelation: 'users'
+            referencedColumns: ['email']
+          },
           {
             foreignKeyName: 'link_teacher_school_created_by_fkey'
             columns: ['created_by']

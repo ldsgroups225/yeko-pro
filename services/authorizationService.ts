@@ -186,6 +186,10 @@ export async function getRoleDisplayName(role: ERole | null): Promise<string> {
     [ERole.DIRECTOR]: 'Directeur',
     [ERole.TEACHER]: 'Enseignant',
     [ERole.PARENT]: 'Parent',
+    [ERole.CASHIER]: 'Caissier / Caissière',
+    [ERole.EDUCATOR]: 'Éducateur',
+    [ERole.ACCOUNTANT]: 'Comptable',
+    [ERole.HEADMASTER]: 'Proviseur',
   }
 
   return roleNames[role] || 'Rôle inconnu'

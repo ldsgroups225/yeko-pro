@@ -9,6 +9,16 @@ export enum ERole {
   TEACHER = 2,
   /** Represents a director role */
   DIRECTOR = 3,
+  /** Represents a school life supervisor/educator role */
+  EDUCATOR = 4,
+  /** Represents an accountant role */
+  ACCOUNTANT = 5,
+  /** Represents a headmaster/principal role */
+  HEADMASTER = 6,
+  /** Represents a cashier role */
+  CASHIER = 7,
+  // /** Represents the super admin role */
+  // SUPER_ADMIN = 8,
 }
 
 /**
@@ -27,6 +37,11 @@ export function roleToString(role: ERole): string {
     [ERole.PARENT]: 'Parent',
     [ERole.TEACHER]: 'Teacher',
     [ERole.DIRECTOR]: 'Director',
+    [ERole.CASHIER]: 'Cashier',
+    [ERole.EDUCATOR]: 'Educator',
+    [ERole.ACCOUNTANT]: 'Accountant',
+    [ERole.HEADMASTER]: 'Headmaster',
+    // [ERole.SUPER_ADMIN]: 'Super Admin',
   }
 
   const result = roleMap[role]
@@ -55,6 +70,11 @@ export function stringToRole(roleString: string): ERole | undefined {
     Parent: ERole.PARENT,
     Teacher: ERole.TEACHER,
     Director: ERole.DIRECTOR,
+    Cashier: ERole.CASHIER,
+    Educator: ERole.EDUCATOR,
+    Accountant: ERole.ACCOUNTANT,
+    Headmaster: ERole.HEADMASTER,
+    // 'Super Admin': ERole.SUPER_ADMIN,
   }
 
   return stringRoleMap[roleString]
