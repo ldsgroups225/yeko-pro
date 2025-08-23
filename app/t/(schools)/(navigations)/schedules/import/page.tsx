@@ -3,6 +3,8 @@
 'use client'
 
 import type { Database } from '@/lib/supabase/types'
+import { Groq } from 'groq-sdk'
+import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { z } from 'zod'
 import { DataImporter } from '@/components/DataImporter'
@@ -40,8 +42,7 @@ interface AiResponse {
   correct_day: string
 }
 
-const GOOGLE_AI_ENDPOINT = process.env.GOOGLE_AI_ENDPOINT
-const GOOGLE_API_KEY = process.env.GOOGLE_API_KEY
+const GROQ_API_KEY = process.env.NEXT_PUBLIC_GROK_KEY
 
 const customInstructions = `
   You are a data normalization assistant. Your tasks:
@@ -67,6 +68,7 @@ const customInstructions = `
 
 function ImportSchedulePage() {
   const { user } = useUserStore()
+  const router = useRouter()
 
   const { classes: remoteClasses, loadClasses } = useClasses()
   const { subjects: remoteSubjects } = useSubject()
@@ -105,42 +107,67 @@ function ImportSchedulePage() {
     setImportErrors([])
 
     try {
-      // Prepare AI request payload
-      const payload = {
-        contents: [{
-          parts: [{
-            text: `${customInstructions}\n\nImport Data:\n${JSON.stringify(data)}\n\nReference Data:\n${
-              JSON.stringify({
-                classes: remoteClasses,
-                subjects: remoteSubjects,
-                days: daysOfWeek,
-              })
-            }`,
-          }],
-        }],
+      if (!GROQ_API_KEY) {
+        throw new Error('Clé API Groq non configurée')
       }
 
-      // Call Google AI API
-      const response = await fetch(`${GOOGLE_AI_ENDPOINT}?key=${GOOGLE_API_KEY}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
+      // Initialize Groq client
+      const groq = new Groq({
+        apiKey: GROQ_API_KEY,
+        dangerouslyAllowBrowser: true,
       })
 
-      if (!response.ok)
-        throw new Error(`AI API Error: ${response.statusText}`)
+      // Prepare prompt text
+      const promptText = `${customInstructions}\n\nImport Data:\n${JSON.stringify(data)}\n\nReference Data:\n${
+        JSON.stringify({
+          classes: remoteClasses,
+          subjects: remoteSubjects,
+          days: daysOfWeek,
+        })
+      }`
 
-      const responseData = await response.json()
-      const rawText = responseData.candidates[0].content.parts[0].text
+      // Call Groq API with Kimi model
+      const chatCompletion = await groq.chat.completions.create({
+        messages: [
+          {
+            role: 'user',
+            content: promptText,
+          },
+        ],
+        model: 'moonshotai/kimi-k2-instruct',
+        temperature: 0.25,
+        max_completion_tokens: 4096,
+        top_p: 1,
+        stream: false,
+        response_format: {
+          type: 'json_object',
+        },
+        stop: null,
+      })
 
-      const jsonMatch = rawText.match(/```json\n([\s\S]*?)\n```/)
-      if (!jsonMatch || jsonMatch.length < 2) {
-        throw new Error('Invalid AI response format')
+      const rawText = chatCompletion.choices[0]?.message?.content || ''
+
+      if (!rawText) {
+        throw new Error('L\'IA n\'a pas pu traiter les données')
       }
 
-      const cleanedJson = jsonMatch[1]
+      let aiResponse: AiResponse[]
 
-      const aiResponse: AiResponse[] = JSON.parse(cleanedJson)
+      // Try to extract JSON from the response
+      const jsonMatch = rawText.match(/```json\n([\s\S]*?)\n```/)
+      if (jsonMatch && jsonMatch.length >= 2) {
+        const cleanedJson = jsonMatch[1]
+        aiResponse = JSON.parse(cleanedJson)
+      }
+      else {
+        // Try to parse the full response as JSON
+        try {
+          aiResponse = JSON.parse(rawText)
+        }
+        catch {
+          throw new Error('Format de données invalide, réessayez')
+        }
+      }
 
       // Validate and transform AI response
       const errors: ImportError[] = []
@@ -171,6 +198,7 @@ function ImportSchedulePage() {
 
       setImportSuccess(true)
       setTimeout(() => setImportSuccess(false), 5000)
+      router.push('/t/schedules')
     }
     catch (error: any) {
       console.error('Import Error:', error)
@@ -178,9 +206,11 @@ function ImportSchedulePage() {
         row: 0,
         message: error.message.includes('JSON')
           ? 'Erreur de format des données traitées'
-          : error.message.includes('AI API')
+          : error.message.includes('Groq') || error.message.includes('API')
             ? 'Erreur de traitement des données par l\'IA'
-            : 'Erreur de base de données',
+            : error.message.includes('API key')
+              ? 'Clé API Groq non configurée'
+              : 'Erreur de base de données',
       }])
     }
   }

@@ -57,6 +57,7 @@
     "cmdk": "^0.2.1",
     "date-fns": "^2.30.0",
     "framer-motion": "^12.6.3",
+    "groq-sdk": "^0.30.0",
     "input-otp": "^1.4.2",
     "jabber": "^1.5.3",
     "lucide-react": "^0.476.0",
