@@ -1,4 +1,5 @@
 export * from './ClassCreationOrUpdateDialog'
+export * from './ClassesExportButton'
 export * from './ClassesFilters'
 export * from './ClassesGrid'
 export * from './ClassesTable'

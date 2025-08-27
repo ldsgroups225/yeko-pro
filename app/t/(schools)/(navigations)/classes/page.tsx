@@ -54,6 +54,7 @@ export default async function ClassesPage({ searchParams }: PageProps) {
             totalPages={totalPages}
             currentPage={page}
             searchParams={params}
+            schoolId={schoolId}
           />
         </CardContent>
       </Card>
