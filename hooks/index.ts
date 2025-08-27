@@ -1,6 +1,7 @@
 export * from './useClasses'
 export * from './useClassesData'
 export * from './useConduct'
+export * from './useGoogleAuth'
 export * from './useGrade'
 export * from './useMediaQuery'
 export * from './useSchedule'

@@ -7,6 +7,11 @@ import { ArrowLeftIcon, CheckCircle2Icon, EyeIcon, EyeOffIcon } from 'lucide-rea
 import Link from 'next/link'
 import React, { useState, useTransition } from 'react'
 import { useForm } from 'react-hook-form'
+import {
+  GoogleSignInButton,
+  SocialAuthDivider,
+  useOAuthErrorDisplay,
+} from '@/components/GoogleSignInButton'
 import { SubmitButton } from '@/components/SubmitButton'
 import { Alert, AlertTitle } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
@@ -28,6 +33,7 @@ export function SignUpForm() {
   const [error, setError] = useState<string | null>(null)
   const [showPassword, setShowPassword] = useState(false)
   const { signUp } = useUser()
+  const { errorComponent } = useOAuthErrorDisplay()
 
   const form = useForm<ISignUp>({
     resolver: zodResolver(signUpSchema),
@@ -199,6 +205,9 @@ export function SignUpForm() {
           />
         </div>
 
+        {/* Affichage des erreurs OAuth */}
+        {errorComponent}
+
         {error && (
           <Alert variant="destructive">
             <MinusCircledIcon className="size-4" />
@@ -213,6 +222,20 @@ export function SignUpForm() {
             label="Créer mon compte"
             disabled={isPending}
             className="w-full h-11"
+          />
+
+          {/* Séparateur et bouton Google OAuth */}
+          <SocialAuthDivider />
+
+          <GoogleSignInButton
+            mode="signup"
+            className="w-full"
+            size="lg"
+            onAuthAttempt={(success) => {
+              if (success) {
+              // La redirection sera gérée par le hook OAuth
+              }
+            }}
           />
 
           <div className="text-center space-y-2">

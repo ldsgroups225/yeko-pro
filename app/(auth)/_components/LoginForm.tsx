@@ -7,6 +7,11 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import React, { useState, useTransition } from 'react'
 import { useForm } from 'react-hook-form'
+import {
+  GoogleSignInButton,
+  SocialAuthDivider,
+  useOAuthErrorDisplay,
+} from '@/components/GoogleSignInButton'
 import { SubmitButton } from '@/components/SubmitButton'
 import { Alert, AlertTitle } from '@/components/ui/alert'
 import { Checkbox } from '@/components/ui/checkbox'
@@ -28,6 +33,7 @@ export function LoginForm() {
   const [isPending, startTransition] = useTransition()
   const { signIn } = useUser()
   const router = useRouter()
+  const { errorComponent } = useOAuthErrorDisplay()
 
   const [error, setError] = useState<string | null>(null)
   const form = useForm<ILogin>({
@@ -132,6 +138,9 @@ export function LoginForm() {
           />
         </div>
 
+        {/* Affichage des erreurs OAuth */}
+        {errorComponent}
+
         {error && (
           <Alert variant="destructive">
             <MinusCircledIcon className="size-4" />
@@ -142,6 +151,20 @@ export function LoginForm() {
         )}
 
         <SubmitButton label="Se connecter" disabled={isPending} />
+
+        {/* Séparateur et bouton Google OAuth */}
+        <SocialAuthDivider />
+
+        <GoogleSignInButton
+          mode="signin"
+          className="w-full"
+          size="lg"
+          onAuthAttempt={(success) => {
+            if (success) {
+              // La redirection sera gérée par le hook OAuth
+            }
+          }}
+        />
 
         <div className="space-y-3">
           <div className="text-center">

@@ -30,7 +30,7 @@ export function UnauthorizedContent() {
       if (!user?.id) {
         setAuthInfo({
           userRole: null,
-          message: 'Impossible de vérifier vos permissions. Veuillez vous reconnecter.',
+          message: 'Si c\'est pour rejoindre une école, veuillez le signaler et patienter.',
           isLoading: false,
         })
         return

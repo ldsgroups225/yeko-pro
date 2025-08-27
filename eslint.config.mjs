@@ -12,6 +12,7 @@ export default antfu({
     'dist',
     'build',
     'public',
+    'docs',
     'next-env.d.ts',
     'next.config.mjs',
     'tsconfig.json',
