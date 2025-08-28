@@ -1,4 +1,4 @@
-// app/payments/components/StudentCreationForm.tsx
+// app/inscriptions/components/StudentCreationForm.tsx
 
 import type { SubmitHandler } from 'react-hook-form'
 import type { StudentCreationFormData } from '../schemas'

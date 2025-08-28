@@ -1,4 +1,4 @@
-// app/payments/actions.ts
+// app/inscriptions/actions.ts
 
 'use server'
 

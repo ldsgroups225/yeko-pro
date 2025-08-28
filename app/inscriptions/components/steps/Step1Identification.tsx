@@ -1,4 +1,4 @@
-// app/payments/components/steps/Step1Identification.tsx
+// app/inscriptions/components/steps/Step1Identification.tsx
 
 import type { SearchFormData } from '../../schemas'
 import type { ISchool, IStudent } from '../../types'

@@ -1,4 +1,4 @@
-// app/payments/components/steps/Step2Confirmation.tsx
+// app/inscriptions/components/steps/Step2Confirmation.tsx
 
 import type { ISchool, IStudent } from '../../types'
 import { Button } from '@/components/ui/button'

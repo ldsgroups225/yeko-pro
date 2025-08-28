@@ -1,4 +1,4 @@
-// app/payments/components/RegistrationStepper.tsx
+// app/inscriptions/components/RegistrationStepper.tsx
 
 'use client'
 

@@ -1,4 +1,4 @@
-// app/payments/hooks/useFormWithToast.ts
+// app/inscriptions/hooks/useFormWithToast.ts
 
 'use client'
 

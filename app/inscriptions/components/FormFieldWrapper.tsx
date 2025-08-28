@@ -1,4 +1,4 @@
-// app/payments/components/FormFieldWrapper.tsx
+// app/inscriptions/components/FormFieldWrapper.tsx
 
 import type { ReactNode } from 'react'
 import type {

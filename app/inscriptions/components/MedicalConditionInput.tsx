@@ -1,4 +1,4 @@
-// app/payments/components/MedicalConditionInput.tsx
+// app/inscriptions/components/MedicalConditionInput.tsx
 
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'

@@ -1,4 +1,4 @@
-// app/payments/components/steps/Step4TuitionDisplay.tsx
+// app/inscriptions/components/steps/Step4TuitionDisplay.tsx
 
 'use client'
 

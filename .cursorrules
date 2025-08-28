@@ -38,7 +38,7 @@
 
 ## File & Folder Names
 - Next.js route segments (folders) should generally follow kebab-case or descriptive names (e.g., `app/(auth)/sign-in/page.tsx`, `app/t/(schools)/(navigations)/students/[idNumber]/page.tsx`). Page files are `page.tsx`, layouts are `layout.tsx`.
-- Store shared types in `src/types/index.ts` or feature-specific type files (e.g., `app/payments/types.ts`).
+- Store shared types in `src/types/index.ts` or feature-specific type files (e.g., `app/inscriptionsions/types.ts`).
 - Organize imports: 1. React/Next imports, 2. External libraries, 3. Internal modules (`@/components`, `@/lib`, etc.), 4. Relative sibling imports (`./`, `../`), 5. Style imports.
 
 ## Tailwind Usage

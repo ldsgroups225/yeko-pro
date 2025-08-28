@@ -1,7 +1,7 @@
 // app/receipt-template/[receiptId]/page.tsx
 
 import { notFound } from 'next/navigation'
-import { getReceiptDataForPayment } from '@/app/payments/actions'
+import { getReceiptDataForPayment } from '@/app/inscriptions/actions'
 import ReceiptDisplay from '@/app/receipt/ReceiptDisplay'
 
 interface ReceiptTemplatePageProps {

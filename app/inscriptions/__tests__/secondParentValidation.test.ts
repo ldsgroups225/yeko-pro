@@ -1,4 +1,4 @@
-// app/payments/__tests__/secondParentValidation.test.ts
+// app/inscriptions/__tests__/secondParentValidation.test.ts
 
 import { describe, expect, it } from 'vitest'
 import { studentCreationSchema } from '../schemas'

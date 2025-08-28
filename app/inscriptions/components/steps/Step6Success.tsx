@@ -1,4 +1,4 @@
-// app/payments/components/steps/Step6Success.tsx
+// app/inscriptions/components/steps/Step6Success.tsx
 
 'use client'
 

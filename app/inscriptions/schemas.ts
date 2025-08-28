@@ -1,4 +1,4 @@
-// app/payments/schemas.ts
+// app/inscriptions/schemas.ts
 
 import { z } from 'zod'
 import { MAX_STUDENT_AGE, maxBirthDate, MIN_STUDENT_AGE, minBirthDate } from '@/constants'

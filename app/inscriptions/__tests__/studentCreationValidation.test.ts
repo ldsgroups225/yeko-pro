@@ -1,4 +1,4 @@
-// app/payments/__tests__/studentCreationValidation.test.ts
+// app/inscriptions/__tests__/studentCreationValidation.test.ts
 import { describe, expect, it } from 'vitest'
 import { MAX_STUDENT_AGE, MIN_STUDENT_AGE } from '@/constants'
 import { studentCreationSchema } from '../schemas'
