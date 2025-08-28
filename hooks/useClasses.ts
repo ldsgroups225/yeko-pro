@@ -126,9 +126,9 @@ export function useClasses(): UseClassesResult {
     return shouldReload
   }, [])
 
-  const loadClasses = useCallback(async (schoolId: string): Promise<void> => {
+  const loadClasses = useCallback(async (): Promise<void> => {
     try {
-      await fetchClasses(schoolId)
+      await fetchClasses()
     }
     catch (error) {
       console.error('Failed to load classes:', error)

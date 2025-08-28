@@ -4,9 +4,9 @@ import type { SupabaseClient } from '@/lib/supabase/server'
 import type { ClassDetailsStudent, FilterStudentWhereNotInTheClass, IClass, IClassDetailsStats } from '@/types'
 import { createClient } from '@/lib/supabase/server'
 import { formatFullName, parseRank } from '@/lib/utils'
+import { ERole } from '@/types'
 
 interface FetchClassesParams {
-  schoolId: string
   page?: number
   limit?: number
   searchTerm?: string
@@ -45,6 +45,34 @@ async function checkAuthUserId(client: SupabaseClient): Promise<string> {
     throw new Error('Vous n\'êtes pas autorisé à accéder à cette page')
   }
   return user.user.id
+}
+
+/**
+ * Retrieves the school ID associated with the director user.
+ * This function assumes the user is a director and fetches their associated school ID from the database.
+ * It also verifies that the user has the DIRECTOR role.
+ *
+ * @async
+ * @param {SupabaseClient} client - The Supabase client instance configured for server-side operations.
+ * @param {string} userId - The authenticated user's ID.
+ * @returns {Promise<string>} A promise that resolves to the director's school ID.
+ * @throws {Error}
+ *  - Will throw an error if the user is not a director.
+ *  - Will throw an error if there is an issue fetching the school ID from the database.
+ *  - Will throw an error if the user is not associated with any school.
+ */
+async function getDirectorSchoolId(client: SupabaseClient, userId: string): Promise<string> {
+  const { data: userSchool, error } = await client
+    .from('users')
+    .select('school_id, user_roles(role_id)')
+    .eq('id', userId)
+    .eq('user_roles.role_id', ERole.DIRECTOR)
+    .single()
+  if (error || !userSchool?.school_id) {
+    console.error('Error fetching user school:', error)
+    throw new Error('Seul un directeur peut accéder à cette page')
+  }
+  return userSchool.school_id
 }
 
 /**
@@ -126,7 +154,6 @@ export async function getClassBySlug(slug: string): Promise<IClass> {
  * @throws {Error} If user is not authenticated or if fetch fails
  */
 export async function fetchClasses({
-  schoolId,
   page = 1,
   limit = 10,
   searchTerm = '',
@@ -135,6 +162,8 @@ export async function fetchClasses({
   hasMainTeacher,
 }: FetchClassesParams): Promise<{ classes: IClass[], totalCount: number }> {
   const supabase = await createClient()
+  const userId = await checkAuthUserId(supabase)
+  const schoolId = await getDirectorSchoolId(supabase, userId)
 
   const from = (page - 1) * limit
   const to = from + limit - 1
@@ -462,6 +491,133 @@ export async function deleteClass(schoolId: string, classId: string): Promise<vo
     console.error('Error deleting class:', error)
     throw new Error('Échec de la suppression de la classe')
   }
+}
+
+interface ImportClassData {
+  name: string
+  gradeId: number
+  maxStudent: number
+  series?: string | null
+}
+
+interface ImportResult {
+  success: IClass[]
+  errors: Array<{
+    row: number
+    className: string
+    error: string
+  }>
+}
+
+/**
+ * Bulk imports classes from validated data
+ * @param classesData - Array of class data to import
+ * @param schoolId - The school ID to associate classes with
+ * @returns Promise<ImportResult> - Success and error results
+ */
+export async function bulkImportClasses(
+  classesData: ImportClassData[],
+  schoolId: string,
+): Promise<ImportResult> {
+  const supabase = await createClient()
+  const userId = await checkAuthUserId(supabase)
+
+  if (!userId) {
+    throw new Error('Non autorisé')
+  }
+
+  const result: ImportResult = {
+    success: [],
+    errors: [],
+  }
+
+  try {
+    // Step 1: Check for existing classes in bulk
+    const classNames = classesData.map(cls => cls.name)
+    const { data: existingClasses } = await supabase
+      .from('classes')
+      .select('name')
+      .eq('school_id', schoolId)
+      .in('name', classNames)
+
+    const existingClassNames = new Set(existingClasses?.map(cls => cls.name) || [])
+
+    // Step 2: Filter out existing classes and prepare data for bulk insert
+    const validClassesData: Array<{
+      data: any
+      originalIndex: number
+      originalClass: ImportClassData
+    }> = []
+
+    classesData.forEach((classData, index) => {
+      const rowNumber = index + 1
+
+      if (existingClassNames.has(classData.name)) {
+        result.errors.push({
+          row: rowNumber,
+          className: classData.name,
+          error: `Une classe avec le nom "${classData.name}" existe déjà`,
+        })
+      }
+      else {
+        validClassesData.push({
+          data: {
+            name: classData.name,
+            grade_id: classData.gradeId,
+            school_id: schoolId,
+            max_student: classData.maxStudent,
+            series: classData.series || undefined,
+            is_active: true,
+            created_by: userId,
+            updated_by: userId,
+          },
+          originalIndex: index,
+          originalClass: classData,
+        })
+      }
+    })
+
+    // Step 3: Bulk insert valid classes
+    if (validClassesData.length > 0) {
+      const insertData = validClassesData.map(item => item.data)
+
+      const { data: insertedClasses, error: bulkInsertError } = await supabase
+        .from('classes')
+        .insert(insertData)
+        .select('*')
+
+      if (bulkInsertError) {
+        // If bulk insert fails, add all remaining classes to errors
+        validClassesData.forEach(({ originalIndex, originalClass }) => {
+          result.errors.push({
+            row: originalIndex + 1,
+            className: originalClass.name,
+            error: `Échec de la création: ${bulkInsertError.message}`,
+          })
+        })
+      }
+      else if (insertedClasses) {
+        // Add successfully inserted classes to success results
+        insertedClasses.forEach((newClass) => {
+          result.success.push({
+            id: newClass.id,
+            name: newClass.name,
+            slug: newClass.slug || '',
+            gradeId: newClass.grade_id,
+            isActive: newClass.is_active,
+            maxStudent: newClass.max_student,
+            studentCount: 0,
+            teacher: null,
+          })
+        })
+      }
+    }
+  }
+  catch (error) {
+    throw new Error(`Échec de l'importation: ${error instanceof Error ? error.message : 'Erreur inconnue'}`)
+  }
+
+  return result
 }
 
 interface GetClassStatsProps {

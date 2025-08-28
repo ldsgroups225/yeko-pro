@@ -42,6 +42,8 @@ describe('classesClient', () => {
     totalPages: 2,
     currentPage: 1,
     searchParams: {},
+    schoolId: 'test-school-id',
+    cycleId: 'test-cycle-id',
   }
 
   it('renders without crashing', () => {

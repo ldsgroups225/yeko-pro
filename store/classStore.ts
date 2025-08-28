@@ -45,7 +45,7 @@ interface ClassActions {
   getClassById: (classId: string) => IClass | undefined
   getClassBySlug: (slug: string) => Promise<IClass | undefined>
   fetchClassBySlug: (slug: string) => Promise<IClass | undefined>
-  fetchClasses: (schoolId: string) => Promise<void>
+  fetchClasses: () => Promise<void>
   addClass: (params: { name: string, schoolId: string, gradeId: number, maxStudent: number }) => Promise<void>
   updateClass: (params: { classId: string, name: string, gradeId: number, maxStudent: number }) => Promise<IClass>
   deleteClass: (schoolId: string, classId: string) => Promise<void>
@@ -81,21 +81,21 @@ const useClassStore = create<ClassState & ClassActions>((set, get) => ({
       currentPage: 1,
     })
     if (get().currentSchoolId) {
-      get().fetchClasses(get().currentSchoolId!)
+      get().fetchClasses()
     }
   },
 
   setPage: (page) => {
     set({ currentPage: page })
     if (get().currentSchoolId) {
-      get().fetchClasses(get().currentSchoolId!)
+      get().fetchClasses()
     }
   },
 
   setStudentPage: (page) => {
     set({ currentStudentPage: page })
     if (get().currentSchoolId) {
-      get().fetchClasses(get().currentSchoolId!)
+      get().fetchClasses()
     }
   },
 
@@ -105,7 +105,7 @@ const useClassStore = create<ClassState & ClassActions>((set, get) => ({
       currentPage: 1,
     })
     if (get().currentSchoolId) {
-      get().fetchClasses(get().currentSchoolId!)
+      get().fetchClasses()
     }
   },
 
@@ -143,11 +143,10 @@ const useClassStore = create<ClassState & ClassActions>((set, get) => ({
     }
   },
 
-  fetchClasses: async (schoolId) => {
-    set({ isLoading: true, error: null, currentSchoolId: schoolId })
+  fetchClasses: async () => {
+    set({ isLoading: true, error: null })
     try {
       const data = await fetchClasses({
-        schoolId,
         page: get().currentPage,
         limit: get().itemsPerPage,
         ...get().filters,
@@ -212,7 +211,7 @@ const useClassStore = create<ClassState & ClassActions>((set, get) => ({
     set({ isLoading: true, error: null })
     try {
       await activateDeactivateClass(classId, isActive)
-      await get().fetchClasses(get().currentSchoolId!)
+      await get().fetchClasses()
     }
     catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to activate/deactivate class'

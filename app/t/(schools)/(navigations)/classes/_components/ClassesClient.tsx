@@ -1,6 +1,6 @@
 'use client'
 
-import type { IClass, IGrade } from '@/types'
+import type { IClass } from '@/types'
 
 import { PlusIcon } from '@radix-ui/react-icons'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
@@ -9,6 +9,8 @@ import { toast } from 'sonner'
 import { useDebouncedCallback } from 'use-debounce'
 import { Pagination } from '@/components/Pagination'
 import { Button } from '@/components/ui/button'
+import useGradeStore from '@/store/gradeStore'
+import useUserStore from '@/store/userStore'
 import {
   ClassCreationOrUpdateDialog,
   ClassesFilters,
@@ -18,7 +20,6 @@ import {
 } from './index'
 
 interface ClassesClientProps {
-  grades: IGrade[]
   classes: IClass[]
   totalPages: number
   currentPage: number
@@ -29,20 +30,20 @@ interface ClassesClientProps {
     teacher?: string
     page?: string
   }
-  schoolId: string
 }
 
 export default function ClassesClient({
-  grades,
   classes,
   totalPages,
   currentPage,
   searchParams,
-  schoolId,
 }: ClassesClientProps) {
   const router = useRouter()
   const pathname = usePathname()
   const currentSearchParams = useSearchParams()
+  const { grades } = useGradeStore()
+  const { user } = useUserStore()
+  const schoolId = user?.school.id ?? ''
 
   const [isTableViewMode, setIsTableViewMode] = useState(true)
   const [showClassModal, setShowClassModal] = useState(false)
@@ -280,7 +281,12 @@ export default function ClassesClient({
         />
       )}
       {showImportModal && (
-        <ImportClassesDialog open={showImportModal} onOpenChange={setShowImportModal} />
+        <ImportClassesDialog
+          open={showImportModal}
+          onOpenChange={setShowImportModal}
+          schoolId={schoolId}
+          gradeOptions={grades.map(grade => ({ label: grade.name, value: grade.id }))}
+        />
       )}
     </>
   )

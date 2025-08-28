@@ -91,7 +91,7 @@ export const ActionsAndViewModeToggle: React.FC<ActionsAndViewModeToggleProps> =
                 aria-label="Download"
                 onClick={onDownload}
               >
-                <DownloadIcon width={16} height={16} />
+                <UploadIcon width={16} height={16} />
               </Button>
             </TooltipTrigger>
             <TooltipContent>
@@ -108,7 +108,7 @@ export const ActionsAndViewModeToggle: React.FC<ActionsAndViewModeToggleProps> =
                 aria-label="Upload"
                 onClick={onUpload}
               >
-                <UploadIcon width={16} height={16} />
+                <DownloadIcon width={16} height={16} />
               </Button>
             </TooltipTrigger>
             <TooltipContent>

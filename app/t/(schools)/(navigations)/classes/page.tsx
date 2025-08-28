@@ -1,7 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { fetchClasses } from '@/services/classService'
-import { fetchGrades } from '@/services/gradeService'
-import { fetchUserProfile } from '@/services/userService'
 import ClassesClient from './_components/ClassesClient'
 
 const ITEMS_PER_PAGE = 12
@@ -20,14 +18,8 @@ export default async function ClassesPage({ searchParams }: PageProps) {
   const params = await searchParams
   const page = params.page ? Number(params.page) : 1
 
-  // Fetch user profile to get schoolId and cycleId
-  const user = await fetchUserProfile()
-  const schoolId = user.school.id
-  const cycleId = user.school.cycleId
-
   // Prepare filters for fetchClasses
   const fetchClassesParams = {
-    schoolId,
     page,
     limit: ITEMS_PER_PAGE,
     searchTerm: params.search,
@@ -37,7 +29,6 @@ export default async function ClassesPage({ searchParams }: PageProps) {
   }
 
   // Fetch grades and classes server-side
-  const grades = await fetchGrades(cycleId)
   const { classes, totalCount } = await fetchClasses(fetchClassesParams)
   const totalPages = Math.ceil(totalCount / ITEMS_PER_PAGE)
 
@@ -49,12 +40,10 @@ export default async function ClassesPage({ searchParams }: PageProps) {
         </CardHeader>
         <CardContent className="px-6 py-3">
           <ClassesClient
-            grades={grades}
             classes={classes}
             totalPages={totalPages}
             currentPage={page}
             searchParams={params}
-            schoolId={schoolId}
           />
         </CardContent>
       </Card>
