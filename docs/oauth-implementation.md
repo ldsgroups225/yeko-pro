@@ -288,13 +288,13 @@ flowchart TD
 
 ```bash
 # Tests unitaires
-npm run test
+bun run test
 
 # Tests avec interface
-npm run test:ui
+bun run test:ui
 
 # Tests de couverture
-npm run test -- --coverage
+bun run test -- --coverage
 ```
 
 ### Tests implémentés

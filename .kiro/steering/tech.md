@@ -37,23 +37,23 @@
 
 ### Development
 ```bash
-npm run dev          # Start development server with Turbopack
-npm run build        # Build for production
-npm run start        # Start production server
+bun run dev          # Start development server with Turbopack
+bun run build        # Build for production
+bun run start        # Start production server
 ```
 
 ### Code Quality
 ```bash
-npm run typecheck    # TypeScript type checking
-npm run lint         # Run ESLint
-npm run lint:fix     # Fix ESLint issues automatically
+bun run typecheck    # TypeScript type checking
+bun run lint         # Run ESLint
+bun run lint:fix     # Fix ESLint issues automatically
 ```
 
 ### Testing
 ```bash
-npm run test         # Run tests
-npm run test:ui      # Run tests with UI
+bun run test         # Run tests
+bun run test:ui      # Run tests with UI
 ```
 
 ## Package Manager
-- **npm** - Primary package manager (bun.lock suggests Bun compatibility)
+- **bun** - Primary package manager (bun.lock suggests Bun compatibility)
