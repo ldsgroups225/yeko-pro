@@ -1,21 +1,13 @@
+// app/educator/_components/RecentConductsCard.tsx
+
 'use client'
 
+import type { IConductStudent } from '../types'
 import { motion } from 'framer-motion'
+import { useEffect } from 'react'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-
-interface ConductRecord {
-  id: number
-  student: string
-  class: string
-  issue: string
-  severity: 'Mineur' | 'Modéré' | 'Sévère'
-  date: string
-}
-
-interface RecentConductsCardProps {
-  conducts: ConductRecord[]
-}
+import { useEducatorConduct } from '../hooks'
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -38,7 +30,17 @@ const itemVariants = {
   },
 }
 
-export function RecentConductsCard({ conducts }: RecentConductsCardProps) {
+export function RecentConductsCard() {
+  const { students, fetchStudents } = useEducatorConduct()
+
+  // Fetch recent students with incidents
+  useEffect(() => {
+    fetchStudents({ limit: 5 })
+  }, [fetchStudents])
+
+  // Get students with recent incidents
+  const studentsWithIncidents = students.filter((student: IConductStudent) => student.recentIncidents.length > 0).slice(0, 5)
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -57,46 +59,74 @@ export function RecentConductsCard({ conducts }: RecentConductsCardProps) {
           </motion.div>
         </CardHeader>
         <CardContent>
-          <motion.div 
+          <motion.div
             className="space-y-4"
             variants={containerVariants}
             initial="hidden"
             animate="visible"
           >
-            {conducts.map((conduct, index) => (
-              <motion.div 
-                key={conduct.id} 
-                className="flex items-center justify-between border-b border-border/50 pb-4 last:border-b-0"
-                variants={itemVariants}
-                whileHover={{ 
-                  x: 5,
-                  transition: { duration: 0.2 }
-                }}
-              >
-                <div className="space-y-1">
-                  <p className="font-semibold text-foreground">{conduct.student}</p>
-                  <p className="text-sm text-muted-foreground">
-                    {conduct.class}
-                    {' '}
-                    -
-                    {' '}
-                    {conduct.issue}
-                  </p>
-                  <p className="text-xs text-muted-foreground">{conduct.date}</p>
-                </div>
-                <motion.div
-                  whileHover={{ scale: 1.05 }}
-                  transition={{ duration: 0.2 }}
-                >
-                  <Badge 
-                    variant={conduct.severity === 'Mineur' ? 'secondary' : 'destructive'}
-                    className="font-medium"
+            {studentsWithIncidents.length > 0
+              ? (
+                  studentsWithIncidents.map((student: IConductStudent) => {
+                    const latestIncident = student.recentIncidents[0]
+                    return (
+                      <motion.div
+                        key={student.id}
+                        className="flex items-center justify-between border-b border-border/50 pb-4 last:border-b-0"
+                        variants={itemVariants}
+                        whileHover={{
+                          x: 5,
+                          transition: { duration: 0.2 },
+                        }}
+                      >
+                        <div className="space-y-1">
+                          <p className="font-semibold text-foreground">
+                            {student.firstName}
+                            {' '}
+                            {student.lastName}
+                          </p>
+                          <p className="text-sm text-muted-foreground">
+                            {student.className}
+                            {' '}
+                            -
+                            {' '}
+                            {latestIncident?.description || 'Aucun incident récent'}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            {latestIncident
+                              ? new Date(latestIncident.reportedAt).toLocaleDateString('fr-FR')
+                              : new Date().toLocaleDateString('fr-FR')}
+                          </p>
+                        </div>
+                        <motion.div
+                          whileHover={{ scale: 1.05 }}
+                          transition={{ duration: 0.2 }}
+                        >
+                          <Badge
+                            variant={student.currentScore.grade === 'TRES_BONNE' || student.currentScore.grade === 'BONNE'
+                              ? 'secondary'
+                              : 'destructive'}
+                            className="font-medium"
+                          >
+                            {student.currentScore.grade === 'TRES_BONNE' || student.currentScore.grade === 'BONNE'
+                              ? 'Mineur'
+                              : student.currentScore.grade === 'PASSABLE'
+                                ? 'Modéré'
+                                : 'Sévère'}
+                          </Badge>
+                        </motion.div>
+                      </motion.div>
+                    )
+                  })
+                )
+              : (
+                  <motion.div
+                    variants={itemVariants}
+                    className="text-center py-8"
                   >
-                    {conduct.severity}
-                  </Badge>
-                </motion.div>
-              </motion.div>
-            ))}
+                    <p className="text-muted-foreground">Aucun incident récent</p>
+                  </motion.div>
+                )}
           </motion.div>
         </CardContent>
       </Card>

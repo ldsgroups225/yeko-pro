@@ -1,6 +1,6 @@
 'use client'
 
-import type { PendingInscription } from '@/app/educator/actions'
+import type { PendingInscription } from '../actions'
 import { motion } from 'framer-motion'
 import { CheckCircle, Eye, UserPlus } from 'lucide-react'
 import { useState } from 'react'

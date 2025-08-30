@@ -1,7 +1,7 @@
 // providers/UserProvider.tsx
 
 import type { ReactNode } from 'react'
-import { useEffect, useMemo, useReducer } from 'react'
+import { useCallback, useEffect, useMemo, useReducer, useRef } from 'react'
 import { useShallow } from 'zustand/react/shallow'
 import { useInitUsefulData } from '@/hooks/useInitUsefullData' // Corrected import path if needed
 import useUserStore from '@/store/userStore'
@@ -47,44 +47,44 @@ export function UserProvider({ children }: UserProviderProps) {
   const user = useUserStore(useShallow(state => state.user))
   const { initialize } = useInitUsefulData()
 
-  useEffect(() => {
-    let isMounted = true // Flag to prevent state updates on unmounted component
+  // Prevent multiple initializations with a ref
+  const initializationAttempted = useRef(false)
 
-    const loadInitialData = async () => {
-      // console.log('UserProvider: useEffect triggered for initial load.')
-      // No need to dispatch START_LOADING here, initialState handles it.
-
-      try {
-        await initialize() // Await the full initialization
-        if (isMounted) {
-          // console.log('UserProvider: Initialization successful.')
-          dispatch({ type: 'FINISH_LOADING' })
-        }
-      }
-      catch (err) {
-        if (isMounted) {
-          // console.error('UserProvider: Initialization failed.', err)
-          dispatch({ type: 'FINISH_LOADING', error: err as Error })
-        }
-      }
-      finally {
-        if (isMounted) {
-          // Mark as initialized regardless of success/failure to prevent re-running
-          dispatch({ type: 'SET_INITIALIZED' })
-          // console.log('UserProvider: Initialization attempt finished.')
-        }
-      }
+  // Memoize the initialization function to prevent unnecessary re-creations
+  const stableInitialize = useCallback(async () => {
+    if (initializationAttempted.current) {
+      // Already attempted initialization, skip
+      return
     }
 
-    // Run initialization only once on mount
-    if (!state.isInitialized) {
-      loadInitialData()
+    initializationAttempted.current = true
+    // Starting initialization
+
+    try {
+      await initialize()
+      // Initialization successful
+      dispatch({ type: 'FINISH_LOADING' })
+    }
+    catch (err) {
+      console.error('UserProvider: Initialization failed:', err)
+      dispatch({ type: 'FINISH_LOADING', error: err as Error })
+    }
+    finally {
+      // Mark as initialized regardless of success/failure to prevent re-running
+      dispatch({ type: 'SET_INITIALIZED' })
+    }
+  }, [])
+
+  useEffect(() => {
+    // Run initialization only once on mount and if not already initialized
+    if (!state.isInitialized && !initializationAttempted.current) {
+      stableInitialize().catch(console.error)
     }
 
     return () => {
-      isMounted = false // Cleanup flag
+      // Cleanup function
     }
-  }, [state.isInitialized]) // Depend only on initialize and isInitialized
+  }, [state.isInitialized]) // Include stableInitialize in dependencies
 
   // Memoize the context value
   const contextValue = useMemo(() => ({

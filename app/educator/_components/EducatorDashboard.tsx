@@ -1,4 +1,4 @@
-import { getEducatorStats, getPendingInscriptions, getRecentConducts } from '@/app/educator/actions'
+import { getEducatorStats, getPendingInscriptions } from '../actions'
 import { DashboardStats } from './DashboardStats'
 import { EducatorHeader } from './EducatorHeader'
 import { EducatorTabs } from './EducatorTabs'
@@ -7,9 +7,8 @@ import { RecentConductsCard } from './RecentConductsCard'
 
 export default async function EducatorDashboard() {
   // Fetch data using cached functions
-  const [stats, recentConducts, pendingInscriptions] = await Promise.all([
+  const [stats, pendingInscriptions] = await Promise.all([
     getEducatorStats(),
-    getRecentConducts(),
     getPendingInscriptions(),
   ])
 
@@ -28,11 +27,11 @@ export default async function EducatorDashboard() {
             </p>
           </div>
 
-          <EducatorTabs conducts={recentConducts} inscriptions={pendingInscriptions}>
+          <EducatorTabs inscriptions={pendingInscriptions}>
             <div className="space-y-8">
               <DashboardStats stats={stats} />
               <div className="grid gap-8 md:grid-cols-2">
-                <RecentConductsCard conducts={recentConducts} />
+                <RecentConductsCard />
                 <PendingInscriptionsCard inscriptions={pendingInscriptions} />
               </div>
             </div>

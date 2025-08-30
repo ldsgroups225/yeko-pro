@@ -43,12 +43,23 @@ const useUserStore = create<UserState & UserActions>((set, get) => ({
   },
   fetchUser: async () => {
     try {
+      // Avoid fetching if user is already loaded and authenticated
+      const currentState = get()
+      if (currentState.user && currentState.isAuthenticated) {
+        // User already loaded, return cached user
+        return currentState.user
+      }
+
+      // Fetching user profile
       const profile = await fetchUserProfile()
       set({ user: profile, isAuthenticated: true })
+      // User profile fetched and stored
       return profile
     }
     catch (error) {
-      console.error('Error fetching user profile:', error)
+      console.error('UserStore: Error fetching user profile:', error)
+      // Reset auth state on error
+      set({ user: null, isAuthenticated: false })
       throw error
     }
   },

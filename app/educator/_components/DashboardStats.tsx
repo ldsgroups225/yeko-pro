@@ -1,7 +1,7 @@
 'use client'
 
-import { AlertTriangle, CheckCircle, Clock, Users } from 'lucide-react'
 import { motion } from 'framer-motion'
+import { AlertTriangle, CheckCircle, Clock, Users } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
 interface DashboardStatsProps {
@@ -15,9 +15,9 @@ interface DashboardStatsProps {
 
 const cardVariants = {
   hidden: { opacity: 0, y: 20, scale: 0.95 },
-  visible: { 
-    opacity: 1, 
-    y: 0, 
+  visible: {
+    opacity: 1,
+    y: 0,
     scale: 1,
     transition: {
       duration: 0.4,
@@ -27,8 +27,8 @@ const cardVariants = {
 
 const iconVariants = {
   hidden: { scale: 0, rotate: -180 },
-  visible: { 
-    scale: 1, 
+  visible: {
+    scale: 1,
     rotate: 0,
     transition: {
       duration: 0.5,
@@ -75,47 +75,57 @@ export function DashboardStats({ stats }: DashboardStatsProps) {
 
   return (
     <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-      {cards.map((card, index) => (
+      {cards.map(card => (
         <motion.div
           key={card.title}
           variants={cardVariants}
           initial="hidden"
           animate="visible"
           transition={{ delay: card.delay }}
-          whileHover={{ 
-            y: -5, 
-            transition: { duration: 0.2 } 
+          whileHover={{
+            y: -5,
+            transition: { duration: 0.2 },
           }}
         >
           <Card className="border-0 bg-background/80 backdrop-blur-sm shadow-xl hover:shadow-2xl transition-shadow cursor-pointer">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium text-foreground">{card.title}</CardTitle>
-              <motion.div 
+              <motion.div
                 className={`rounded-full p-2 ${
-                  card.color === 'primary' ? 'bg-primary/10' :
-                  card.color === 'green' ? 'bg-green-100 dark:bg-green-900/20' :
-                  card.color === 'orange' ? 'bg-orange-100 dark:bg-orange-900/20' :
-                  'bg-red-100 dark:bg-red-900/20'
+                  card.color === 'primary'
+                    ? 'bg-primary/10'
+                    : card.color === 'green'
+                      ? 'bg-green-100 dark:bg-green-900/20'
+                      : card.color === 'orange'
+                        ? 'bg-orange-100 dark:bg-orange-900/20'
+                        : 'bg-red-100 dark:bg-red-900/20'
                 }`}
                 variants={iconVariants}
                 initial="hidden"
                 animate="visible"
               >
                 <card.icon className={`h-4 w-4 ${
-                  card.color === 'primary' ? 'text-primary' :
-                  card.color === 'green' ? 'text-green-600 dark:text-green-400' :
-                  card.color === 'orange' ? 'text-orange-600 dark:text-orange-400' :
-                  'text-red-600 dark:text-red-400'
-                }`} />
+                  card.color === 'primary'
+                    ? 'text-primary'
+                    : card.color === 'green'
+                      ? 'text-green-600 dark:text-green-400'
+                      : card.color === 'orange'
+                        ? 'text-orange-600 dark:text-orange-400'
+                        : 'text-red-600 dark:text-red-400'
+                }`}
+                />
               </motion.div>
             </CardHeader>
             <CardContent>
-              <motion.div 
+              <motion.div
                 className={`text-2xl font-bold ${
-                  card.color === 'primary' ? 'text-primary' :
-                  card.color === 'green' ? 'text-green-600 dark:text-green-400' :
-                  card.color === 'orange' ? 'text-orange-600 dark:text-orange-400' :
-                  'text-red-600 dark:text-red-400'
+                  card.color === 'primary'
+                    ? 'text-primary'
+                    : card.color === 'green'
+                      ? 'text-green-600 dark:text-green-400'
+                      : card.color === 'orange'
+                        ? 'text-orange-600 dark:text-orange-400'
+                        : 'text-red-600 dark:text-red-400'
                 }`}
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 1, scale: 1 }}

@@ -39,14 +39,24 @@ const useSubjectStore = create<SubjectState & SubjectActions>((set, get) => ({
   },
 
   fetchSubjects: async () => {
+    // Avoid fetching if subjects are already loaded
+    const currentState = get()
+    if (currentState.subjects.length > 0 && !currentState.error) {
+      // Subjects already loaded, skip fetch
+      return
+    }
+
+    // Fetching subjects
     set({ isLoading: true, error: null })
 
     try {
       const data = await fetchSubjects()
       set({ subjects: data, isLoading: false })
+      // Subjects fetched successfully
     }
     catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to fetch subjects'
+      console.error('SubjectStore: Error fetching subjects:', errorMessage)
       set({ error: errorMessage, isLoading: false })
       throw error
     }

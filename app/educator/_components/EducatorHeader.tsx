@@ -1,10 +1,14 @@
+'use client'
+
 import Image from 'next/image'
-import { getCurrentUser } from '@/app/educator/actions'
+import { useShallow } from 'zustand/react/shallow'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Card, CardContent } from '@/components/ui/card'
+import { useUserStore } from '../stores'
 
-export async function EducatorHeader() {
-  const user = await getCurrentUser()
+export function EducatorHeader() {
+  // Use shallow comparison to prevent unnecessary re-renders
+  const user = useUserStore(useShallow(state => state.user))
 
   return (
     <header className="bg-gradient-to-br from-background/50 to-background border-b">
@@ -16,8 +20,8 @@ export async function EducatorHeader() {
                 <div className="flex items-center justify-center">
                   <Image
                     priority
-                    src="/logo.png"
-                    alt="Logo Yeko"
+                    src={user?.school.imageUrl || '/logo.png'}
+                    alt={user?.school.name || 'School Logo'}
                     className="size-12"
                     width={48}
                     height={48}
@@ -25,18 +29,18 @@ export async function EducatorHeader() {
                 </div>
                 <div>
                   <h1 className="text-2xl font-bold text-primary">Panneau Éducateur</h1>
-                  <p className="text-muted-foreground">École Primaire et Secondaire - Côte d'Ivoire</p>
+                  <p className="text-muted-foreground">{user?.school.name || 'École Primaire et Secondaire - Côte d\'Ivoire'}</p>
                 </div>
               </div>
               <div className="flex items-center gap-4">
                 <Avatar className="h-10 w-10">
-                  <AvatarImage src={user?.avatar_url || '/user_placeholder.png'} />
+                  <AvatarImage src={user?.avatarUrl || '/user_placeholder.png'} />
                   <AvatarFallback className="bg-primary/10 text-primary font-semibold">
-                    {user?.full_name?.split(' ').map(n => n[0]).join('').toUpperCase() || 'ED'}
+                    {user?.fullName?.split(' ').map(n => n[0]).join('').toUpperCase() || 'ED'}
                   </AvatarFallback>
                 </Avatar>
                 <div className="text-right">
-                  <p className="font-semibold text-foreground">{user?.full_name || 'Éducateur'}</p>
+                  <p className="font-semibold text-foreground">{user?.fullName || 'Éducateur'}</p>
                   <p className="text-sm text-muted-foreground">Éducateur</p>
                 </div>
               </div>

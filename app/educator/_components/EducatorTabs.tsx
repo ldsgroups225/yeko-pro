@@ -1,9 +1,9 @@
 'use client'
 
-import type { ConductRecord, PendingInscription } from '@/app/educator/actions'
+import type { PendingInscription } from '../actions'
+import { AnimatePresence, motion } from 'framer-motion'
 import { AlertTriangle, TrendingUp, UserPlus } from 'lucide-react'
 import { useState } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
 import { Card, CardContent } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { ConductsManagement } from './ConductsManagement'
@@ -11,21 +11,20 @@ import { InscriptionsManagement } from './InscriptionsManagement'
 
 interface EducatorTabsProps {
   children: React.ReactNode
-  conducts: ConductRecord[]
   inscriptions: PendingInscription[]
 }
 
 const tabContentVariants = {
   hidden: { opacity: 0, x: 20 },
-  visible: { 
-    opacity: 1, 
+  visible: {
+    opacity: 1,
     x: 0,
     transition: {
       duration: 0.3,
     },
   },
-  exit: { 
-    opacity: 0, 
+  exit: {
+    opacity: 0,
     x: -20,
     transition: {
       duration: 0.2,
@@ -33,7 +32,7 @@ const tabContentVariants = {
   },
 }
 
-export function EducatorTabs({ children, conducts, inscriptions }: EducatorTabsProps) {
+export function EducatorTabs({ children, inscriptions }: EducatorTabsProps) {
   const [activeTab, setActiveTab] = useState('dashboard')
 
   return (
@@ -50,7 +49,7 @@ export function EducatorTabs({ children, conducts, inscriptions }: EducatorTabsP
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4, delay: 0.1 }}
             >
-              <TabsList className="grid w-full grid-cols-3 bg-background/50 backdrop-blur-sm">
+              <TabsList className="grid w-full grid-cols-3 bg-secondary/50 backdrop-blur-sm">
                 <TabsTrigger
                   value="dashboard"
                   className="flex items-center gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all duration-200"
@@ -99,7 +98,7 @@ export function EducatorTabs({ children, conducts, inscriptions }: EducatorTabsP
                   exit="exit"
                 >
                   <TabsContent value="conducts" className="space-y-6">
-                    <ConductsManagement conducts={conducts} />
+                    <ConductsManagement />
                   </TabsContent>
                 </motion.div>
               )}

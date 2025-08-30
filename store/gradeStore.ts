@@ -32,14 +32,24 @@ const useGradeStore = create<GradeState & GradeActions>((set, get) => ({
   },
 
   fetchGrades: async (cycleId) => {
+    // Avoid fetching if grades are already loaded for this cycle
+    const currentState = get()
+    if (currentState.grades.length > 0 && !currentState.error) {
+      // Grades already loaded, skip fetch
+      return
+    }
+
+    // Fetching grades for cycle
     set({ isLoading: true, error: null })
 
     try {
       const data = await fetchGrades(cycleId)
       set({ grades: data, isLoading: false })
+      // Grades fetched successfully
     }
     catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to fetch grades'
+      console.error('GradeStore: Error fetching grades:', errorMessage)
       set({ error: errorMessage, isLoading: false })
       throw error
     }

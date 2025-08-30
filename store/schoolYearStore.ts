@@ -40,18 +40,28 @@ const useSchoolYearStore = create<SchoolYearState & SchoolYearActions>((set, get
   },
 
   fetchSchoolYears: async () => {
+    // Avoid fetching if school years are already loaded
+    const currentState = get()
+    if (currentState.schoolYears.length > 0 && !currentState.error) {
+      // School years already loaded, skip fetch
+      return
+    }
+
+    // Fetching school years
     set({ isLoading: true, error: null })
 
     try {
       const data = await fetchSchoolYears()
 
       set({ schoolYears: data, isLoading: false })
+      // School years fetched successfully
 
       if (data.length > 0)
         await get().fetchSemesters(data[0].id)
     }
     catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to fetch schoolYears'
+      console.error('SchoolYearStore: Error fetching school years:', errorMessage)
       set({ error: errorMessage, isLoading: false })
       throw error
     }

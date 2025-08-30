@@ -2,7 +2,6 @@
 
 import type { IUserProfileDTO } from '@/types'
 import { cookies } from 'next/headers'
-
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { getEnvOrThrowServerSide } from '@/lib/utils/EnvServer'
@@ -48,6 +47,7 @@ export async function fetchUserProfile(): Promise<IUserProfileDTO> {
         last_name,
         phone,
         school_id,
+        avatar_url,
         user_roles(role_id)
       `)
       .eq('id', userId)
@@ -74,6 +74,7 @@ export async function fetchUserProfile(): Promise<IUserProfileDTO> {
       fullName: `${profile.first_name ?? ''} ${profile.last_name ?? ''}`.trim(),
       phoneNumber: profile.phone ?? '',
       role: roleString,
+      avatarUrl: profile.avatar_url || null,
       school: {
         id: '',
         name: '',
@@ -94,7 +95,15 @@ export async function fetchUserProfile(): Promise<IUserProfileDTO> {
     }
 
     // Load role-specific data (only for directors with school access)
-    if (roleInfo.hasDirectorAccess && profile.school_id) {
+    const hasDirectorAccess = roleInfo.hasDirectorAccess
+    const hasCashierAccess = roleInfo.hasCashierAccess
+    const hasAccountantAccess = roleInfo.hasAccountantAccess
+    const hasEducatorAccess = roleInfo.hasEducatorAccess
+    const hasHeadmasterAccess = roleInfo.hasHeadmasterAccess
+
+    const hasAccess = hasDirectorAccess || hasCashierAccess || hasAccountantAccess || hasEducatorAccess || hasHeadmasterAccess
+
+    if (hasAccess && profile.school_id) {
       try {
         const [schoolResult, studentCountResult] = await Promise.all([
           supabase.from('schools')

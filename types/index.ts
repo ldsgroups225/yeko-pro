@@ -104,6 +104,7 @@ export interface IUserProfileDTO {
   lastName: string
   email: string
   role: string
+  avatarUrl?: string | null
   fullName?: string
   phoneNumber?: string
   school: ISchoolDTO
