@@ -83,6 +83,7 @@ export const studentCreationSchema = z.object({
     description: z.string(),
     severity: z.enum(['low', 'medium', 'high']),
   })),
+  parentPhone: z.string({ required_error: 'Numéro de téléphone du parent requise.' }).trim().min(10, 'Numéro de téléphone du parent requise.'),
   parentId: z.string({ required_error: 'Vérification parent requise.' })
     .min(1, 'Vérification parent requise.'),
   otp: z.string({ required_error: 'Code OTP requis.' })

@@ -60,7 +60,9 @@
 - Server-specific utilities can go into `src/lib/utils/server.ts` if needed, client-specific into `src/lib/utils/client.ts`.
 
 ## Workflow & Tooling
-- After making changes, run `bun run build` to check for build errors (ignore warnings unless critical).
+- After making changes, run `bun run typecheck` to check for types errors then solve all issues.
+- After all types errors solved, run `bun run lint:fix` to check for lints errors and solve all errors and warns.
+- For lint warns, group all by warn category then use context7 mcp server to get info about how to properly solve them one by one
 - Add a one-sentence summary of changes to `.cursor-updates` in markdown format after each interaction.
 - Commit changes using semantic commit messages: `git add . && git commit -m "feat: Add user profile component"`. Do not push automatically.
 - Use the `screenshot` tool to show UI changes.

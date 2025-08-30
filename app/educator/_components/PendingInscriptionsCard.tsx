@@ -1,20 +1,12 @@
 'use client'
 
+import type { IPendingInscription } from '../types'
 import { motion } from 'framer-motion'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 
-interface PendingInscription {
-  id: number
-  student: string
-  parent: string
-  class: string
-  status: string
-  date: string
-}
-
 interface PendingInscriptionsCardProps {
-  inscriptions: PendingInscription[]
+  inscriptions: IPendingInscription[]
 }
 
 const containerVariants = {
@@ -65,7 +57,7 @@ export function PendingInscriptionsCard({ inscriptions }: PendingInscriptionsCar
           >
             {inscriptions.map(inscription => (
               <motion.div
-                key={inscription.id}
+                key={inscription.candidateId}
                 className="flex items-center justify-between border-b border-border/50 pb-4 last:border-b-0"
                 variants={itemVariants}
                 whileHover={{
@@ -74,20 +66,20 @@ export function PendingInscriptionsCard({ inscriptions }: PendingInscriptionsCar
                 }}
               >
                 <div className="space-y-1">
-                  <p className="font-semibold text-foreground">{inscription.student}</p>
+                  <p className="font-semibold text-foreground">{inscription.name}</p>
                   <p className="text-sm text-muted-foreground">
                     Parent:
                     {' '}
-                    {inscription.parent}
+                    {inscription.name}
                   </p>
                   <p className="text-xs text-muted-foreground">
                     Classe:
                     {' '}
-                    {inscription.class}
+                    {inscription.grade}
                     {' '}
                     •
                     {' '}
-                    {inscription.date}
+                    {inscription.time}
                   </p>
                 </div>
                 <motion.div

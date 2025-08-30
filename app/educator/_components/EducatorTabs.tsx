@@ -1,6 +1,6 @@
 'use client'
 
-import type { PendingInscription } from '../actions'
+import type { IPendingInscription } from '../types'
 import { AnimatePresence, motion } from 'framer-motion'
 import { AlertTriangle, TrendingUp, UserPlus } from 'lucide-react'
 import { useState } from 'react'
@@ -11,7 +11,7 @@ import { InscriptionsManagement } from './InscriptionsManagement'
 
 interface EducatorTabsProps {
   children: React.ReactNode
-  inscriptions: PendingInscription[]
+  inscriptions: IPendingInscription[]
 }
 
 const tabContentVariants = {
@@ -32,7 +32,7 @@ const tabContentVariants = {
   },
 }
 
-export function EducatorTabs({ children, inscriptions }: EducatorTabsProps) {
+export function EducatorTabs({ children }: EducatorTabsProps) {
   const [activeTab, setActiveTab] = useState('dashboard')
 
   return (
@@ -112,7 +112,7 @@ export function EducatorTabs({ children, inscriptions }: EducatorTabsProps) {
                   exit="exit"
                 >
                   <TabsContent value="inscriptions" className="space-y-6">
-                    <InscriptionsManagement inscriptions={inscriptions} />
+                    <InscriptionsManagement />
                   </TabsContent>
                 </motion.div>
               )}
