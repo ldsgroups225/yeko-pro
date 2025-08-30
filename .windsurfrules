@@ -56,7 +56,9 @@
 - Server-specific utilities can go into `src/lib/utils/server.ts` if needed, client-specific into `src/lib/utils/client.ts`.
 
 ## Workflow & Tooling
-- After making changes, run `bun run build` to check for build errors (ignore warnings unless critical).
+- After making changes, run `bun run typecheck` to check for types errors and solve all them.
+- After typecheck passed, run `bun run lint:fix` to check for lint errors and solve all them.
+- After typecheck and lint passed, run `bun run build` to check for build errors (ignore warnings unless critical).
 - Add a one-sentence summary of changes to `.cursor-updates` in markdown format after each interaction.
 - Commit changes using semantic commit messages: `git add . && git commit -m "feat: Add user profile component"`. Do not push automatically.
 - Use the `screenshot` tool to show UI changes.

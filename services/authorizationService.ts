@@ -1,24 +1,11 @@
 'use server'
 
+import type { AuthorizationResult, UserRoleInfo } from '@/lib/types/auth'
 import { getCachedUserRoles } from '@/lib/cache/roleCache'
-import { createClient } from '@/lib/supabase/server'
+import { fetchUserRolesFromDB } from '@/lib/services/roleService'
+import { ROLE_DASHBOARDS } from '@/lib/types/auth'
+import { getRoleDisplayName as getRoleDisplayNameUtil } from '@/lib/utils/roleUtils'
 import { ERole } from '@/types'
-
-export interface AuthorizationResult {
-  isAuthorized: boolean
-  userRole: ERole | null
-  redirectTo: string
-  message?: string
-}
-
-export interface UserRoleInfo {
-  userId: string
-  roles: ERole[]
-  primaryRole: ERole | null
-  hasDirectorAccess: boolean
-  hasTeacherAccess: boolean
-  hasParentAccess: boolean
-}
 
 /**
  * Fetches all roles for a given user (cached version)
@@ -30,14 +17,7 @@ export async function getUserRolesCached(userId: string): Promise<UserRoleInfo |
     if (!cachedRole)
       throw new Error('Cached role not found')
 
-    return {
-      userId: cachedRole.userId,
-      roles: cachedRole.roles,
-      primaryRole: cachedRole.primaryRole,
-      hasDirectorAccess: cachedRole.hasDirectorAccess,
-      hasTeacherAccess: cachedRole.hasTeacherAccess,
-      hasParentAccess: cachedRole.hasParentAccess,
-    }
+    return cachedRole
   }
   catch (error) {
     console.error('Error fetching cached user roles:', error)
@@ -50,43 +30,7 @@ export async function getUserRolesCached(userId: string): Promise<UserRoleInfo |
  * Fetches all roles for a given user (direct DB query)
  */
 export async function getUserRoles(userId: string): Promise<UserRoleInfo> {
-  const supabase = await createClient()
-
-  const { data: userRoles, error } = await supabase
-    .from('user_roles')
-    .select('role_id')
-    .eq('user_id', userId)
-
-  if (error || !userRoles?.length) {
-    return {
-      userId,
-      roles: [],
-      primaryRole: null,
-      hasDirectorAccess: false,
-      hasTeacherAccess: false,
-      hasParentAccess: false,
-    }
-  }
-
-  const roles = userRoles.map(ur => ur.role_id as ERole)
-
-  // Determine primary role (highest priority: Director > Teacher > Parent)
-  const primaryRole = roles.includes(ERole.DIRECTOR)
-    ? ERole.DIRECTOR
-    : roles.includes(ERole.TEACHER)
-      ? ERole.TEACHER
-      : roles.includes(ERole.PARENT)
-        ? ERole.PARENT
-        : null
-
-  return {
-    userId,
-    roles,
-    primaryRole,
-    hasDirectorAccess: roles.includes(ERole.DIRECTOR),
-    hasTeacherAccess: roles.includes(ERole.TEACHER),
-    hasParentAccess: roles.includes(ERole.PARENT),
-  }
+  return fetchUserRolesFromDB(userId)
 }
 
 /**
@@ -137,32 +81,69 @@ export async function checkDirectorAccess(userId: string): Promise<Authorization
 export async function getPostAuthRedirect(userId: string): Promise<AuthorizationResult> {
   const roleInfo = await getUserRoles(userId)
 
-  // Priority-based routing
+  // Priority-based routing based on primary role
   if (roleInfo.hasDirectorAccess) {
     return {
       isAuthorized: true,
       userRole: ERole.DIRECTOR,
-      redirectTo: '/t/home',
+      redirectTo: ROLE_DASHBOARDS[ERole.DIRECTOR],
     }
   }
 
-  // For future expansion - teacher dashboard
+  // Accountant dashboard - now enabled
+  if (roleInfo.hasAccountantAccess) {
+    return {
+      isAuthorized: true,
+      userRole: ERole.ACCOUNTANT,
+      redirectTo: ROLE_DASHBOARDS[ERole.ACCOUNTANT],
+    }
+  }
+
+  // Cashier dashboard - now enabled
+  if (roleInfo.hasCashierAccess) {
+    return {
+      isAuthorized: true,
+      userRole: ERole.CASHIER,
+      redirectTo: ROLE_DASHBOARDS[ERole.CASHIER],
+    }
+  }
+
+  // Educator dashboard - now enabled
+  if (roleInfo.hasEducatorAccess) {
+    return {
+      isAuthorized: true,
+      userRole: ERole.EDUCATOR,
+      redirectTo: ROLE_DASHBOARDS[ERole.EDUCATOR],
+    }
+  }
+
+  // Teacher dashboard - still in development
   if (roleInfo.hasTeacherAccess) {
     return {
       isAuthorized: false,
       userRole: ERole.TEACHER,
-      redirectTo: '/unauthorized',
-      message: 'Interface enseignant en cours de développement. Seuls les directeurs peuvent accéder à l\'application pour le moment.',
+      redirectTo: ROLE_DASHBOARDS[ERole.TEACHER],
+      message: 'Interface enseignant en cours de développement.',
     }
   }
 
-  // For future expansion - parent dashboard
+  // Parent dashboard - still in development
   if (roleInfo.hasParentAccess) {
     return {
       isAuthorized: false,
       userRole: ERole.PARENT,
-      redirectTo: '/unauthorized',
-      message: 'Interface parent en cours de développement. Seuls les directeurs peuvent accéder à l\'application pour le moment.',
+      redirectTo: ROLE_DASHBOARDS[ERole.PARENT],
+      message: 'Interface parent en cours de développement.',
+    }
+  }
+
+  // Headmaster dashboard - still in development
+  if (roleInfo.hasHeadmasterAccess) {
+    return {
+      isAuthorized: false,
+      userRole: ERole.HEADMASTER,
+      redirectTo: ROLE_DASHBOARDS[ERole.HEADMASTER],
+      message: 'Interface proviseur en cours de développement.',
     }
   }
 
@@ -179,18 +160,5 @@ export async function getPostAuthRedirect(userId: string): Promise<Authorization
  * Utility method to get user role display name
  */
 export async function getRoleDisplayName(role: ERole | null): Promise<string> {
-  if (!role)
-    return 'Aucun rôle'
-
-  const roleNames: Record<ERole, string> = {
-    [ERole.DIRECTOR]: 'Directeur',
-    [ERole.TEACHER]: 'Enseignant',
-    [ERole.PARENT]: 'Parent',
-    [ERole.CASHIER]: 'Caissier / Caissière',
-    [ERole.EDUCATOR]: 'Éducateur',
-    [ERole.ACCOUNTANT]: 'Comptable',
-    [ERole.HEADMASTER]: 'Proviseur',
-  }
-
-  return roleNames[role] || 'Rôle inconnu'
+  return getRoleDisplayNameUtil(role)
 }

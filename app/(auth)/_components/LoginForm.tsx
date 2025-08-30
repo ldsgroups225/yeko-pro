@@ -26,7 +26,7 @@ import {
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { useUser } from '@/hooks'
-import { getUserRolesCached } from '@/services/authorizationService'
+import { getPostAuthRedirect } from '@/services/authorizationService'
 import { loginSchema } from '@/validations'
 
 export function LoginForm() {
@@ -51,16 +51,22 @@ export function LoginForm() {
       try {
         const result = await signIn(values.email, values.password)
         if (result.success && result.userId) {
-          // Get user roles to determine proper redirect
+          // Use the centralized authorization service for post-auth redirect
           try {
-            const roleInfo = await getUserRolesCached(result.userId)
+            const authResult = await getPostAuthRedirect(result.userId)
 
-            // Use same logic as middleware: directors to /t/home, others to /unauthorized
-            const redirectTo = roleInfo?.hasDirectorAccess ? '/t/home' : '/unauthorized'
-            router.replace(redirectTo)
+            if (authResult.isAuthorized) {
+              router.replace(authResult.redirectTo)
+            }
+            else {
+              // Show the specific message from the authorization service
+              setError(authResult.message || 'Accès non autorisé')
+              // Still redirect to show the full unauthorized page
+              setTimeout(() => router.replace(authResult.redirectTo), 2000)
+            }
           }
           catch (roleError) {
-            console.error('Error fetching user roles after login:', roleError)
+            console.error('Error checking authorization after login:', roleError)
             // Fallback to /unauthorized for safety
             router.replace('/unauthorized')
           }
@@ -72,7 +78,6 @@ export function LoginForm() {
       catch (error) {
         setError('Une erreur est survenue lors de la connexion.')
         console.error('Login error:', error)
-
         form.setValue('password', '')
       }
     })

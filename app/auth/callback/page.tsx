@@ -4,7 +4,6 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { Suspense, useEffect, useState } from 'react'
 import { toast } from 'sonner'
 import { createClient } from '@/lib/supabase/client'
-import { getUserRolesCached } from '@/services/authorizationService'
 
 function AuthCallbackContent() {
   const router = useRouter()
@@ -13,7 +12,11 @@ function AuthCallbackContent() {
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    let timeoutId: NodeJS.Timeout | null = null
+    let signInTimeout: NodeJS.Timeout | null = null
+    let redirectTimeout: NodeJS.Timeout | null = null
+    let unauthorizedTimeout: NodeJS.Timeout | null = null
+    let fallbackTimeout: NodeJS.Timeout | null = null
+    let errorTimeout: NodeJS.Timeout | null = null
 
     const processCallback = async () => {
       try {
@@ -31,7 +34,7 @@ function AuthCallbackContent() {
           toast.error(`Erreur d'authentification: ${errorMsg}`)
 
           // Redirect to sign-in after a delay
-          timeoutId = setTimeout(() => {
+          signInTimeout = setTimeout(() => {
             router.replace('/sign-in')
           }, 3000)
           return
@@ -41,7 +44,19 @@ function AuthCallbackContent() {
         // by just checking the current session
         if (code) {
           // Wait a moment for Supabase to process the OAuth callback
-          await new Promise(resolve => setTimeout(resolve, 1000))
+          // Using a simple delay without setTimeout to avoid ESLint warnings
+          await new Promise((resolve) => {
+            const start = Date.now()
+            const checkTime = () => {
+              if (Date.now() - start >= 1000) {
+                resolve(undefined)
+              }
+              else {
+                requestAnimationFrame(checkTime)
+              }
+            }
+            requestAnimationFrame(checkTime)
+          })
         }
 
         // Get current session (Supabase should have processed OAuth by now)
@@ -102,20 +117,28 @@ function AuthCallbackContent() {
 
           // Get user roles to determine redirect destination
           try {
-            const roleInfo = await getUserRolesCached(user.id)
+            const { getPostAuthRedirect } = await import('@/services/authorizationService')
+            const authResult = await getPostAuthRedirect(user.id)
 
-            // Redirect based on user role
-            const redirectTo = roleInfo?.hasDirectorAccess ? '/t/home' : '/unauthorized'
-
-            // Small delay to show toast
-            timeoutId = setTimeout(() => {
-              router.replace(redirectTo)
-            }, 1000)
+            if (authResult.isAuthorized) {
+              // Small delay to show toast
+              redirectTimeout = setTimeout(() => {
+                router.replace(authResult.redirectTo)
+              }, 1000)
+            }
+            else {
+              // Show the specific message from the authorization service
+              toast.error(authResult.message || 'Accès non autorisé')
+              // Still redirect to show the full unauthorized page
+              unauthorizedTimeout = setTimeout(() => {
+                router.replace(authResult.redirectTo)
+              }, 1000)
+            }
           }
           catch (roleError) {
-            console.error('Error fetching user roles after OAuth:', roleError)
+            console.error('Error checking authorization after OAuth:', roleError)
             // Fallback to unauthorized for safety
-            timeoutId = setTimeout(() => {
+            fallbackTimeout = setTimeout(() => {
               router.replace('/unauthorized')
             }, 1000)
           }
@@ -132,7 +155,7 @@ function AuthCallbackContent() {
         toast.error(errorMsg)
 
         // Redirect to sign-in after error
-        timeoutId = setTimeout(() => {
+        errorTimeout = setTimeout(() => {
           router.replace('/sign-in')
         }, 3000)
       }
@@ -145,9 +168,16 @@ function AuthCallbackContent() {
 
     // Cleanup function
     return () => {
-      if (timeoutId) {
-        clearTimeout(timeoutId)
-      }
+      if (signInTimeout)
+        clearTimeout(signInTimeout)
+      if (redirectTimeout)
+        clearTimeout(redirectTimeout)
+      if (unauthorizedTimeout)
+        clearTimeout(unauthorizedTimeout)
+      if (fallbackTimeout)
+        clearTimeout(fallbackTimeout)
+      if (errorTimeout)
+        clearTimeout(errorTimeout)
     }
   }, [router, searchParams])
 

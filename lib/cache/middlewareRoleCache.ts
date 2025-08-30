@@ -1,86 +1,13 @@
 import type { RequestCookie } from 'next/dist/compiled/@edge-runtime/cookies'
-import { createServerClient } from '@supabase/ssr'
-import { ERole } from '@/types'
-
-export interface CachedUserRole {
-  userId: string
-  roles: ERole[]
-  primaryRole: ERole | null
-  hasDirectorAccess: boolean
-  hasTeacherAccess: boolean
-  hasParentAccess: boolean
-  cachedAt: number
-}
+import type { UserRoleInfo } from '@/lib/types/auth'
+import { fetchUserRolesFromDBMiddleware } from '@/lib/services/roleService'
 
 // Simple in-memory cache for middleware
 // Note: This cache is per-worker and will be cleared on deployment
-const roleCache = new Map<string, { data: CachedUserRole, expiresAt: number }>()
+const roleCache = new Map<string, { data: UserRoleInfo, expiresAt: number }>()
 
 // Cache duration: 5 minutes
 const CACHE_DURATION = 5 * 60 * 1000
-
-/**
- * Fetches user roles directly from Supabase (middleware-compatible)
- */
-export async function fetchUserRolesFromDBMiddleware(
-  userId: string,
-  cookies: RequestCookie[],
-  supabaseUrl: string,
-  supabaseAnonKey: string,
-): Promise<CachedUserRole> {
-  const supabase = createServerClient(
-    supabaseUrl,
-    supabaseAnonKey,
-    {
-      cookies: {
-        getAll() {
-          return cookies
-        },
-        setAll() {
-          // We don't set cookies in this context
-        },
-      },
-    },
-  )
-
-  const { data: userRoles, error } = await supabase
-    .from('user_roles')
-    .select('role_id')
-    .eq('user_id', userId)
-
-  if (error || !userRoles?.length) {
-    return {
-      userId,
-      roles: [],
-      primaryRole: null,
-      hasDirectorAccess: false,
-      hasTeacherAccess: false,
-      hasParentAccess: false,
-      cachedAt: Date.now(),
-    }
-  }
-
-  const roles = userRoles.map(ur => ur.role_id as ERole)
-
-  // Determine primary role (highest priority: Director > Teacher > Parent)
-  const primaryRole = roles.includes(ERole.DIRECTOR)
-    ? ERole.DIRECTOR
-    : roles.includes(ERole.TEACHER)
-      ? ERole.TEACHER
-      : roles.includes(ERole.PARENT)
-        ? ERole.PARENT
-        : null
-
-  return {
-    userId,
-    roles,
-    primaryRole,
-    hasDirectorAccess: roles.includes(ERole.DIRECTOR),
-    hasTeacherAccess: roles.includes(ERole.TEACHER),
-    hasParentAccess: roles.includes(ERole.PARENT),
-    cachedAt: Date.now(),
-  }
-}
 
 /**
  * Get cached user roles with middleware-compatible caching
@@ -90,7 +17,7 @@ export async function getCachedUserRolesMiddleware(
   cookies: RequestCookie[],
   supabaseUrl: string,
   supabaseAnonKey: string,
-): Promise<CachedUserRole> {
+): Promise<UserRoleInfo> {
   // Check in-memory cache first
   const cached = roleCache.get(userId)
   if (cached && cached.expiresAt > Date.now()) {
@@ -140,6 +67,60 @@ export async function getCachedDirectorAccessMiddleware(
     supabaseAnonKey,
   )
   return roleInfo.hasDirectorAccess
+}
+
+/**
+ * Lightweight check for educator access (middleware-compatible)
+ */
+export async function getCachedEducatorAccessMiddleware(
+  userId: string,
+  cookies: RequestCookie[],
+  supabaseUrl: string,
+  supabaseAnonKey: string,
+): Promise<boolean> {
+  const roleInfo = await getCachedUserRolesMiddleware(
+    userId,
+    cookies,
+    supabaseUrl,
+    supabaseAnonKey,
+  )
+  return roleInfo.hasEducatorAccess
+}
+
+/**
+ * Lightweight check for accountant access (middleware-compatible)
+ */
+export async function getCachedAccountantAccessMiddleware(
+  userId: string,
+  cookies: RequestCookie[],
+  supabaseUrl: string,
+  supabaseAnonKey: string,
+): Promise<boolean> {
+  const roleInfo = await getCachedUserRolesMiddleware(
+    userId,
+    cookies,
+    supabaseUrl,
+    supabaseAnonKey,
+  )
+  return roleInfo.hasAccountantAccess
+}
+
+/**
+ * Lightweight check for cashier access (middleware-compatible)
+ */
+export async function getCachedCashierAccessMiddleware(
+  userId: string,
+  cookies: RequestCookie[],
+  supabaseUrl: string,
+  supabaseAnonKey: string,
+): Promise<boolean> {
+  const roleInfo = await getCachedUserRolesMiddleware(
+    userId,
+    cookies,
+    supabaseUrl,
+    supabaseAnonKey,
+  )
+  return roleInfo.hasCashierAccess
 }
 
 /**

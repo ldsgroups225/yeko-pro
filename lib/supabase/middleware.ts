@@ -67,8 +67,12 @@ export async function updateSession(request: NextRequest) {
     console.error('Middleware authentication error:', error)
 
     // On error, fall back to safe behavior
-    if (user && request.nextUrl.pathname.startsWith('/t/')) {
+    const protectedRoutes = ['/t/', '/educator', '/accountant', '/cashier']
+    const isProtectedRoute = protectedRoutes.some(route => request.nextUrl.pathname.startsWith(route))
+
+    if (user && isProtectedRoute) {
       // If trying to access protected routes but role check failed, redirect to unauthorized
+      // console.error('Middleware error on protected route:', request.nextUrl.pathname, error)
       const url = request.nextUrl.clone()
       url.pathname = '/unauthorized'
 

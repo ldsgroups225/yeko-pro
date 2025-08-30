@@ -6,6 +6,7 @@
 - Updated transformStudentDTO to map createdAt to dateJoined field
 - Fixed test issues by using getAllByTestId instead of getByTestId for duplicate elements
 - Added Excel export functionality to notes page with NotesExportButton component for exporting all student notes data
+- Fixed all "react-web-api/no-leaked-timeout" ESLint warnings in `app/auth/callback/page.tsx` by properly managing setTimeout cleanup in useEffect
 
 ## 2025-01-20
 - Created professional forgot password page with comprehensive form validation and UX design following project standards

@@ -443,7 +443,7 @@ export async function createConductIncident(incident: Omit<IConductIncident, 'id
       .from('user_roles')
       .select('role_id')
       .eq('user_id', userId)
-      .in('role_id', [ERole.DIRECTOR, 4])
+      .in('role_id', [ERole.DIRECTOR, ERole.EDUCATOR])
       .single(),
     supabase
       .from('school_years')
@@ -457,7 +457,7 @@ export async function createConductIncident(incident: Omit<IConductIncident, 'id
       .single(),
   ])
 
-  if (!userRole || ![ERole.DIRECTOR, ERole.TEACHER].includes(userRole.role_id)) {
+  if (!userRole || ![ERole.DIRECTOR, ERole.EDUCATOR].includes(userRole.role_id)) {
     throw new Error('Vous n\'avez pas l\'autorisation de créer des incidents de conduite')
   }
 
@@ -634,7 +634,7 @@ export async function upsertConductScore(
     .eq('user_id', userId)
     .single()
 
-  if (!userRole || ![ERole.DIRECTOR, ERole.TEACHER].includes(userRole.role_id)) {
+  if (!userRole || ![ERole.DIRECTOR, ERole.EDUCATOR].includes(userRole.role_id)) {
     throw new Error('Vous n\'avez pas l\'autorisation de modifier les notes de conduite')
   }
 
@@ -795,7 +795,7 @@ export async function deactivateConductIncident(incidentId: string): Promise<voi
     .eq('user_id', userId)
     .single()
 
-  if (!userRole || ![ERole.DIRECTOR, ERole.TEACHER].includes(userRole.role_id)) {
+  if (!userRole || ![ERole.DIRECTOR, ERole.EDUCATOR].includes(userRole.role_id)) {
     throw new Error('Vous n\'avez pas l\'autorisation de supprimer des incidents de conduite')
   }
 
