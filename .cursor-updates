@@ -12,6 +12,15 @@
 - **Enhanced form validation**: Added proper type handling for medical conditions array with default empty array
 - **Improved UX**: Added smooth animations for medical condition form expansion/collapse
 
+### Enhanced Educator Inscription Schema and Modal
+
+- **Enhanced inscription schema**: Updated schema to properly support secondParent fields with validation
+- **Fixed form field mapping**: Corrected field names to match schema structure (secondParent.fullName, secondParent.phone, etc.)
+- **Improved form validation**: Added proper type handling for optional secondParent fields
+- **Enhanced UI consistency**: Updated form fields to match inscriptions module pattern with proper Select components
+- **Fixed type errors**: Resolved all TypeScript errors related to form field types and validation
+- **Improved user experience**: Better form structure with proper field grouping and validation messages
+
 ### Files Modified:
 - `app/educator/_components/EducatorNewInscriptionModal.tsx` - Main implementation
 - `app/educator/_components/InscriptionsManagement.tsx` - Cleaned up console logs

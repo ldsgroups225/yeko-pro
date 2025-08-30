@@ -3,6 +3,44 @@
 import { z } from 'zod'
 import { MAX_STUDENT_AGE, maxBirthDate, MIN_STUDENT_AGE, minBirthDate } from '@/constants'
 
+// Schema for the second parent
+const rawSecondParentSchema = z.object({
+  fullName: z.string({
+    required_error: 'Le nom complet du deuxième parent est requis',
+  }).trim().optional(),
+  gender: z.enum(['M', 'F'], {
+    required_error: 'Le genre du deuxième parent est requis',
+  }).optional(),
+  phone: z.string({
+    required_error: 'Le numéro de téléphone du deuxième parent est requis',
+  }).trim().optional(),
+  type: z.enum(['father', 'mother', 'guardian']).optional(),
+})
+
+// If every field is empty / undefined, we treat secondParent as undefined
+const secondParentSchema = rawSecondParentSchema
+  .transform((data) => {
+    const { fullName = '', phone = '' } = data
+    // consider empty if critical fields are blank
+    if (fullName.trim() === '' && phone.trim() === '')
+      return undefined
+    return {
+      fullName: fullName.trim(),
+      phone: phone.trim(),
+      gender: data.gender ?? 'M',
+      type: data.type ?? 'guardian',
+    }
+  })
+  .refine((val) => {
+    // When provided, fullName, phone, gender and type must not be empty
+    if (!val)
+      return true // it's optional
+    return val.fullName !== '' && val.phone !== '' && val.gender !== undefined && val.type !== undefined
+  }, {
+    message: 'Veuillez renseigner le nom complet, le téléphone, le genre et le type du deuxième parent ou bien laisser la section vide.',
+  })
+  .optional()
+
 // Schema for searching existing students
 export const studentSearchSchema = z.object({
   searchType: z.enum(['idNumber', 'name'], {
@@ -83,34 +121,10 @@ export const newInscriptionSchema = z.object({
     .or(z.literal('')),
 
   // Parent/Guardian Information
-  parentPhone: z.string({
-    required_error: 'Le numéro de téléphone du parent est obligatoire',
-  })
-    .trim()
-    .min(8, 'Numéro de téléphone du parent invalide')
-    .max(15, 'Numéro de téléphone du parent invalide')
-    .regex(/^[\d\s+\-()]+$/, 'Format de téléphone invalide'),
+  parentPhone: phoneSchema,
 
-  guardianFirstName: z.string({
-    required_error: 'Le prénom du tuteur est obligatoire',
-  })
-    .trim()
-    .min(1, 'Le prénom du tuteur est requis')
-    .max(50, 'Le prénom ne peut pas dépasser 50 caractères'),
-
-  guardianLastName: z.string({
-    required_error: 'Le nom du tuteur est obligatoire',
-  })
-    .trim()
-    .min(1, 'Le nom du tuteur est requis')
-    .max(50, 'Le nom ne peut pas dépasser 50 caractères'),
-
-  guardianPhone: phoneSchema.refine((_phone) => {
-    // Additional validation: should be different from parent phone if both provided
-    return true // This will be validated in the form
-  }, {
-    message: 'Numéro de téléphone du tuteur requis',
-  }),
+  // Second Parent/Guardian Information (optional)
+  secondParent: secondParentSchema,
 
   // Academic Information
   gradeId: z.number({
@@ -135,13 +149,13 @@ export const newInscriptionSchema = z.object({
 })
   .refine((data) => {
     // Custom validation: Guardian phone should be different from parent phone
-    if (data.parentPhone && data.guardianPhone) {
-      return data.parentPhone !== data.guardianPhone
+    if (data.parentPhone && data.secondParent?.phone) {
+      return data.parentPhone !== data.secondParent?.phone
     }
     return true
   }, {
     message: 'Le numéro du tuteur doit être différent de celui du parent',
-    path: ['guardianPhone'],
+    path: ['secondParent.phone'],
   })
   .refine((data) => {
     // Custom validation: If class is selected, grade must be selected

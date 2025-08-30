@@ -49,9 +49,14 @@ export function EducatorNewInscriptionModal({
       studentAddress: prefilledStudent?.address || '',
       studentIdNumber: prefilledStudent?.idNumber || '',
       parentPhone: '',
-      guardianFirstName: prefilledStudent?.extraParent?.fullName || '',
-      guardianLastName: '',
-      guardianPhone: prefilledStudent?.extraParent?.phone || '',
+      secondParent: prefilledStudent?.extraParent
+        ? {
+            fullName: prefilledStudent.extraParent.fullName || '',
+            phone: prefilledStudent.extraParent.phone || '',
+            gender: (prefilledStudent.extraParent.gender as 'M' | 'F') || 'M',
+            type: prefilledStudent.extraParent.type || 'guardian',
+          }
+        : undefined,
       gradeId: 0,
       classId: '',
       isGovernmentAffected: false,
@@ -110,7 +115,7 @@ export function EducatorNewInscriptionModal({
           {prefilledStudent ? 'Inscription d\'Élève Existant' : 'Nouvelle Inscription d\'Élève'}
         </DialogTitle>
         {prefilledStudent && (
-          <p className="text-sm text-slate-600">
+          <p className="text-sm text-muted-foreground">
             Inscription de
             {' '}
             {prefilledStudent.firstName}
@@ -135,7 +140,7 @@ export function EducatorNewInscriptionModal({
           >
             <div className="flex items-center space-x-2 mb-4">
               <GraduationCap className="h-5 w-5 text-primary" />
-              <h3 className="text-lg font-semibold text-slate-900">Informations de l'élève</h3>
+              <h3 className="text-lg font-semibold">Informations de l'élève</h3>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -346,19 +351,19 @@ export function EducatorNewInscriptionModal({
           >
             <div className="flex items-center space-x-2 mb-4">
               <Phone className="h-5 w-5 text-primary" />
-              <h3 className="text-lg font-semibold text-slate-900">Informations du tuteur (optionnel)</h3>
+              <h3 className="text-lg font-semibold">Informations du tuteur (optionnel)</h3>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField
                 control={form.control}
-                name="guardianFirstName"
+                name="secondParent.fullName"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="font-medium">Prénom *</FormLabel>
+                    <FormLabel className="font-medium">Nom complet</FormLabel>
                     <FormControl>
                       <Input
-                        placeholder="Prénom du tuteur"
+                        placeholder="Nom complet du tuteur"
                         className="bg-background/50 backdrop-blur-sm border-border/50"
                         disabled={isSubmitting}
                         {...field}
@@ -371,29 +376,10 @@ export function EducatorNewInscriptionModal({
 
               <FormField
                 control={form.control}
-                name="guardianLastName"
+                name="secondParent.phone"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="font-medium">Nom *</FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="Nom du tuteur"
-                        className="bg-background/50 backdrop-blur-sm border-border/50"
-                        disabled={isSubmitting}
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="guardianPhone"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="font-medium">Téléphone *</FormLabel>
+                    <FormLabel className="font-medium">Téléphone</FormLabel>
                     <FormControl>
                       <Input
                         placeholder="+225 XX XX XX XX"
@@ -402,6 +388,51 @@ export function EducatorNewInscriptionModal({
                         {...field}
                       />
                     </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="secondParent.type"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="font-medium">Type de parent</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value || ''} disabled={isSubmitting}>
+                      <FormControl>
+                        <SelectTrigger className="bg-background/50 backdrop-blur-sm border-border/50">
+                          <SelectValue placeholder="Sélectionner un type" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="father">Père</SelectItem>
+                        <SelectItem value="mother">Mère</SelectItem>
+                        <SelectItem value="guardian">Tuteur</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="secondParent.gender"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="font-medium">Genre</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value || ''} disabled={isSubmitting}>
+                      <FormControl>
+                        <SelectTrigger className="bg-background/50 backdrop-blur-sm border-border/50">
+                          <SelectValue placeholder="Sélectionner le genre" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="M">Masculin</SelectItem>
+                        <SelectItem value="F">Féminin</SelectItem>
+                      </SelectContent>
+                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -418,7 +449,7 @@ export function EducatorNewInscriptionModal({
           >
             <div className="flex items-center space-x-2 mb-4">
               <GraduationCap className="h-5 w-5 text-primary" />
-              <h3 className="text-lg font-semibold text-slate-900">Informations académiques</h3>
+              <h3 className="text-lg font-semibold">Informations académiques</h3>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -482,7 +513,7 @@ export function EducatorNewInscriptionModal({
                               </SelectItem>
                             ))
                           : (
-                              <SelectItem value="-" disabled>
+                              <SelectItem value="--" disabled>
                                 Aucune classe disponible pour ce niveau
                               </SelectItem>
                             )}
@@ -502,7 +533,7 @@ export function EducatorNewInscriptionModal({
             transition={{ duration: 0.3, delay: 0.3 }}
             className="space-y-4"
           >
-            <h3 className="text-lg font-semibold text-slate-900">Statuts spéciaux et services</h3>
+            <h3 className="text-lg font-semibold">Statuts spéciaux et services</h3>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-4">
@@ -510,8 +541,8 @@ export function EducatorNewInscriptionModal({
                   <div className="flex items-center space-x-3">
                     <Building2 className="h-5 w-5 text-blue-600" />
                     <div>
-                      <label className="text-sm font-medium text-slate-900">Est-ce un orienté ?</label>
-                      <p className="text-xs text-slate-600">Élève bénéficiant de subventions d'état</p>
+                      <label className="text-sm font-medium">Est-ce un orienté ?</label>
+                      <p className="text-xs text-muted-foreground">Élève bénéficiant de subventions d'état</p>
                     </div>
                   </div>
                   <FormField
@@ -535,8 +566,8 @@ export function EducatorNewInscriptionModal({
                   <div className="flex items-center space-x-3">
                     <Heart className="h-5 w-5 text-pink-600" />
                     <div>
-                      <label className="text-sm font-medium text-slate-900">Élève orphelin</label>
-                      <p className="text-xs text-slate-600">Bénéficie de réductions spéciales</p>
+                      <label className="text-sm font-medium">Élève orphelin</label>
+                      <p className="text-xs text-muted-foreground">Bénéficie de réductions spéciales</p>
                     </div>
                   </div>
                   <FormField
@@ -562,8 +593,8 @@ export function EducatorNewInscriptionModal({
                   <div className="flex items-center space-x-3">
                     <UtensilsCrossed className="h-5 w-5 text-orange-600" />
                     <div>
-                      <label className="text-sm font-medium text-slate-900">Abonnement cantine</label>
-                      <p className="text-xs text-slate-600">Service de restauration scolaire</p>
+                      <label className="text-sm font-medium">Abonnement cantine</label>
+                      <p className="text-xs text-muted-foreground">Service de restauration scolaire</p>
                     </div>
                   </div>
                   <FormField
@@ -587,8 +618,8 @@ export function EducatorNewInscriptionModal({
                   <div className="flex items-center space-x-3">
                     <Bus className="h-5 w-5 text-green-600" />
                     <div>
-                      <label className="text-sm font-medium text-slate-900">Abonnement transport</label>
-                      <p className="text-xs text-slate-600">Service de transport scolaire</p>
+                      <label className="text-sm font-medium">Abonnement transport</label>
+                      <p className="text-xs text-muted-foreground">Service de transport scolaire</p>
                     </div>
                   </div>
                   <FormField
