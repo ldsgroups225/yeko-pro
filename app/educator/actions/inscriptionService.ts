@@ -531,3 +531,237 @@ export async function searchExistingStudent(data: StudentSearchFormData): Promis
     }
   }
 }
+
+/**
+ * Links a parent to students based on phone number matching.
+ * Updates students with matching parent_phone to set parent_id.
+ * @param {string} studentId - The student ID
+ * @param {string} phone - The parent's phone number
+ * @returns {Promise<number>} - Number of students linked
+ */
+async function linkParentToStudentsByPhone(client: SupabaseClient, studentId: string, phone: string): Promise<void> {
+  try {
+    // Find parent with matching phone
+    const { data: parent, error: fetchError } = await client
+      .from('users')
+      .select('id')
+      .ilike('phone', phone)
+      .single()
+
+    if (fetchError) {
+      console.error('Error fetching parent by phone:', fetchError)
+      return
+    }
+
+    if (!parent) {
+      return
+    }
+
+    // Update matching students with parent_id
+    const { error: updateError } = await client
+      .from('students')
+      .update({ parent_id: parent.id })
+      .eq('id', studentId)
+
+    if (updateError) {
+      console.error('Error updating students parent_id:', updateError)
+    }
+  }
+  catch (error) {
+    console.error('Error linking parent to students:', error)
+  }
+}
+
+/**
+ * @param formData - The form data for creating a student
+ * @param formData.firstName - Student's first name
+ * @param formData.lastName - Student's last name
+ * @param formData.gender - Student's gender ('M' or 'F')
+ * @param formData.birthDate - Student's birth date
+ * @param formData.address - Student's address (optional)
+ * @param formData.idNumber - Student's ID number (optional)
+ * @param formData.medicalCondition - Student's medical condition (optional)
+ * @param formData.avatarUrl - URL of student's avatar image (optional)
+ * @param formData.secondParent - The second parent of the student (optional)
+ * @param formData.secondParent.fullName - The full name of the second parent
+ * @param formData.secondParent.gender - The gender of the second parent ('M' or 'F')
+ * @param formData.secondParent.phone - The phone number of the second parent
+ * @param formData.secondParent.type - The type of the second parent ('father', 'mother', or 'guardian')
+ * @param parentId - The ID of the parent
+ * @returns The newly created student
+ */
+export async function createOrUpdateStudent(
+  formData: {
+    firstName: string
+    lastName: string
+    gender: 'M' | 'F'
+    birthDate: string
+    address?: string
+    idNumber?: string
+    avatarUrl?: string
+    parentPhone: string
+    medicalCondition: { description: string, severity: 'low' | 'medium' | 'high' }[]
+    secondParent?: {
+      fullName: string
+      gender: 'M' | 'F'
+      phone: string
+      type: 'father' | 'mother' | 'guardian'
+    }
+  },
+): Promise<string> {
+  try {
+    const client = await createClient()
+
+    // Student exist
+    const { data: isExistingStudent } = await client.from('students')
+      .select('id, parent_id')
+      .eq('id_number', formData.idNumber || '~~~~~')
+      .single()
+
+    if (isExistingStudent) {
+      const { data: upsertStudent } = await client.from('students')
+        .upsert({
+          id_number: formData.idNumber!,
+          first_name: formData.firstName,
+          last_name: formData.lastName,
+          gender: formData.gender,
+          date_of_birth: formData.birthDate,
+          address: formData.address,
+          parent_id: isExistingStudent.parent_id,
+          parent_phone: `+225${formData.parentPhone}`,
+          medical_condition: formData.medicalCondition,
+          extra_parent: formData.secondParent
+            ? {
+                full_name: formData.secondParent.fullName,
+                gender: formData.secondParent.gender,
+                phone: `+225${formData.secondParent.phone}`,
+                type: formData.secondParent.type,
+              }
+            : null,
+        })
+        .eq('id', isExistingStudent.id)
+        .select('id')
+        .single()
+
+      if (upsertStudent) {
+        // relink the student to the parent
+        linkParentToStudentsByPhone(client, isExistingStudent.id, formData.parentPhone)
+
+        return upsertStudent.id
+      }
+      else {
+        throw new Error('Impossible d\'inscrire l\'élève, réessayer plus tard')
+      }
+    }
+
+    // Generate a unique student ID
+    const { data: lastStudent } = await client.from('students')
+      .select('id_number')
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .single()
+
+    const lastId = lastStudent?.id_number ? Number.parseInt(lastStudent.id_number.slice(-6)) : 0
+    const newIdNumber = formData.idNumber ? formData.idNumber : `ST${(lastId + 1).toString().padStart(6, '0')}`
+
+    // First create the student record
+    const { data: studentData, error: studentError } = await client.from('students')
+      .insert({
+        id_number: newIdNumber,
+        first_name: formData.firstName,
+        last_name: formData.lastName,
+        gender: formData.gender,
+        date_of_birth: formData.birthDate,
+        address: formData.address,
+        parent_id: '46cf18f8-1608-4fac-859b-f6ffb9e2f4ce',
+        parent_phone: `+225${formData.parentPhone}`,
+        medical_condition: formData.medicalCondition,
+        extra_parent: formData.secondParent
+          ? {
+              full_name: formData.secondParent.fullName,
+              gender: formData.secondParent.gender,
+              phone: `+225${formData.secondParent.phone}`,
+              type: formData.secondParent.type,
+            }
+          : null,
+      })
+      .select('id')
+      .single()
+
+    if (studentError) {
+      console.error('Error creating student:', studentError)
+      throw new Error('Impossible d\'inscrire l\'élève, réessayer plus tard')
+    }
+
+    // const isBase64 = formData.avatarUrl?.startsWith('data:image')
+    // if (isBase64) {
+    //   if (!formData.avatarUrl) {
+    //     throw new Error('Incorrect avatar')
+    //   }
+    //   // Process avatar upload and update params with new URL
+    //   const newAvatarUrl = await uploadImageToStorage(client, 'student_avatar', studentData.id, formData.avatarUrl)
+    //   await client.from('students').update({ avatar_url: newAvatarUrl }).eq('id', studentData.id)
+    // }
+
+    await linkParentToStudentsByPhone(client, studentData.id, formData.parentPhone)
+
+    // const medicalCondition = parseMedicalCondition(formData.medicalCondition)
+
+    return studentData.id
+  }
+  catch (error) {
+    console.error('Error in createStudent:', error)
+    throw error
+  }
+}
+
+export async function enrollStudent({
+  studentId,
+  schoolId,
+  gradeId,
+  isStateAssigned,
+  isOrphan,
+  hasCanteenSubscription,
+  hasTransportSubscription,
+}: {
+  studentId: string
+  schoolId: string
+  gradeId: number
+  isStateAssigned: boolean
+  isOrphan: boolean
+  hasCanteenSubscription: boolean
+  hasTransportSubscription: boolean
+}): Promise<void> {
+  const client = await createClient()
+
+  const { data: schoolYearData, error: schoolYearError } = await client
+    .from('school_years')
+    .select('id')
+    .eq('is_current', true)
+    .single()
+
+  if (schoolYearError) {
+    throw new Error('Impossible de charger l\'année scolaire')
+  }
+
+  const { error: enrollmentError } = await client
+    .from('student_school_class')
+    .insert({
+      student_id: studentId,
+      school_id: schoolId,
+      grade_id: gradeId,
+      school_year_id: schoolYearData.id,
+      is_government_affected: isStateAssigned,
+      is_orphan: isOrphan,
+      is_subscribed_to_canteen: hasCanteenSubscription,
+      is_subscribed_to_transportation: hasTransportSubscription,
+    })
+
+  if (enrollmentError) {
+    console.error('Error creating enrollment:', enrollmentError)
+    if (enrollmentError.message === 'duplicate key value violates unique constraint "unique_academic_year"') {
+      throw new Error('Cet élève est déjà inscrit au cours de cette année scolaire, rendez-vous dans l\'école en question pour d\'ample modification')
+    }
+    throw new Error('Impossible de créer l\'inscription')
+  }
+}

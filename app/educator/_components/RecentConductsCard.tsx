@@ -1,13 +1,10 @@
 // app/educator/_components/RecentConductsCard.tsx
 
-'use client'
-
 import type { IConductStudent } from '../types'
-import { motion } from 'framer-motion'
-import { useEffect } from 'react'
+import * as motion from 'motion/react-client'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { useEducatorConduct } from '../hooks'
+import { getEducatorConductStudents } from '../actions'
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -30,13 +27,8 @@ const itemVariants = {
   },
 }
 
-export function RecentConductsCard() {
-  const { students, fetchStudents } = useEducatorConduct()
-
-  // Fetch recent students with incidents
-  useEffect(() => {
-    fetchStudents({ limit: 5 })
-  }, [fetchStudents])
+export async function RecentConductsCard() {
+  const { students } = await getEducatorConductStudents({ limit: 5 })
 
   // Get students with recent incidents
   const studentsWithIncidents = students.filter((student: IConductStudent) => student.recentIncidents.length > 0).slice(0, 5)

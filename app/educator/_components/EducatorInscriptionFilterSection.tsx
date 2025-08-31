@@ -84,8 +84,8 @@ export function EducatorInscriptionFilterSection({
   return (
     <div className="space-y-6 p-1">
       <div className="pb-2">
-        <h4 className="font-semibold text-slate-900">Filtres d'Inscription</h4>
-        <p className="text-sm text-slate-500 mt-1">Affiner les résultats selon vos critères</p>
+        <h4 className="font-semibold">Filtres d'Inscription</h4>
+        <p className="text-sm text-muted-foreground mt-1">Affiner les résultats selon vos critères</p>
       </div>
 
       {/* Grade Filter */}

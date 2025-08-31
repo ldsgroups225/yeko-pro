@@ -14,6 +14,7 @@ interface ReturnType {
   totalCount: number
   currentPage: number
   filters: IConductQueryParams
+  selectedStudentId: string | null
 
   // Actions
   fetchStudents: (params?: IConductQueryParams) => Promise<void>
@@ -23,6 +24,7 @@ interface ReturnType {
   setCurrentPage: (page: number) => void
   clearData: () => void
   refreshData: () => Promise<void>
+  setSelectedStudentId: (studentId: string | null) => void
 
   // Computed values
   hasStudents: boolean
@@ -43,6 +45,11 @@ let state = {
 }
 
 let listeners: (() => void)[] = []
+let sharedSelectedStudentId: string | null = null
+
+function setSharedSelectedStudentId(studentId: string | null) {
+  sharedSelectedStudentId = studentId
+}
 
 function notifyListeners() {
   listeners.forEach(listener => listener())
@@ -195,6 +202,7 @@ export function useEducatorConduct(): ReturnType {
     totalCount: state.totalCount,
     currentPage: state.currentPage,
     filters: state.filters,
+    selectedStudentId: sharedSelectedStudentId,
 
     // Actions
     fetchStudents,
@@ -204,6 +212,7 @@ export function useEducatorConduct(): ReturnType {
     setCurrentPage,
     clearData,
     refreshData,
+    setSelectedStudentId: setSharedSelectedStudentId,
 
     // Computed values
     hasStudents,

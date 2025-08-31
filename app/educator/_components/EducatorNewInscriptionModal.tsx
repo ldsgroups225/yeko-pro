@@ -19,9 +19,12 @@ import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
 import { Textarea } from '@/components/ui/textarea'
+import { normalizeCIPhoneNumber } from '@/lib/utils/phoneUtils'
+import { createOrUpdateStudent, enrollStudent } from '../actions'
 import { newInscriptionSchema } from '../schemas/inscription'
 
 interface EducatorNewInscriptionModalProps {
+  schoolId: string
   grades: IGrade[]
   classes: IClass[]
   onClose: () => void
@@ -32,6 +35,7 @@ interface EducatorNewInscriptionModalProps {
 export function EducatorNewInscriptionModal({
   grades,
   classes,
+  schoolId,
   onClose,
   onInscriptionCreated,
   prefilledStudent,
@@ -88,10 +92,37 @@ export function EducatorNewInscriptionModal({
         }
       }
 
-      // TODO: In a real implementation, this would call a server action
-      // For now, we'll simulate the creation
-      // console.log('Creating inscription with data:', data)
-      await new Promise(resolve => setTimeout(resolve, 2000))
+      const normalizedParentPhone = normalizeCIPhoneNumber(data.parentPhone)
+      const normalizedSecondParent = data.secondParent
+        ? {
+            fullName: data.secondParent.fullName,
+            gender: data.secondParent.gender,
+            phone: normalizeCIPhoneNumber(data.secondParent.phone)!,
+            type: data.secondParent.type,
+          }
+        : undefined
+
+      const studentId = await createOrUpdateStudent({
+        birthDate: data.studentBirthDate,
+        firstName: data.studentFirstName,
+        lastName: data.studentLastName,
+        gender: data.studentGender,
+        idNumber: data.studentIdNumber,
+        parentPhone: normalizedParentPhone!,
+        medicalCondition: data.medicalConditions || [],
+        secondParent: normalizedSecondParent,
+        address: data.studentAddress,
+      })
+
+      await enrollStudent({
+        studentId,
+        schoolId,
+        gradeId: data.gradeId,
+        isStateAssigned: data.isGovernmentAffected,
+        isOrphan: data.isOrphan,
+        hasCanteenSubscription: data.isSubscribedToCanteen,
+        hasTransportSubscription: data.isSubscribedToTransportation,
+      })
 
       toast.success('Inscription créée avec succès')
       form.reset()
@@ -440,232 +471,234 @@ export function EducatorNewInscriptionModal({
             </div>
           </motion.div>
 
-          {/* Academic Information */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3, delay: 0.2 }}
-            className="space-y-4"
-          >
-            <div className="flex items-center space-x-2 mb-4">
-              <GraduationCap className="h-5 w-5 text-primary" />
-              <h3 className="text-lg font-semibold">Informations académiques</h3>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="gradeId"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="font-medium">Niveau *</FormLabel>
-                    <Select
-                      onValueChange={value => field.onChange(Number.parseInt(value))}
-                      value={field.value && field.value > 0 ? field.value.toString() : ''}
-                      disabled={isSubmitting}
-                    >
-                      <FormControl>
-                        <SelectTrigger className="bg-background/50 backdrop-blur-sm border-border/50">
-                          <SelectValue placeholder="Sélectionner un niveau" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {grades && grades.length > 0
-                          ? grades.map(grade => (
-                              <SelectItem key={grade.id} value={grade.id.toString()}>
-                                {grade.name}
-                              </SelectItem>
-                            ))
-                          : (
-                              <SelectItem value="" disabled>
-                                Aucun niveau disponible
-                              </SelectItem>
-                            )}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="classId"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="font-medium">Classe</FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      value={field.value ? field.value.toString() : ''}
-                      disabled={!watchedGradeId || isSubmitting}
-                    >
-                      <FormControl>
-                        <SelectTrigger className="bg-background/50 backdrop-blur-sm border-border/50">
-                          <SelectValue placeholder="Sélectionner une classe" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="-">Aucune classe spécifique</SelectItem>
-                        {getFilteredClasses() && getFilteredClasses().length > 0
-                          ? getFilteredClasses().map(cls => (
-                              <SelectItem key={cls.id} value={cls.id}>
-                                {cls.name}
-                              </SelectItem>
-                            ))
-                          : (
-                              <SelectItem value="--" disabled>
-                                Aucune classe disponible pour ce niveau
-                              </SelectItem>
-                            )}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-          </motion.div>
-
-          {/* Special Status & Services */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3, delay: 0.3 }}
-            className="space-y-4"
-          >
-            <h3 className="text-lg font-semibold">Statuts spéciaux et services</h3>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-4">
-                <div className="flex items-center justify-between p-3 bg-background/30 rounded-lg border border-border/20">
-                  <div className="flex items-center space-x-3">
-                    <Building2 className="h-5 w-5 text-blue-600" />
-                    <div>
-                      <label className="text-sm font-medium">Est-ce un orienté ?</label>
-                      <p className="text-xs text-muted-foreground">Élève bénéficiant de subventions d'état</p>
-                    </div>
-                  </div>
-                  <FormField
-                    control={form.control}
-                    name="isGovernmentAffected"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormControl>
-                          <Switch
-                            checked={field.value}
-                            onCheckedChange={field.onChange}
-                            disabled={isSubmitting}
-                          />
-                        </FormControl>
-                      </FormItem>
-                    )}
-                  />
-                </div>
-
-                <div className="flex items-center justify-between p-3 bg-background/30 rounded-lg border border-border/20">
-                  <div className="flex items-center space-x-3">
-                    <Heart className="h-5 w-5 text-pink-600" />
-                    <div>
-                      <label className="text-sm font-medium">Élève orphelin</label>
-                      <p className="text-xs text-muted-foreground">Bénéficie de réductions spéciales</p>
-                    </div>
-                  </div>
-                  <FormField
-                    control={form.control}
-                    name="isOrphan"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormControl>
-                          <Switch
-                            checked={field.value}
-                            onCheckedChange={field.onChange}
-                            disabled={isSubmitting}
-                          />
-                        </FormControl>
-                      </FormItem>
-                    )}
-                  />
-                </div>
+          <div className="px-6 py-3 bg-secondary/40 backdrop-blur-sm rounded-lg border border-border/20 shadow-sm">
+            {/* Academic Information */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3, delay: 0.2 }}
+              className="space-y-4"
+            >
+              <div className="flex items-center space-x-2 mb-4">
+                <GraduationCap className="h-5 w-5 text-primary" />
+                <h3 className="text-lg font-semibold">Informations académiques</h3>
               </div>
 
-              <div className="space-y-4">
-                <div className="flex items-center justify-between p-3 bg-background/30 rounded-lg border border-border/20">
-                  <div className="flex items-center space-x-3">
-                    <UtensilsCrossed className="h-5 w-5 text-orange-600" />
-                    <div>
-                      <label className="text-sm font-medium">Abonnement cantine</label>
-                      <p className="text-xs text-muted-foreground">Service de restauration scolaire</p>
-                    </div>
-                  </div>
-                  <FormField
-                    control={form.control}
-                    name="isSubscribedToCanteen"
-                    render={({ field }) => (
-                      <FormItem>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="gradeId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="font-medium">Niveau *</FormLabel>
+                      <Select
+                        onValueChange={value => field.onChange(Number.parseInt(value))}
+                        value={field.value && field.value > 0 ? field.value.toString() : ''}
+                        disabled={isSubmitting}
+                      >
                         <FormControl>
-                          <Switch
-                            checked={field.value}
-                            onCheckedChange={field.onChange}
-                            disabled={isSubmitting}
-                          />
+                          <SelectTrigger className="bg-background/50 backdrop-blur-sm border-border/50">
+                            <SelectValue placeholder="Sélectionner un niveau" />
+                          </SelectTrigger>
                         </FormControl>
-                      </FormItem>
-                    )}
-                  />
+                        <SelectContent>
+                          {grades && grades.length > 0
+                            ? grades.map(grade => (
+                                <SelectItem key={grade.id} value={grade.id.toString()}>
+                                  {grade.name}
+                                </SelectItem>
+                              ))
+                            : (
+                                <SelectItem value="" disabled>
+                                  Aucun niveau disponible
+                                </SelectItem>
+                              )}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="classId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="font-medium">Classe</FormLabel>
+                      <Select
+                        onValueChange={field.onChange}
+                        value={field.value ? field.value.toString() : ''}
+                        disabled={!watchedGradeId || isSubmitting}
+                      >
+                        <FormControl>
+                          <SelectTrigger className="bg-background/50 backdrop-blur-sm border-border/50">
+                            <SelectValue placeholder="Sélectionner une classe" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="-">Aucune classe spécifique</SelectItem>
+                          {getFilteredClasses() && getFilteredClasses().length > 0
+                            ? getFilteredClasses().map(cls => (
+                                <SelectItem key={cls.id} value={cls.id}>
+                                  {cls.name}
+                                </SelectItem>
+                              ))
+                            : (
+                                <SelectItem value="--" disabled>
+                                  Aucune classe disponible pour ce niveau
+                                </SelectItem>
+                              )}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </motion.div>
+
+            {/* Special Status & Services */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3, delay: 0.3 }}
+              className="space-y-4"
+            >
+              <h3 className="text-lg font-semibold">Statuts spéciaux et services</h3>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between p-3 bg-background/30 rounded-lg border border-border/20">
+                    <div className="flex items-center space-x-3">
+                      <Building2 className="h-5 w-5 text-blue-600" />
+                      <div>
+                        <label className="text-sm font-medium">Est-ce un orienté ?</label>
+                        <p className="text-xs text-muted-foreground">Élève bénéficiant de subventions d'état</p>
+                      </div>
+                    </div>
+                    <FormField
+                      control={form.control}
+                      name="isGovernmentAffected"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormControl>
+                            <Switch
+                              checked={field.value}
+                              onCheckedChange={field.onChange}
+                              disabled={isSubmitting}
+                            />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between p-3 bg-background/30 rounded-lg border border-border/20">
+                    <div className="flex items-center space-x-3">
+                      <Heart className="h-5 w-5 text-pink-600" />
+                      <div>
+                        <label className="text-sm font-medium">Élève orphelin</label>
+                        <p className="text-xs text-muted-foreground">Bénéficie de réductions spéciales</p>
+                      </div>
+                    </div>
+                    <FormField
+                      control={form.control}
+                      name="isOrphan"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormControl>
+                            <Switch
+                              checked={field.value}
+                              onCheckedChange={field.onChange}
+                              disabled={isSubmitting}
+                            />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+                  </div>
                 </div>
 
-                <div className="flex items-center justify-between p-3 bg-background/30 rounded-lg border border-border/20">
-                  <div className="flex items-center space-x-3">
-                    <Bus className="h-5 w-5 text-green-600" />
-                    <div>
-                      <label className="text-sm font-medium">Abonnement transport</label>
-                      <p className="text-xs text-muted-foreground">Service de transport scolaire</p>
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between p-3 bg-background/30 rounded-lg border border-border/20">
+                    <div className="flex items-center space-x-3">
+                      <UtensilsCrossed className="h-5 w-5 text-orange-600" />
+                      <div>
+                        <label className="text-sm font-medium">Abonnement cantine</label>
+                        <p className="text-xs text-muted-foreground">Service de restauration scolaire</p>
+                      </div>
                     </div>
+                    <FormField
+                      control={form.control}
+                      name="isSubscribedToCanteen"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormControl>
+                            <Switch
+                              checked={field.value}
+                              onCheckedChange={field.onChange}
+                              disabled={isSubmitting}
+                            />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
                   </div>
-                  <FormField
-                    control={form.control}
-                    name="isSubscribedToTransportation"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormControl>
-                          <Switch
-                            checked={field.value}
-                            onCheckedChange={field.onChange}
-                            disabled={isSubmitting}
-                          />
-                        </FormControl>
-                      </FormItem>
-                    )}
-                  />
+
+                  <div className="flex items-center justify-between p-3 bg-background/30 rounded-lg border border-border/20">
+                    <div className="flex items-center space-x-3">
+                      <Bus className="h-5 w-5 text-green-600" />
+                      <div>
+                        <label className="text-sm font-medium">Abonnement transport</label>
+                        <p className="text-xs text-muted-foreground">Service de transport scolaire</p>
+                      </div>
+                    </div>
+                    <FormField
+                      control={form.control}
+                      name="isSubscribedToTransportation"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormControl>
+                            <Switch
+                              checked={field.value}
+                              onCheckedChange={field.onChange}
+                              disabled={isSubmitting}
+                            />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+                  </div>
                 </div>
               </div>
-            </div>
-          </motion.div>
+            </motion.div>
 
-          {/* Action Buttons */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3, delay: 0.4 }}
-            className="flex justify-end space-x-4 pt-6 border-t border-border/20"
-          >
-            <Button
-              type="button"
-              variant="outline"
-              onClick={onClose}
-              disabled={isSubmitting}
-              className="px-6"
+            {/* Action Buttons */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3, delay: 0.4 }}
+              className="flex justify-end space-x-4 pt-6 border-t border-border/20"
             >
-              Annuler
-            </Button>
-            <Button
-              type="submit"
-              disabled={isSubmitting}
-              className="px-6 bg-primary hover:bg-primary/90"
-            >
-              {isSubmitting ? 'Création...' : 'Créer l\'inscription'}
-            </Button>
-          </motion.div>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={onClose}
+                disabled={isSubmitting}
+                className="px-6"
+              >
+                Annuler
+              </Button>
+              <Button
+                type="submit"
+                disabled={isSubmitting}
+                className="px-6 bg-primary hover:bg-primary/90"
+              >
+                {isSubmitting ? 'Création...' : 'Créer l\'inscription'}
+              </Button>
+            </motion.div>
+          </div>
         </form>
       </Form>
     </DialogContent>

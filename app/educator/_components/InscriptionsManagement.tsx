@@ -24,6 +24,7 @@ import {
 } from '.'
 import { updateInscriptionStatus } from '../actions/inscriptionService'
 import { useEducatorInscriptions } from '../hooks/useEducatorInscriptions'
+import { useUserStore } from '../stores'
 import { getEnrollmentStatusLabel } from '../types/inscription'
 
 interface InscriptionsManagementProps {
@@ -39,6 +40,9 @@ const defaultQueryParams: IInscriptionQueryParams = {
 }
 
 export function InscriptionsManagement(_props: InscriptionsManagementProps) {
+  const { user } = useUserStore()
+  const schoolId = user?.school.id
+
   const [searchTerm, setSearchTerm] = useState<string>('')
   const [showSearchModal, setShowSearchModal] = useState(false)
   const [showNewInscriptionModal, setShowNewInscriptionModal] = useState(false)
@@ -399,7 +403,7 @@ export function InscriptionsManagement(_props: InscriptionsManagementProps) {
                         {' '}
                         {currentPage}
                       </span>
-                      <span className="text-sm text-slate-500">
+                      <span className="text-sm text-muted-foreground">
                         sur
                         {' '}
                         {totalPages}
@@ -452,6 +456,7 @@ export function InscriptionsManagement(_props: InscriptionsManagementProps) {
           }}
         >
           <EducatorNewInscriptionModal
+            schoolId={schoolId!}
             grades={grades}
             classes={classes}
             onClose={handleCloseModals}

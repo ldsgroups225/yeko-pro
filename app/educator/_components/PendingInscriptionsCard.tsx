@@ -1,13 +1,7 @@
-'use client'
-
-import type { IPendingInscription } from '../types'
-import { motion } from 'framer-motion'
+import * as motion from 'motion/react-client'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-
-interface PendingInscriptionsCardProps {
-  inscriptions: IPendingInscription[]
-}
+import { getPendingInscriptions } from '../actions'
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -30,7 +24,9 @@ const itemVariants = {
   },
 }
 
-export function PendingInscriptionsCard({ inscriptions }: PendingInscriptionsCardProps) {
+export async function PendingInscriptionsCard() {
+  const inscriptions = await getPendingInscriptions()
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}

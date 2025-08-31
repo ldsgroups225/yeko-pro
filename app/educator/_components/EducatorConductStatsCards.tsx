@@ -42,8 +42,8 @@ export function EducatorConductStatsCards({ stats }: EducatorConductStatsCardsPr
                   Population
                 </div>
                 <div>
-                  <p className="text-3xl font-bold text-slate-900">{totalStudents}</p>
-                  <p className="text-sm text-slate-600">Élèves inscrits</p>
+                  <p className="text-3xl font-bold">{totalStudents}</p>
+                  <p className="text-sm text-muted-foreground">Élèves inscrits</p>
                 </div>
               </div>
               <div className="rounded-2xl bg-blue-500/10 p-3 group-hover:bg-blue-500/20 transition-colors">
@@ -64,9 +64,9 @@ export function EducatorConductStatsCards({ stats }: EducatorConductStatsCardsPr
                   Performance
                 </div>
                 <div>
-                  <p className="text-3xl font-bold text-slate-900">
+                  <p className="text-3xl font-bold">
                     {averageScore.toFixed(1)}
-                    <span className="text-lg text-slate-500">/20</span>
+                    <span className="text-lg text-muted-foreground">/20</span>
                   </p>
                   <div className="flex items-center gap-2">
                     <div className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${
@@ -85,7 +85,7 @@ export function EducatorConductStatsCards({ stats }: EducatorConductStatsCardsPr
                       {Math.abs(improvementTrend).toFixed(1)}
                       %
                     </div>
-                    <span className="text-xs text-slate-500">vs mois dernier</span>
+                    <span className="text-xs text-muted-foreground">vs mois dernier</span>
                   </div>
                 </div>
               </div>
@@ -120,8 +120,8 @@ export function EducatorConductStatsCards({ stats }: EducatorConductStatsCardsPr
                   Incidents
                 </div>
                 <div>
-                  <p className="text-3xl font-bold text-slate-900">{recentIncidents}</p>
-                  <p className="text-sm text-slate-600">Ce trimestre</p>
+                  <p className="text-3xl font-bold">{recentIncidents}</p>
+                  <p className="text-sm text-muted-foreground">Ce trimestre</p>
                 </div>
               </div>
               <div className={`rounded-2xl p-3 transition-colors ${
@@ -150,11 +150,11 @@ export function EducatorConductStatsCards({ stats }: EducatorConductStatsCardsPr
                   Excellence
                 </div>
                 <div>
-                  <p className="text-3xl font-bold text-slate-900">
+                  <p className="text-3xl font-bold">
                     {excellenceRate.toFixed(0)}
-                    <span className="text-lg text-slate-500">%</span>
+                    <span className="text-lg text-muted-foreground">%</span>
                   </p>
-                  <p className="text-sm text-slate-600">Bonne + Très bonne</p>
+                  <p className="text-sm text-muted-foreground">Bonne + Très bonne</p>
                 </div>
               </div>
               <div className="rounded-2xl bg-purple-500/10 p-3 group-hover:bg-purple-500/20 transition-colors">

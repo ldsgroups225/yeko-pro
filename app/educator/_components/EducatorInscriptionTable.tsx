@@ -103,10 +103,10 @@ export function EducatorInscriptionTable({
       <Card className="border-0 bg-gradient-to-br from-background/95 via-card/90 to-accent/20 backdrop-blur-sm shadow-sm">
         <CardContent className="p-12 text-center">
           <div className="mx-auto w-24 h-24 bg-slate-100 rounded-full flex items-center justify-center mb-4">
-            <User className="h-12 w-12 text-slate-400" />
+            <User className="h-12 w-12 text-muted-foreground/80" />
           </div>
           <h3 className="text-lg font-semibold mb-2">Aucune inscription trouvée</h3>
-          <p className="text-slate-600">
+          <p className="text-muted-foreground">
             Aucune inscription ne correspond aux critères de recherche actuels.
           </p>
         </CardContent>
@@ -330,7 +330,7 @@ export function EducatorInscriptionTable({
 
                   {/* Parent Info */}
                   <div className="space-y-2">
-                    <div className="flex items-center text-sm text-slate-600">
+                    <div className="flex items-center text-sm text-muted-foreground">
                       <User className="h-4 w-4 mr-2" />
                       <span className="font-medium">Parent:</span>
                       <span className="ml-1">
@@ -340,7 +340,7 @@ export function EducatorInscriptionTable({
                       </span>
                     </div>
                     {inscription.parentPhone && (
-                      <div className="flex items-center text-sm text-slate-600">
+                      <div className="flex items-center text-sm text-muted-foreground">
                         <Phone className="h-4 w-4 mr-2" />
                         {inscription.parentPhone}
                       </div>
@@ -349,7 +349,7 @@ export function EducatorInscriptionTable({
 
                   {/* Class & Date Info */}
                   <div className="space-y-2">
-                    <div className="flex items-center text-sm text-slate-600">
+                    <div className="flex items-center text-sm text-muted-foreground">
                       <MapPin className="h-4 w-4 mr-2" />
                       <span>{inscription.gradeName}</span>
                       {inscription.className && (

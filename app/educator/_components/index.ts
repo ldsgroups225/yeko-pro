@@ -1,5 +1,8 @@
 // app/educator/_components/index.ts
 
+export { ConductSearchAndFilter } from './ConductSearchAndFilter'
+export { ConductsManagement } from './ConductsManagement'
+export { DashboardStats } from './DashboardStats'
 export { EducatorConductFilters } from './EducatorConductFilters'
 export { EducatorConductFilterSection } from './EducatorConductFilterSection'
 export { EducatorConductStatsCards } from './EducatorConductStatsCards'
@@ -11,3 +14,8 @@ export { EducatorInscriptionStatsCards } from './EducatorInscriptionStatsCards'
 export { EducatorInscriptionTable } from './EducatorInscriptionTable'
 export { EducatorNewInscriptionModal } from './EducatorNewInscriptionModal'
 export { EducatorStudentSearchModal } from './EducatorStudentSearchModal'
+export { ExportConductButton } from './ExportConductButton'
+export { GenerateConductReport } from './GenerateConductReport'
+export { InscriptionsManagement } from './InscriptionsManagement'
+export { PendingInscriptionsCard } from './PendingInscriptionsCard'
+export { RecentConductsCard } from './RecentConductsCard'

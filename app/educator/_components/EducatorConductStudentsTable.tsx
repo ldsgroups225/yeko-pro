@@ -126,8 +126,8 @@ export function EducatorConductStudentsTable({
             <Table>
               <TableHeader>
                 <TableRow className="bg-secondary text-secondary-foreground border-b border-secondary/60 hover:bg-secondary/80 shadow-sm">
-                  <TableHead className="w-12 text-xs font-medium text-slate-600">#</TableHead>
-                  <TableHead className="text-xs font-medium text-slate-600">
+                  <TableHead className="w-12 text-xs font-medium text-muted-foreground">#</TableHead>
+                  <TableHead className="text-xs font-medium text-muted-foreground">
                     <Button
                       variant="ghost"
                       onClick={() => onSort('lastName')}
@@ -138,8 +138,8 @@ export function EducatorConductStudentsTable({
                       {getSortIcon('lastName')}
                     </Button>
                   </TableHead>
-                  <TableHead className="text-xs font-medium text-slate-600">Classe</TableHead>
-                  <TableHead className="text-center text-xs font-medium text-slate-600">
+                  <TableHead className="text-xs font-medium text-muted-foreground">Classe</TableHead>
+                  <TableHead className="text-center text-xs font-medium text-muted-foreground">
                     <Button
                       variant="ghost"
                       onClick={() => onSort('totalScore')}
@@ -150,11 +150,11 @@ export function EducatorConductStudentsTable({
                       {getSortIcon('totalScore')}
                     </Button>
                   </TableHead>
-                  <TableHead className="text-center text-xs font-medium text-slate-600">Appréciation</TableHead>
-                  <TableHead className="text-center text-xs font-medium text-slate-600">Détails</TableHead>
-                  <TableHead className="text-center text-xs font-medium text-slate-600">Assiduité</TableHead>
-                  <TableHead className="text-center text-xs font-medium text-slate-600">Incidents</TableHead>
-                  <TableHead className="text-center text-xs font-medium text-slate-600">Actions</TableHead>
+                  <TableHead className="text-center text-xs font-medium text-muted-foreground">Appréciation</TableHead>
+                  <TableHead className="text-center text-xs font-medium text-muted-foreground">Détails</TableHead>
+                  <TableHead className="text-center text-xs font-medium text-muted-foreground">Assiduité</TableHead>
+                  <TableHead className="text-center text-xs font-medium text-muted-foreground">Incidents</TableHead>
+                  <TableHead className="text-center text-xs font-medium text-muted-foreground">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -165,7 +165,7 @@ export function EducatorConductStudentsTable({
 
                   return (
                     <TableRow key={student.id} className="hover:bg-secondary/40 border-b border-slate-100 group transition-colors">
-                      <TableCell className="font-medium text-slate-400">
+                      <TableCell className="font-medium text-muted-foreground/80">
                         <div className="w-8 h-8 rounded-full bg-secondary text-secondary-foreground flex items-center justify-center text-xs font-semibold group-hover:bg-secondary/80 transition-colors">
                           {index + 1}
                         </div>
@@ -181,12 +181,12 @@ export function EducatorConductStudentsTable({
                             </AvatarFallback>
                           </Avatar>
                           <div>
-                            <p className="font-semibold text-slate-900 text-sm">
+                            <p className="font-semibold text-sm">
                               {student.firstName}
                               {' '}
                               {student.lastName}
                             </p>
-                            <p className="text-xs text-slate-500 font-medium">
+                            <p className="text-xs text-muted-foreground font-medium">
                               {student.idNumber}
                             </p>
                           </div>
@@ -380,17 +380,17 @@ export function EducatorConductStudentsTable({
                             {student.lastName[0]}
                           </AvatarFallback>
                         </Avatar>
-                        <div className="absolute -top-1 -right-1 w-6 h-6 rounded-full bg-slate-100 flex items-center justify-center text-xs font-bold text-slate-600">
+                        <div className="absolute -top-1 -right-1 w-6 h-6 rounded-full bg-slate-100 flex items-center justify-center text-xs font-bold text-muted-foreground">
                           {index + 1}
                         </div>
                       </div>
                       <div>
-                        <h4 className="font-semibold text-slate-900">
+                        <h4 className="font-semibold">
                           {student.firstName}
                           {' '}
                           {student.lastName}
                         </h4>
-                        <p className="text-sm text-slate-500 font-medium">{student.idNumber}</p>
+                        <p className="text-sm text-muted-foreground font-medium">{student.idNumber}</p>
                         <Badge variant="outline" className="mt-1 text-xs">
                           {student.className}
                         </Badge>
@@ -410,8 +410,8 @@ export function EducatorConductStudentsTable({
                   {/* Progress Bar */}
                   <div className="mb-4">
                     <div className="flex justify-between items-center mb-2">
-                      <span className="text-sm font-medium text-slate-600">Note de conduite</span>
-                      <span className="text-sm text-slate-500">/20</span>
+                      <span className="text-sm font-medium text-muted-foreground">Note de conduite</span>
+                      <span className="text-sm text-muted-foreground">/20</span>
                     </div>
                     <div className="w-full h-3 bg-slate-100 rounded-full overflow-hidden">
                       <div
@@ -436,22 +436,22 @@ export function EducatorConductStudentsTable({
                     <div className="text-center p-3 bg-blue-50 rounded-lg">
                       <div className="text-sm font-bold text-blue-700">{currentScore.attendanceScore}</div>
                       <div className="text-xs text-blue-600">Assiduité</div>
-                      <div className="text-xs text-slate-500">/6</div>
+                      <div className="text-xs text-muted-foreground">/6</div>
                     </div>
                     <div className="text-center p-3 bg-emerald-50 rounded-lg">
                       <div className="text-sm font-bold text-emerald-700">{currentScore.dresscodeScore}</div>
                       <div className="text-xs text-emerald-600">Tenue</div>
-                      <div className="text-xs text-slate-500">/3</div>
+                      <div className="text-xs text-muted-foreground">/3</div>
                     </div>
                     <div className="text-center p-3 bg-purple-50 rounded-lg">
                       <div className="text-sm font-bold text-purple-700">{currentScore.moralityScore}</div>
                       <div className="text-xs text-purple-600">Moralité</div>
-                      <div className="text-xs text-slate-500">/4</div>
+                      <div className="text-xs text-muted-foreground">/4</div>
                     </div>
                     <div className="text-center p-3 bg-red-50 rounded-lg">
                       <div className="text-sm font-bold text-red-700">{currentScore.disciplineScore}</div>
                       <div className="text-xs text-red-600">Discipline</div>
-                      <div className="text-xs text-slate-500">/7</div>
+                      <div className="text-xs text-muted-foreground">/7</div>
                     </div>
                   </div>
 

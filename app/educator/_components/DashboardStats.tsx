@@ -1,17 +1,7 @@
-'use client'
-
-import { motion } from 'framer-motion'
 import { AlertTriangle, CheckCircle, Clock, Users } from 'lucide-react'
+import * as motion from 'motion/react-client'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-
-interface DashboardStatsProps {
-  stats: {
-    totalStudents: number
-    presentToday: number
-    absentToday: number
-    conductIssues: number
-  }
-}
+import { getEducatorStats } from '../actions'
 
 const cardVariants = {
   hidden: { opacity: 0, y: 20, scale: 0.95 },
@@ -37,7 +27,9 @@ const iconVariants = {
   },
 }
 
-export function DashboardStats({ stats }: DashboardStatsProps) {
+export async function DashboardStats() {
+  const stats = await getEducatorStats()
+
   const cards = [
     {
       title: 'Total Élèves',

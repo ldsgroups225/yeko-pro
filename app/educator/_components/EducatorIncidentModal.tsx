@@ -8,17 +8,12 @@ import { useState } from 'react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
+import { useEducatorConduct } from '../hooks'
 import { CONDUCT_CATEGORIES, CONDUCT_DEDUCTIONS } from '../types'
-
-interface EducatorIncidentModalProps {
-  studentId: string
-  onClose: () => void
-  onIncidentCreated: () => void
-}
 
 interface IncidentForm {
   categoryId: string
@@ -27,7 +22,7 @@ interface IncidentForm {
   customPoints: boolean
 }
 
-export function EducatorIncidentModal({ studentId, onClose, onIncidentCreated }: EducatorIncidentModalProps) {
+export function EducatorIncidentModal() {
   const [form, setForm] = useState<IncidentForm>({
     categoryId: '',
     description: '',
@@ -35,6 +30,7 @@ export function EducatorIncidentModal({ studentId, onClose, onIncidentCreated }:
     customPoints: false,
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [showIncidentModal, setShowIncidentModal] = useState(false)
 
   // Predefined incident types with their point deductions
   // Note: Late arrival is commented out as per ministry guidelines update
@@ -51,6 +47,11 @@ export function EducatorIncidentModal({ studentId, onClose, onIncidentCreated }:
     { id: 'property_damage', name: 'Dégradation de biens', category: 'discipline', points: CONDUCT_DEDUCTIONS.PROPERTY_DAMAGE },
   ]
 
+  const {
+    selectedStudentId,
+    setSelectedStudentId,
+  } = useEducatorConduct()
+
   const handleIncidentTypeChange = (incidentTypeId: string) => {
     const incidentType = incidentTypes.find(type => type.id === incidentTypeId)
     if (incidentType) {
@@ -61,6 +62,18 @@ export function EducatorIncidentModal({ studentId, onClose, onIncidentCreated }:
         customPoints: false,
       }))
     }
+  }
+
+  const handleIncidentModalClose = () => {
+    setShowIncidentModal(false)
+    setSelectedStudentId(null)
+  }
+
+  const handleIncidentCreated = () => {
+    // Refresh data after incident creation
+    // fetchStudents(filters)
+    // fetchStats()
+    toast.success('Incident enregistré avec succès')
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -89,7 +102,7 @@ export function EducatorIncidentModal({ studentId, onClose, onIncidentCreated }:
       const currentDate = new Date().toISOString()
 
       const incident: Omit<IConductIncident, 'id' | 'createdAt' | 'updatedAt'> = {
-        studentId,
+        studentId: selectedStudentId!,
         categoryId: form.categoryId,
         description: form.description,
         pointsDeducted: form.pointsDeducted,
@@ -103,8 +116,8 @@ export function EducatorIncidentModal({ studentId, onClose, onIncidentCreated }:
       await createConductIncident(incident)
 
       toast.success('Incident enregistré avec succès')
-      onIncidentCreated()
-      onClose()
+      handleIncidentCreated()
+      handleIncidentModalClose()
     }
     catch (error) {
       console.error('Error creating incident:', error)
@@ -117,136 +130,142 @@ export function EducatorIncidentModal({ studentId, onClose, onIncidentCreated }:
   }
 
   const selectedCategory = CONDUCT_CATEGORIES.find((cat: any) => cat.id === form.categoryId)
+  const isIncidentModalVisible = showIncidentModal && !!selectedStudentId
+
+  if (!isIncidentModalVisible)
+    return null
 
   return (
-    <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-      <DialogHeader>
-        <DialogTitle className="flex items-center gap-2">
-          <AlertTriangle className="h-5 w-5 text-orange-500" />
-          Signaler un Incident de Conduite
-        </DialogTitle>
-      </DialogHeader>
+    <Dialog open={isIncidentModalVisible} onOpenChange={handleIncidentModalClose}>
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <AlertTriangle className="h-5 w-5 text-orange-500" />
+            Signaler un Incident de Conduite
+          </DialogTitle>
+        </DialogHeader>
 
-      <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Incident Type Selection */}
-        <div className="space-y-3">
-          <Label className="text-sm font-medium">Type d'incident *</Label>
-          <Select onValueChange={handleIncidentTypeChange}>
-            <SelectTrigger>
-              <SelectValue placeholder="Sélectionner un type d'incident" />
-            </SelectTrigger>
-            <SelectContent>
-              {incidentTypes.map(type => (
-                <SelectItem key={type.id} value={type.id}>
-                  <div className="flex items-center justify-between w-full">
-                    <span>{type.name}</span>
-                    <span className="text-xs text-muted-foreground ml-2">
-                      -
-                      {type.points}
-                      {' '}
-                      pts
-                    </span>
-                  </div>
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Incident Type Selection */}
+          <div className="space-y-3">
+            <Label className="text-sm font-medium">Type d'incident *</Label>
+            <Select onValueChange={handleIncidentTypeChange}>
+              <SelectTrigger>
+                <SelectValue placeholder="Sélectionner un type d'incident" />
+              </SelectTrigger>
+              <SelectContent>
+                {incidentTypes.map(type => (
+                  <SelectItem key={type.id} value={type.id}>
+                    <div className="flex items-center justify-between w-full">
+                      <span>{type.name}</span>
+                      <span className="text-xs text-muted-foreground ml-2">
+                        -
+                        {type.points}
+                        {' '}
+                        pts
+                      </span>
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
 
-        {/* Category Display */}
-        {selectedCategory && (
-          <Card className="border-l-4" style={{ borderLeftColor: selectedCategory.color.replace('bg-', '#') }}>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm flex items-center gap-2">
-                <div className={`w-3 h-3 rounded-full ${selectedCategory.color}`} />
-                {selectedCategory.name}
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="pt-0">
-              <p className="text-sm text-muted-foreground">
-                {selectedCategory.description}
-              </p>
-            </CardContent>
-          </Card>
-        )}
+          {/* Category Display */}
+          {selectedCategory && (
+            <Card className="border-l-4" style={{ borderLeftColor: selectedCategory.color.replace('bg-', '#') }}>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm flex items-center gap-2">
+                  <div className={`w-3 h-3 rounded-full ${selectedCategory.color}`} />
+                  {selectedCategory.name}
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="pt-0">
+                <p className="text-sm text-muted-foreground">
+                  {selectedCategory.description}
+                </p>
+              </CardContent>
+            </Card>
+          )}
 
-        {/* Points Deduction */}
-        <div className="space-y-3">
-          <div className="flex items-center space-x-2">
-            <div className="bg-red-50 border border-red-200 rounded-lg px-4 py-2">
-              <span className="text-lg font-bold text-red-600">
-                -
-                {form.pointsDeducted}
-              </span>
-              <span className="text-sm text-red-500 ml-1">points</span>
+          {/* Points Deduction */}
+          <div className="space-y-3">
+            <div className="flex items-center space-x-2">
+              <div className="bg-red-50 border border-red-200 rounded-lg px-4 py-2">
+                <span className="text-lg font-bold text-red-600">
+                  -
+                  {form.pointsDeducted}
+                </span>
+                <span className="text-sm text-red-500 ml-1">points</span>
+              </div>
             </div>
           </div>
-        </div>
 
-        {/* Description */}
-        <div className="space-y-3">
-          <Label className="text-sm font-medium">Description détaillée *</Label>
-          <Textarea
-            placeholder="Décrivez l'incident en détail (circonstances, témoins, mesures prises...)"
-            value={form.description}
-            onChange={e => setForm(prev => ({ ...prev, description: e.target.value }))}
-            className="min-h-[100px]"
-            required
-          />
-          <p className="text-xs text-muted-foreground">
-            Minimum 10 caractères. Soyez précis et objectif dans votre description.
-          </p>
-        </div>
+          {/* Description */}
+          <div className="space-y-3">
+            <Label className="text-sm font-medium">Description détaillée *</Label>
+            <Textarea
+              placeholder="Décrivez l'incident en détail (circonstances, témoins, mesures prises...)"
+              value={form.description}
+              onChange={e => setForm(prev => ({ ...prev, description: e.target.value }))}
+              className="min-h-[100px]"
+              required
+            />
+            <p className="text-xs text-muted-foreground">
+              Minimum 10 caractères. Soyez précis et objectif dans votre description.
+            </p>
+          </div>
 
-        {/* Date and Reporter Info */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <Label className="text-sm font-medium">Date de l'incident</Label>
-            <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-              <Calendar className="h-4 w-4" />
-              <span>{new Date().toLocaleDateString('fr-FR')}</span>
+          {/* Date and Reporter Info */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">Date de l'incident</Label>
+              <div className="flex items-center space-x-2 text-sm text-muted-foreground">
+                <Calendar className="h-4 w-4" />
+                <span>{new Date().toLocaleDateString('fr-FR')}</span>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">Signalé par</Label>
+              <div className="flex items-center space-x-2 text-sm text-muted-foreground">
+                <FileText className="h-4 w-4" />
+                <span>Utilisateur actuel</span>
+              </div>
             </div>
           </div>
-          <div className="space-y-2">
-            <Label className="text-sm font-medium">Signalé par</Label>
-            <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-              <FileText className="h-4 w-4" />
-              <span>Utilisateur actuel</span>
-            </div>
-          </div>
-        </div>
 
-        {/* Action Buttons */}
-        <div className="flex items-center justify-end space-x-3 pt-6 border-t">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={onClose}
-            disabled={isSubmitting}
-          >
-            <X className="h-4 w-4 mr-2" />
-            Annuler
-          </Button>
-          <Button
-            type="submit"
-            disabled={isSubmitting || !form.categoryId || !form.description.trim()}
-          >
-            {isSubmitting
-              ? (
-                  <div className="flex items-center space-x-2">
-                    <div className="w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
-                    <span>Enregistrement...</span>
-                  </div>
-                )
-              : (
-                  <div className="flex items-center space-x-2">
-                    <Save className="h-4 w-4" />
-                    <span>Enregistrer l'incident</span>
-                  </div>
-                )}
-          </Button>
-        </div>
-      </form>
-    </DialogContent>
+          {/* Action Buttons */}
+          <div className="flex items-center justify-end space-x-3 pt-6 border-t">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleIncidentModalClose}
+              disabled={isSubmitting}
+            >
+              <X className="h-4 w-4 mr-2" />
+              Annuler
+            </Button>
+            <Button
+              type="submit"
+              disabled={isSubmitting || !form.categoryId || !form.description.trim()}
+            >
+              {isSubmitting
+                ? (
+                    <div className="flex items-center space-x-2">
+                      <div className="w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
+                      <span>Enregistrement...</span>
+                    </div>
+                  )
+                : (
+                    <div className="flex items-center space-x-2">
+                      <Save className="h-4 w-4" />
+                      <span>Enregistrer l'incident</span>
+                    </div>
+                  )}
+            </Button>
+          </div>
+        </form>
+      </DialogContent>
+    </Dialog>
   )
 }

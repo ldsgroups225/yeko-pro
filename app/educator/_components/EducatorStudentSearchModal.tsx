@@ -296,7 +296,7 @@ export function EducatorStudentSearchModal({
         <div className="space-y-4">
           <Separator />
           <div className="text-center space-y-4">
-            <p className="text-sm text-slate-600">
+            <p className="text-sm text-muted-foreground">
               L'élève n'existe pas encore dans le système ?
             </p>
             <Button
