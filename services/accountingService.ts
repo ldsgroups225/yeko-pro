@@ -42,18 +42,21 @@ async function checkAuthUserId(client: SupabaseClient): Promise<string> {
  */
 async function getDirectorSchoolId(client: SupabaseClient, userId: string): Promise<{ schoolId: string, schoolName: string }> {
   const { data: userSchool, error } = await client
-    .from('users')
-    .select('school: schools!users_school_id_foreign(id, name), user_roles(role_id)')
-    .eq('id', userId)
-    .eq('user_roles.role_id', ERole.DIRECTOR)
+    .from('user_roles')
+    .select(`
+      school_id,
+      schools!user_roles_school_id_fkey(id, name)
+    `)
+    .eq('user_id', userId)
+    .eq('role_id', ERole.DIRECTOR)
     .single()
-  if (error || !userSchool?.school) {
+  if (error || !userSchool?.school_id || !userSchool.schools) {
     console.error('Error fetching user school:', error)
     throw new Error('Seul un directeur peut accéder à cette page')
   }
   return {
-    schoolId: userSchool.school.id,
-    schoolName: userSchool.school.name,
+    schoolId: userSchool.school_id,
+    schoolName: userSchool.schools.name,
   }
 }
 

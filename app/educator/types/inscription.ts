@@ -63,6 +63,7 @@ export interface IClass {
   gradeId: number
   gradeName: string
   maxStudent: number
+  remainingSeats: number
 }
 
 export interface INewInscriptionData {
@@ -105,8 +106,9 @@ export interface IPendingInscription {
   candidateId: string
   time: string
   name: string
-  type: 'student' | 'teacher'
-  status: string
+  type: 'student' // | 'teacher'
+  status: 'pending' | 'refused' | 'accepted'
+  affectedToClass: string | null
   grade?: number
 }
 

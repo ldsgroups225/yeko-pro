@@ -15,6 +15,9 @@ export interface UserRoleInfo {
   hasAccountantAccess: boolean
   hasCashierAccess: boolean
   hasHeadmasterAccess: boolean
+  // School and grade information from user_roles table
+  schoolId: string
+  gradeId: number | null
   cachedAt?: number
 }
 
@@ -43,16 +46,16 @@ export const ROLE_DISPLAY_NAMES: Record<ERole, string> = {
 
 /**
  * Role priority for determining primary role
- * Higher index = higher priority
+ * HEADMASTER > DIRECTOR > EDUCATOR > TEACHER > ACCOUNTANT > CASHIER > PARENT
  */
 export const ROLE_PRIORITY: ERole[] = [
   ERole.HEADMASTER,
-  ERole.PARENT,
-  ERole.TEACHER,
-  ERole.EDUCATOR,
-  ERole.CASHIER,
-  ERole.ACCOUNTANT,
   ERole.DIRECTOR,
+  ERole.EDUCATOR,
+  ERole.TEACHER,
+  ERole.ACCOUNTANT,
+  ERole.CASHIER,
+  ERole.PARENT,
 ]
 
 /**

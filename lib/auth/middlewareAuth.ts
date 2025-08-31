@@ -1,12 +1,12 @@
 import type { NextRequest } from 'next/server'
-import { getCachedDirectorAccessMiddleware, getCachedUserRolesMiddleware } from '@/lib/cache/middlewareRoleCache'
+import { getCachedDirectorAccessMiddleware, getCachedNotTeacherOrParentAccessMiddleware, getCachedUserRolesMiddleware } from '@/lib/cache/middlewareRoleCache'
 import { getEnvOrThrowServerSide } from '@/lib/utils/EnvServer'
 import { ERole } from '@/types'
 
 export interface MiddlewareAuthResult {
   isAuthenticated: boolean
   userId: string | null
-  hasDirectorAccess: boolean
+  witchAccess: ERole | null
   shouldRedirect: boolean
   redirectTo: string | null
   reason?: string
@@ -70,7 +70,7 @@ export function getRoleBasedRedirect(role: ERole | null): string {
     case ERole.CASHIER:
       return '/cashier'
     case ERole.HEADMASTER:
-      return '/unauthorized'
+      return '/t/home'
     default:
       return '/unauthorized'
   }
@@ -125,13 +125,13 @@ export async function checkMiddlewareAuth(
   // If no user, check if auth is required
   if (!user) {
     // console.log('🔍 No user found, checking if auth required for:', pathname)
-    // Unauthorized page requires authentication (only authenticated non-directors can see it)
+    // Unauthorized page requires authentication (only authenticated non-headmasters, directors, educators, accountants, cashiers can see it)
     if (pathname === '/unauthorized' || isAuthRequiredPath(pathname)) {
       // console.log('🔍 Auth required, redirecting to sign-in')
       return {
         isAuthenticated: false,
         userId: null,
-        hasDirectorAccess: false,
+        witchAccess: null,
         shouldRedirect: true,
         redirectTo: '/sign-in',
         reason: 'Authentication required',
@@ -142,7 +142,7 @@ export async function checkMiddlewareAuth(
     return {
       isAuthenticated: false,
       userId: null,
-      hasDirectorAccess: false,
+      witchAccess: null,
       shouldRedirect: false,
       redirectTo: null,
     }
@@ -159,31 +159,32 @@ export async function checkMiddlewareAuth(
     try {
       const env = getEnvOrThrowServerSide()
       const cookies = request.cookies.getAll()
-      const hasDirectorAccess = await getCachedDirectorAccessMiddleware(
+      const response = await getCachedNotTeacherOrParentAccessMiddleware(
         userId,
         cookies,
         env.NEXT_PUBLIC_SUPABASE_URL,
         env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
       )
 
-      if (hasDirectorAccess) {
-        // Directors are forbidden from accessing /unauthorized page
+      if (response.hasAccess) {
+        // Headmasters, directors, educators, accountants, cashiers are forbidden from accessing /unauthorized page
         // Redirect them to their dashboard
+        const redirectTo = response.role ? getRoleBasedRedirect(response.role) : '/t/home'
         return {
           isAuthenticated: true,
           userId,
-          hasDirectorAccess: true,
+          witchAccess: response.role || null,
           shouldRedirect: true,
-          redirectTo: '/t/home',
-          reason: 'Directors cannot access unauthorized page',
+          redirectTo,
+          reason: 'Les fondateurs, Censeurs, éducateurs, comptables, caissiers ne peuvent pas accéder à cette page',
         }
       }
 
-      // Only authenticated non-directors can access the unauthorized page
+      // Only authenticated non headmasters, directors, educators, accountants, cashiers can access the unauthorized page
       return {
         isAuthenticated: true,
         userId,
-        hasDirectorAccess: false,
+        witchAccess: null,
         shouldRedirect: false,
         redirectTo: null,
       }
@@ -194,10 +195,10 @@ export async function checkMiddlewareAuth(
       return {
         isAuthenticated: true,
         userId,
-        hasDirectorAccess: false,
+        witchAccess: null,
         shouldRedirect: true,
         redirectTo: '/sign-in',
-        reason: 'Error checking permissions for unauthorized page',
+        reason: 'Oups, erreur lors de la vérification de votre rôle',
       }
     }
   }
@@ -216,7 +217,7 @@ export async function checkMiddlewareAuth(
     try {
       const env = getEnvOrThrowServerSide()
       const cookies = request.cookies.getAll()
-      const roleInfo = await getCachedUserRolesMiddleware(
+      const response = await getCachedNotTeacherOrParentAccessMiddleware(
         userId,
         cookies,
         env.NEXT_PUBLIC_SUPABASE_URL,
@@ -226,10 +227,10 @@ export async function checkMiddlewareAuth(
       return {
         isAuthenticated: true,
         userId,
-        hasDirectorAccess: roleInfo.hasDirectorAccess,
+        witchAccess: response.role || null,
         shouldRedirect: true,
-        redirectTo: roleInfo.hasDirectorAccess ? '/t/home' : getRoleBasedRedirect(roleInfo.primaryRole),
-        reason: roleInfo.hasDirectorAccess ? 'Redirect to dashboard' : 'Non-director user',
+        redirectTo: response.role ? getRoleBasedRedirect(response.role) : '/t/home',
+        reason: response.role ? 'Redirect to dashboard' : 'Non-director user',
       }
     }
     catch (error) {
@@ -237,7 +238,7 @@ export async function checkMiddlewareAuth(
       return {
         isAuthenticated: true,
         userId,
-        hasDirectorAccess: false,
+        witchAccess: null,
         shouldRedirect: true,
         redirectTo: '/unauthorized',
         reason: 'Role check failed',
@@ -267,17 +268,18 @@ export async function checkMiddlewareAuth(
         return {
           isAuthenticated: true,
           userId,
-          hasDirectorAccess: false,
+          witchAccess: null,
           shouldRedirect: true,
           redirectTo: '/unauthorized',
-          reason: 'Director access required',
+          reason: 'Vous n\'êtes pas autorisé à accéder à cette page',
         }
       }
 
+      // If user has director access, set the appropriate role
       return {
         isAuthenticated: true,
         userId,
-        hasDirectorAccess: true,
+        witchAccess: ERole.DIRECTOR, // Set to DIRECTOR role instead of boolean
         shouldRedirect: false,
         redirectTo: null,
       }
@@ -287,10 +289,10 @@ export async function checkMiddlewareAuth(
       return {
         isAuthenticated: true,
         userId,
-        hasDirectorAccess: false,
+        witchAccess: null,
         shouldRedirect: true,
         redirectTo: '/unauthorized',
-        reason: 'Director access check failed',
+        reason: 'Oups, erreur lors de la vérification de votre rôle',
       }
     }
   }
@@ -330,20 +332,24 @@ export async function checkMiddlewareAuth(
       // Check specific role access
       let hasRequiredAccess = false
       let requiredRole = ''
+      let userRole: ERole | null = null
 
       if (isAccountantOnlyPath(pathname)) {
         hasRequiredAccess = roleInfo.hasAccountantAccess
         requiredRole = 'comptable'
+        userRole = ERole.ACCOUNTANT
         // console.log('  Checking ACCOUNTANT access:', hasRequiredAccess)
       }
       else if (isCashierOnlyPath(pathname)) {
         hasRequiredAccess = roleInfo.hasCashierAccess
         requiredRole = 'caissier'
+        userRole = ERole.CASHIER
         // console.log('  Checking CASHIER access:', hasRequiredAccess)
       }
       else if (isEducatorOnlyPath(pathname)) {
         hasRequiredAccess = roleInfo.hasEducatorAccess
         requiredRole = 'éducateur'
+        userRole = ERole.EDUCATOR
         // console.log('  Checking EDUCATOR access:', hasRequiredAccess)
       }
 
@@ -361,7 +367,7 @@ export async function checkMiddlewareAuth(
         return {
           isAuthenticated: true,
           userId,
-          hasDirectorAccess: roleInfo.hasDirectorAccess,
+          witchAccess: roleInfo.hasDirectorAccess ? ERole.DIRECTOR : roleInfo.primaryRole,
           shouldRedirect: true,
           redirectTo,
           reason: `Accès ${requiredRole} requis`,
@@ -371,7 +377,7 @@ export async function checkMiddlewareAuth(
       return {
         isAuthenticated: true,
         userId,
-        hasDirectorAccess: roleInfo.hasDirectorAccess,
+        witchAccess: roleInfo.hasDirectorAccess ? ERole.DIRECTOR : userRole,
         shouldRedirect: false,
         redirectTo: null,
       }
@@ -387,20 +393,19 @@ export async function checkMiddlewareAuth(
       return {
         isAuthenticated: true,
         userId,
-        hasDirectorAccess: false,
+        witchAccess: null,
         shouldRedirect: true,
         redirectTo: '/unauthorized',
-        reason: 'Role access check failed',
+        reason: 'Oups, erreur lors de la vérification de votre rôle',
       }
     }
   }
 
   // Default: allow access
-
   return {
     isAuthenticated: true,
     userId,
-    hasDirectorAccess: false, // We don't need to check this for non-director paths
+    witchAccess: null, // We don't need to check this for non-restricted paths
     shouldRedirect: false,
     redirectTo: null,
   }

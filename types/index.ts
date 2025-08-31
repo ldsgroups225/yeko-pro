@@ -103,7 +103,8 @@ export interface IUserProfileDTO {
   firstName: string
   lastName: string
   email: string
-  role: string
+  roleId: number
+  roleName: string
   avatarUrl?: string | null
   fullName?: string
   phoneNumber?: string

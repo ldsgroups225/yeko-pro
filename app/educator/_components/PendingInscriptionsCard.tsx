@@ -1,7 +1,8 @@
 import * as motion from 'motion/react-client'
-import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { getPendingInscriptions } from '../actions'
+import { formatTimePassed } from '@/lib/utils'
+import { getEducatorClasses, getPendingInscriptions } from '../actions'
+import { ValidateCandidatureButton } from './ValidateCandidatureButton'
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -25,7 +26,18 @@ const itemVariants = {
 }
 
 export async function PendingInscriptionsCard() {
-  const inscriptions = await getPendingInscriptions()
+  const [inscriptions, classes] = await Promise.all([
+    getPendingInscriptions(),
+    getEducatorClasses(),
+  ])
+
+  // Transform classes to match the expected format
+  const transformedClasses = classes.map(c => ({
+    id: c.id,
+    name: c.name,
+    gradeId: c.gradeId,
+    remainingSeats: c.remainingSeats,
+  }))
 
   return (
     <motion.div
@@ -69,25 +81,27 @@ export async function PendingInscriptionsCard() {
                     {inscription.name}
                   </p>
                   <p className="text-xs text-muted-foreground">
-                    Classe:
-                    {' '}
-                    {inscription.grade}
-                    {' '}
-                    •
-                    {' '}
-                    {inscription.time}
+                    {inscription.affectedToClass && (
+                      <>
+                        Classe:
+                        {' '}
+                        {inscription.affectedToClass}
+                        {' '}
+                        {formatTimePassed(new Date(inscription.time))}
+                      </>
+                    )}
                   </p>
                 </div>
                 <motion.div
                   whileHover={{ scale: 1.05 }}
                   transition={{ duration: 0.2 }}
                 >
-                  <Badge
-                    variant={inscription.status === 'En attente' ? 'secondary' : 'destructive'}
-                    className="font-medium"
-                  >
-                    {inscription.status}
-                  </Badge>
+                  <ValidateCandidatureButton
+                    gradeId={inscription.grade ?? null}
+                    affectedToClass={inscription.affectedToClass}
+                    classes={transformedClasses}
+                    student={inscription}
+                  />
                 </motion.div>
               </motion.div>
             ))}

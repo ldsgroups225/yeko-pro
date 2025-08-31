@@ -61,15 +61,10 @@ async function checkAuthUserId(client: SupabaseClient): Promise<string> {
 
 async function getDirectorSchoolId(client: SupabaseClient, userId: string): Promise<string> {
   const { data, error } = await client
-    .from('users')
-    .select(`
-      school_id,
-      user_roles!inner(
-        role_id
-      )
-    `)
-    .eq('id', userId)
-    .eq('user_roles.role_id', ERole.DIRECTOR)
+    .from('user_roles')
+    .select('school_id')
+    .eq('user_id', userId)
+    .eq('role_id', ERole.DIRECTOR)
     .single()
   if (error) {
     throw new Error(`Director authorization failed: ${error.message}`)

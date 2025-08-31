@@ -4,6 +4,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import {
   ConductsManagement,
   DashboardStats,
+  InscriptionsManagement,
   PendingInscriptionsCard,
   RecentConductsCard,
 } from './_components'
@@ -98,8 +99,7 @@ export default async function EducatorPage({ searchParams }: PageProps) {
             </TabsContent>
 
             <TabsContent value="inscriptions" className="space-y-6 animate-in slide-in-from-right duration-300">
-              {/* <InscriptionsManagement /> */}
-              <div>Inscriptions</div>
+              <InscriptionsManagement />
             </TabsContent>
           </Tabs>
         </CardContent>

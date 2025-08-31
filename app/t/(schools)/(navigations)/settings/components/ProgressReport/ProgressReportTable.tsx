@@ -1,5 +1,3 @@
-'use client'
-
 import type { IGrade, ILessonProgressReportConfig, ISubject } from '@/types'
 import { useEffect, useState } from 'react'
 import { Pagination } from '@/components/Pagination'

@@ -34,7 +34,7 @@ export async function updateSession(request: NextRequest) {
   // issues with users being randomly logged out.
 
   if (
-    request.nextUrl.pathname === '/health' || request.nextUrl.pathname === '/api/health'
+    request.nextUrl.pathname === '/health' || request.nextUrl.pathname === '/api/health' || request.nextUrl.pathname === '/inscriptions'
   ) {
     // continue
     return supabaseResponse

@@ -4,6 +4,7 @@ import { Mail, Smartphone } from 'lucide-react'
 import React from 'react'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { useUser } from '@/hooks'
+import { ERole } from '@/types'
 import FormField from '../components/FormField'
 import SettingsSection from '../components/SettingsSection'
 
@@ -33,14 +34,17 @@ function ProfileSettingsTab() {
 
           <div className="space-y-2">
             <label className="block text-sm font-medium text-gray-700">Rôle</label>
-            <Select defaultValue={user?.role}>
+            <Select defaultValue={user?.roleId.toString()} disabled onValueChange={() => {}}>
               <SelectTrigger>
                 <SelectValue placeholder="Sélectionner un rôle" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="director">Directeur</SelectItem>
-                <SelectItem value="admin">Administrateur</SelectItem>
-                <SelectItem value="teacher">Professeur</SelectItem>
+                <SelectItem value={ERole.DIRECTOR.toString()}>Directeur</SelectItem>
+                <SelectItem value={ERole.EDUCATOR.toString()}>Éducateur</SelectItem>
+                <SelectItem value={ERole.TEACHER.toString()}>Enseignant</SelectItem>
+                <SelectItem value={ERole.ACCOUNTANT.toString()}>Comptable</SelectItem>
+                <SelectItem value={ERole.CASHIER.toString()}>Caissier</SelectItem>
+                <SelectItem value={ERole.HEADMASTER.toString()}>Proviseur</SelectItem>
               </SelectContent>
             </Select>
           </div>

@@ -120,18 +120,18 @@ function AuthCallbackContent() {
             const { getPostAuthRedirect } = await import('@/services/authorizationService')
             const authResult = await getPostAuthRedirect(user.id)
 
-            if (authResult.isAuthorized) {
+            if (authResult?.isAuthorized) {
               // Small delay to show toast
               redirectTimeout = setTimeout(() => {
-                router.replace(authResult.redirectTo)
+                router.replace(authResult?.redirectTo || '/unauthorized')
               }, 1000)
             }
             else {
               // Show the specific message from the authorization service
-              toast.error(authResult.message || 'Accès non autorisé')
+              toast.error(authResult?.message || 'Accès non autorisé')
               // Still redirect to show the full unauthorized page
               unauthorizedTimeout = setTimeout(() => {
-                router.replace(authResult.redirectTo)
+                router.replace(authResult?.redirectTo || '/unauthorized')
               }, 1000)
             }
           }

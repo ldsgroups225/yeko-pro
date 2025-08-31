@@ -13,7 +13,7 @@ export async function fetchUserRolesFromDB(userId: string) {
 
   const { data: userRoles, error } = await supabase
     .from('user_roles')
-    .select('role_id')
+    .select('role_id, school_id, grade_id')
     .eq('user_id', userId)
 
   if (error || !userRoles?.length) {
@@ -21,7 +21,14 @@ export async function fetchUserRolesFromDB(userId: string) {
   }
 
   const roles = userRoles.map(ur => ur.role_id as ERole)
-  return createUserRoleInfo(userId, roles)
+
+  // Get school_id and grade_id from the first role entry (assuming they're consistent)
+  // In practice, you might want to handle multiple schools/grades per user differently
+  const firstRole = userRoles[0]
+  const schoolId = firstRole.school_id!
+  const gradeId = firstRole.grade_id
+
+  return createUserRoleInfo(userId, roles, schoolId, gradeId)
 }
 
 /**
@@ -53,7 +60,7 @@ export async function fetchUserRolesFromDBMiddleware(
 
   const { data: userRoles, error } = await supabase
     .from('user_roles')
-    .select('role_id')
+    .select('role_id, school_id, grade_id')
     .eq('user_id', userId)
 
   if (error || !userRoles?.length) {
@@ -61,5 +68,11 @@ export async function fetchUserRolesFromDBMiddleware(
   }
 
   const roles = userRoles.map(ur => ur.role_id as ERole)
-  return createUserRoleInfo(userId, roles)
+
+  // Get school_id and grade_id from the first role entry
+  const firstRole = userRoles[0]
+  const schoolId = firstRole.school_id
+  const gradeId = firstRole.grade_id
+
+  return createUserRoleInfo(userId, roles, schoolId, gradeId)
 }

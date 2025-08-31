@@ -23,9 +23,10 @@ async function checkAuthUserId(client: SupabaseClient): Promise<string> {
  */
 async function getUserSchoolId(client: SupabaseClient, userId: string): Promise<string> {
   const { data: userSchool, error: userSchoolError } = await client
-    .from('users')
-    .select('school_id, user_roles(role_id)')
-    .eq('id', userId)
+    .from('user_roles')
+    .select('school_id')
+    .eq('user_id', userId)
+    .eq('role_id', ERole.DIRECTOR)
     .single()
 
   if (userSchoolError) {

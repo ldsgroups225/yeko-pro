@@ -41,18 +41,13 @@ async function checkAuthUserId(client: SupabaseClient): Promise<string> {
  *  - Will throw an error if the user is not associated with any school.
  */
 async function getDirectorSchoolId(client: SupabaseClient, userId: string): Promise<string> {
-  const { data: userSchool, error: userSchoolError } = await client
-    .from('users')
-    .select('school_id, user_roles(role_id)')
-    .eq('id', userId)
-    .eq('user_roles.role_id', ERole.DIRECTOR)
+  const { data: userSchool, error } = await client
+    .from('user_roles')
+    .select('school_id')
+    .eq('user_id', userId)
+    .eq('role_id', ERole.DIRECTOR)
     .single()
-  if (userSchoolError) {
-    console.error('Error fetching user school:', userSchoolError)
-    throw new Error('Seul un directeur peut accéder à cette page')
-  }
-
-  if (!userSchool.school_id) {
+  if (error || !userSchool?.school_id) {
     throw new Error('Utilisateur non associé à un établissement scolaire')
   }
   return userSchool.school_id

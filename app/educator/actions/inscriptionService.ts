@@ -16,8 +16,10 @@ import type {
 } from '../types/inscription'
 import type { SupabaseClient } from '@/lib/supabase/server'
 import { nanoid } from 'nanoid'
+import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { formatFullName, parseMedicalCondition } from '@/lib/utils'
+import { ERole } from '@/types'
 import { studentSearchSchema } from '../schemas/inscription'
 
 async function checkAuthUserId(client: SupabaseClient): Promise<string> {
@@ -30,9 +32,10 @@ async function checkAuthUserId(client: SupabaseClient): Promise<string> {
 
 async function getUserSchoolId(client: SupabaseClient, userId: string): Promise<string> {
   const { data: userData, error: userError } = await client
-    .from('users')
+    .from('user_roles')
     .select('school_id')
-    .eq('id', userId)
+    .eq('user_id', userId)
+    .eq('role_id', ERole.EDUCATOR)
     .single()
 
   if (userError || !userData?.school_id) {
@@ -155,33 +158,33 @@ export async function getEducatorInscriptions(params: IInscriptionQueryParams = 
     }
 
     // Transform data
-    const inscriptions: IInscriptionRecord[] = (data || []).map((record: any) => ({
+    const inscriptions: IInscriptionRecord[] = (data || []).map(record => ({
       id: record.id,
       studentId: record.student_id,
       studentFirstName: record.students?.first_name || '',
       studentLastName: record.students?.last_name || '',
       studentIdNumber: record.students?.id_number || '',
-      studentAvatarUrl: record.students?.avatar_url,
+      studentAvatarUrl: record.students?.avatar_url || '',
       parentId: record.students?.parent_id || '',
-      parentFirstName: record.students?.users?.first_name,
-      parentLastName: record.students?.users?.last_name,
-      parentPhone: record.students?.users?.phone,
-      classId: record.class_id,
-      className: record.classes?.name,
+      parentFirstName: record.students?.users?.first_name || '',
+      parentLastName: record.students?.users?.last_name || '',
+      parentPhone: record.students?.users?.phone || '',
+      classId: record.class_id || '',
+      className: record.classes?.name || '',
       gradeName: record.classes?.grades?.name || '',
-      gradeId: record.grade_id,
-      schoolId: record.school_id,
-      schoolYearId: record.school_year_id,
-      enrollmentStatus: record.enrollment_status,
-      isActive: record.is_active,
+      gradeId: record.grade_id || 0,
+      schoolId: record.school_id || '',
+      schoolYearId: record.school_year_id || 0,
+      enrollmentStatus: record.enrollment_status || '',
+      isActive: record.is_active || false,
       isGovernmentAffected: record.is_government_affected,
       isOrphan: record.is_orphan,
-      isRedoublement: record.is_redoublement,
-      isSubscribedToCanteen: record.is_subscribed_to_canteen,
-      isSubscribedToTransportation: record.is_subscribed_to_transportation,
-      createdAt: record.created_at,
-      updatedAt: record.updated_at,
-      updatedBy: record.updated_by,
+      isRedoublement: record.is_redoublement || false,
+      isSubscribedToCanteen: record.is_subscribed_to_canteen || false,
+      isSubscribedToTransportation: record.is_subscribed_to_transportation || false,
+      createdAt: record.created_at || new Date().toISOString(),
+      updatedAt: record.updated_at || new Date().toISOString(),
+      updatedBy: record.updated_by || '',
     }))
 
     const totalCount = count || 0
@@ -300,8 +303,9 @@ export async function getEducatorClasses(): Promise<IClass[]> {
     const client = await createClient()
     const userId = await checkAuthUserId(client)
     const schoolId = await getUserSchoolId(client, userId)
+    const schoolYear = await getCurrentSchoolYear(client)
 
-    const { data, error } = await client
+    const classesQs = client
       .from('classes')
       .select(`
         id,
@@ -317,17 +321,38 @@ export async function getEducatorClasses(): Promise<IClass[]> {
       .eq('is_active', true)
       .order('name')
 
-    if (error) {
-      console.error('Error fetching classes:', error)
+    const seatUsedQs = client
+      .from('student_school_class')
+      .select('class_id', { count: 'exact', head: true })
+      .eq('school_id', schoolId)
+      .eq('school_year_id', schoolYear)
+      .eq('enrollment_status', 'accepted')
+      .is('is_active', true)
+
+    const [
+      { data: classes, error: classesError },
+      { count: seatUsed, error: seatUsedError },
+    ] = await Promise.all([
+      classesQs,
+      seatUsedQs,
+    ])
+
+    if (classesError || seatUsedError) {
+      console.error('Error fetching classes:', classesError?.message || seatUsedError?.message)
       throw new Error('Erreur lors de la récupération des classes')
     }
 
-    return (data || []).map((classItem: any) => ({
+    if (!classes) {
+      return []
+    }
+
+    return classes.filter(c => c.max_student > (seatUsed ?? 0)).map(classItem => ({
       id: classItem.id,
       name: classItem.name,
       gradeId: classItem.grade_id,
       gradeName: classItem.grades?.name || '',
       maxStudent: classItem.max_student,
+      remainingSeats: classItem.max_student - (seatUsed ?? 0),
     }))
   }
   catch (error) {
@@ -363,47 +388,52 @@ export async function updateInscriptionStatus(inscriptionId: string, status: str
 export async function getPendingInscriptions(): Promise<IPendingInscription[]> {
   const supabase = await createClient()
 
-  // get teacher candidatures
-  const teachersQs = supabase
-    .from('schools_teachers')
-    .select('status, created_at, teacher:users(id, first_name, last_name, email)')
-    .eq('status', 'pending')
-    .order('created_at', { ascending: true })
+  // // get teacher candidatures
+  // const teachersQs = supabase
+  //   .from('schools_teachers')
+  //   .select('status, created_at, teacher:users(id, first_name, last_name, email)')
+  //   .eq('status', 'pending')
+  //   .order('created_at', { ascending: true })
 
   // get student candidatures
   const studentsQs = supabase
     .from('student_school_class')
-    .select('grade_id, enrollment_status, created_at, student:students(id, first_name, last_name)')
+    .select('grade_id, class_id, enrollment_status, created_at, classroom:classes(id, name), student:students(id, first_name, last_name)')
     .eq('enrollment_status', 'pending')
     .order('created_at', { ascending: true })
 
   // promise all
   const [
-    { data: teachers, error: teachersError },
+    // { data: teachers, error: teachersError },
     { data: students, error: studentsError },
   ] = await Promise.all([
-    teachersQs,
+    // teachersQs,
     studentsQs,
   ])
 
-  if (teachersError || studentsError) {
-    console.error('Error fetching candidatures:', teachersError?.message || studentsError?.message)
+  // if (teachersError || studentsError) {
+  //   console.error('Error fetching candidatures:', teachersError?.message || studentsError?.message)
+  //   return []
+  // }
+
+  if (studentsError) {
+    // console.error('Error fetching candidatures:', studentsError?.message)
     return []
   }
 
-  const deserializeTeachers: IPendingInscription[] = teachers.map(
-    teacher => ({
-      candidateId: teacher.teacher.id,
-      time: teacher.created_at!,
-      name: formatFullName(
-        teacher.teacher.first_name!,
-        teacher.teacher.last_name!,
-        teacher.teacher.email,
-      ),
-      type: 'teacher',
-      status: teacher.status,
-    }),
-  )
+  // const deserializeTeachers: IPendingInscription[] = teachers.map(
+  //   teacher => ({
+  //     candidateId: teacher.teacher.id,
+  //     time: teacher.created_at!,
+  //     name: formatFullName(
+  //       teacher.teacher.first_name!,
+  //       teacher.teacher.last_name!,
+  //       teacher.teacher.email,
+  //     ),
+  //     type: 'teacher',
+  //     status: teacher.status,
+  //   }),
+  // )
 
   const deserializeStudents: IPendingInscription[] = students.map(
     student => ({
@@ -414,12 +444,16 @@ export async function getPendingInscriptions(): Promise<IPendingInscription[]> {
         student.student.last_name!,
       ),
       type: 'student',
-      status: student.enrollment_status,
+      status: student.enrollment_status as 'pending' | 'refused' | 'accepted',
       grade: student.grade_id,
+      affectedToClass: student.classroom?.name || null,
     }),
   )
 
-  const mergedData = [...deserializeTeachers, ...deserializeStudents]
+  const mergedData = [
+    // ...deserializeTeachers,
+    ...deserializeStudents,
+  ]
 
   // return sorted mergedData
   return mergedData.sort((a, b) => {
@@ -429,6 +463,52 @@ export async function getPendingInscriptions(): Promise<IPendingInscription[]> {
       return 1
     return 0
   })
+}
+
+export async function handleCandidature(
+  candidateId: string,
+  candidateType: 'student',
+  action: 'accept' | 'reject',
+  classId?: string,
+): Promise<void> {
+  const supabase = await createClient()
+
+  if (candidateType === 'student') {
+    if (action === 'accept' && !classId) {
+      throw new Error('Il faut sélectionner une classe pour accepter une candidature')
+    }
+
+    const { error } = await supabase
+      .from('student_school_class')
+      .update({
+        enrollment_status: action === 'accept' ? 'accepted' : 'refused',
+        is_active: action === 'accept',
+        class_id: action === 'accept' ? classId : null,
+      })
+      .eq('student_id', candidateId)
+      .throwOnError()
+
+    if (error) {
+      console.error('Error handling student candidature:', error)
+      throw new Error('Échec de la gestion de la candidature')
+    }
+
+    revalidatePath('/educator')
+  }
+  else {
+    const { error } = await supabase
+      .from('schools_teachers')
+      .update({ status: action === 'accept' ? 'accepted' : 'rejected' })
+      .eq('teacher_id', candidateId)
+      .throwOnError()
+
+    if (error) {
+      console.error('Error handling teacher candidature:', error)
+      throw new Error('Échec de la gestion de la candidature')
+    }
+
+    revalidatePath('/educator')
+  }
 }
 
 /**
@@ -494,10 +574,10 @@ export async function searchExistingStudent(data: StudentSearchFormData): Promis
     const extraParent = studentData.extra_parent
       ? {
           id: nanoid(),
-          fullName: (studentData.extra_parent as any).full_name,
-          gender: (studentData.extra_parent as any).gender,
-          phone: (studentData.extra_parent as any).phone,
-          type: (studentData.extra_parent as any).type,
+          fullName: (studentData.extra_parent as { full_name: string }).full_name,
+          gender: (studentData.extra_parent as { gender: 'M' | 'F' }).gender,
+          phone: (studentData.extra_parent as { phone: string }).phone,
+          type: (studentData.extra_parent as { type: 'father' | 'mother' | 'guardian' }).type,
         }
       : null
 

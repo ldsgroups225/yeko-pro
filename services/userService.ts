@@ -40,16 +40,7 @@ export async function fetchUserProfile(): Promise<IUserProfileDTO> {
     // Get user basic profile and ALL roles (removed DIRECTOR restriction)
     const { data: profile, error: profileError } = await supabase
       .from('users')
-      .select(`
-        id,
-        email,
-        first_name,
-        last_name,
-        phone,
-        school_id,
-        avatar_url,
-        user_roles(role_id)
-      `)
+      .select('id, email, first_name, last_name, phone, avatar_url')
       .eq('id', userId)
       .single()
 
@@ -73,7 +64,8 @@ export async function fetchUserProfile(): Promise<IUserProfileDTO> {
       lastName: profile.last_name ?? '',
       fullName: `${profile.first_name ?? ''} ${profile.last_name ?? ''}`.trim(),
       phoneNumber: profile.phone ?? '',
-      role: roleString,
+      roleId: primaryRole,
+      roleName: roleString,
       avatarUrl: profile.avatar_url || null,
       school: {
         id: '',
@@ -103,16 +95,17 @@ export async function fetchUserProfile(): Promise<IUserProfileDTO> {
 
     const hasAccess = hasDirectorAccess || hasCashierAccess || hasAccountantAccess || hasEducatorAccess || hasHeadmasterAccess
 
-    if (hasAccess && profile.school_id) {
+    // Use school_id from roleInfo instead of profile
+    if (hasAccess && roleInfo.schoolId) {
       try {
         const [schoolResult, studentCountResult] = await Promise.all([
           supabase.from('schools')
             .select('*, classes(count)')
-            .eq('id', profile.school_id)
+            .eq('id', roleInfo.schoolId)
             .single(),
           supabase.from('student_school_class')
             .select('*', { count: 'estimated' })
-            .eq('school_id', profile.school_id)
+            .eq('school_id', roleInfo.schoolId)
             .eq('enrollment_status', 'accepted')
             .is('is_active', true),
         ])

@@ -6,7 +6,6 @@ import type { ILessonProgressReport, ILessonProgressReportConfig } from '@/types
 import { createClient } from '@/lib/supabase/server'
 import { extractCompositeKey } from '@/lib/utils'
 import { ERole } from '@/types'
-import { getUserId } from './userService'
 
 export type LessonProgressReportConfig = Database['public']['Tables']['lessons_progress_reports_config']['Row']
 export type LessonProgressReportConfigInsert = Database['public']['Tables']['lessons_progress_reports_config']['Insert']
@@ -24,25 +23,22 @@ export type LessonProgressReportUpdate = Database['public']['Tables']['lessons_p
 
 // --- Helper Functions ---
 async function checkAuthAndGetSchoolId(client: SupabaseClient): Promise<string> {
-  const userId = await getUserId()
-  if (!userId) {
-    throw new Error('Non autorisé : Utilisateur non authentifié. Veuillez vous connecter.')
+  const { data: user, error: userError } = await client.auth.getUser()
+  if (userError || !user.user) {
+    throw new Error('Unauthorized')
   }
 
-  const { data: userSchool, error } = await client
-    .from('users')
-    .select('school_id, user_roles!inner(role_id)')
-    .eq('id', userId)
-    .eq('user_roles.role_id', ERole.DIRECTOR)
+  const { data: userSchool, error: schoolError } = await client
+    .from('user_roles')
+    .select('school_id')
+    .eq('user_id', user.user.id)
+    .eq('role_id', ERole.DIRECTOR)
     .single()
 
-  if (error) {
-    console.error('Erreur d\'autorisation:', error)
-    throw new Error(`Erreur d'autorisation : ${error.message}. Veuillez vérifier vos droits d'accès.`)
+  if (schoolError || !userSchool?.school_id) {
+    throw new Error('User not associated with a school')
   }
-  if (!userSchool?.school_id) {
-    throw new Error('Vous n\'êtes pas associé à un établissement scolaire valide. Veuillez contacter l\'administrateur de la plateforme.')
-  }
+
   return userSchool.school_id
 }
 

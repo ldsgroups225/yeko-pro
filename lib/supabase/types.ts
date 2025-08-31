@@ -2488,6 +2488,7 @@ export interface Database {
           medical_condition: Json | null
           nationality: string
           parent_id: string
+          parent_phone: string | null
           search_document: unknown | null
           updated_at: string | null
           updated_by: string | null
@@ -2508,6 +2509,7 @@ export interface Database {
           medical_condition?: Json | null
           nationality?: string
           parent_id: string
+          parent_phone?: string | null
           search_document?: unknown | null
           updated_at?: string | null
           updated_by?: string | null
@@ -2528,6 +2530,7 @@ export interface Database {
           medical_condition?: Json | null
           nationality?: string
           parent_id?: string
+          parent_phone?: string | null
           search_document?: unknown | null
           updated_at?: string | null
           updated_by?: string | null
@@ -2796,23 +2799,43 @@ export interface Database {
       }
       user_roles: {
         Row: {
+          grade_id: number | null
           role_id: number
+          school_id: string | null
           user_id: string
         }
         Insert: {
+          grade_id?: number | null
           role_id: number
+          school_id?: string | null
           user_id: string
         }
         Update: {
+          grade_id?: number | null
           role_id?: number
+          school_id?: string | null
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: 'user_roles_grade_id_fkey'
+            columns: ['grade_id']
+            isOneToOne: false
+            referencedRelation: 'grades'
+            referencedColumns: ['id']
+          },
           {
             foreignKeyName: 'user_roles_role_id_fkey'
             columns: ['role_id']
             isOneToOne: false
             referencedRelation: 'roles'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'user_roles_school_id_fkey'
+            columns: ['school_id']
+            isOneToOne: false
+            referencedRelation: 'schools'
             referencedColumns: ['id']
           },
           {
@@ -2835,7 +2858,6 @@ export interface Database {
           last_name: string | null
           phone: string | null
           push_token: string | null
-          school_id: string | null
           state_id: number | null
           updated_at: string | null
           updated_by: string | null
@@ -2850,7 +2872,6 @@ export interface Database {
           last_name?: string | null
           phone?: string | null
           push_token?: string | null
-          school_id?: string | null
           state_id?: number | null
           updated_at?: string | null
           updated_by?: string | null
@@ -2865,19 +2886,11 @@ export interface Database {
           last_name?: string | null
           phone?: string | null
           push_token?: string | null
-          school_id?: string | null
           state_id?: number | null
           updated_at?: string | null
           updated_by?: string | null
         }
         Relationships: [
-          {
-            foreignKeyName: 'users_school_id_foreign'
-            columns: ['school_id']
-            isOneToOne: false
-            referencedRelation: 'schools'
-            referencedColumns: ['id']
-          },
           {
             foreignKeyName: 'users_state_id_foreign'
             columns: ['state_id']

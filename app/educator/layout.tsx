@@ -15,14 +15,14 @@ export default function EducatorLayout({ children }: Props) {
 
         <main className="container mx-auto px-6 py-8">
           <div className="space-y-8">
-            <div className="text-center space-y-2">
+            {/* <div className="text-center space-y-2">
               <h2 className="text-3xl font-bold text-primary">
                 Tableau de Bord
               </h2>
               <p className="text-muted-foreground">
                 Bienvenue dans votre espace éducateur
               </p>
-            </div>
+            </div> */}
 
             {children}
           </div>

@@ -1,8 +1,10 @@
 'use server'
 
-import type { IConductQueryParams, IConductStats, IConductStudent } from '../types'
+import type { IConductIncident, IConductQueryParams, IConductStats, IConductStudent } from '../types'
+import type { SupabaseClient } from '@/lib/supabase/server'
 import { cache } from 'react'
 import { createClient } from '@/lib/supabase/server'
+import { ERole } from '@/types'
 
 export interface ConductRecord {
   id: number
@@ -14,7 +16,7 @@ export interface ConductRecord {
 }
 
 // Helper functions for authentication
-async function checkAuthUserId(client: any): Promise<string> {
+async function checkAuthUserId(client: SupabaseClient): Promise<string> {
   const { data: user, error: userError } = await client.auth.getUser()
   if (userError) {
     console.error('Error fetching user:', userError)
@@ -23,11 +25,12 @@ async function checkAuthUserId(client: any): Promise<string> {
   return user.user.id
 }
 
-async function getUserSchoolId(client: any, userId: string): Promise<string> {
+async function getUserSchoolId(client: SupabaseClient, userId: string): Promise<string> {
   const { data: userSchool, error: userSchoolError } = await client
-    .from('users')
-    .select('school_id, user_roles(role_id)')
-    .eq('id', userId)
+    .from('user_roles')
+    .select('school_id')
+    .eq('user_id', userId)
+    .eq('role_id', ERole.EDUCATOR)
     .single()
 
   if (userSchoolError) {
@@ -35,7 +38,7 @@ async function getUserSchoolId(client: any, userId: string): Promise<string> {
     throw new Error('Utilisateur non associé à un établissement scolaire')
   }
 
-  if (!userSchool.school_id) {
+  if (!userSchool?.school_id) {
     throw new Error('Utilisateur non associé à un établissement scolaire')
   }
 
@@ -174,7 +177,7 @@ export const getEducatorConductStudents = cache(async (params: IConductQueryPara
       updatedAt: incident.reported_at,
     })
     return acc
-  }, {} as Record<string, any[]>)
+  }, {} as Record<string, IConductIncident[]>)
 
   // Transform the view data to match our interface
   const students: IConductStudent[] = (studentsData || []).map(student => ({

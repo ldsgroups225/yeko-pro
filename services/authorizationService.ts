@@ -82,11 +82,29 @@ export async function getPostAuthRedirect(userId: string): Promise<Authorization
   const roleInfo = await getUserRoles(userId)
 
   // Priority-based routing based on primary role
+  if ((roleInfo.hasHeadmasterAccess)) {
+    return {
+      isAuthorized: true,
+      userRole: ERole.DIRECTOR, // TODO: change to HEADMASTER
+      redirectTo: ROLE_DASHBOARDS[ERole.DIRECTOR],
+    }
+  }
+
+  // Director dashboard - now enabled
   if (roleInfo.hasDirectorAccess) {
     return {
       isAuthorized: true,
       userRole: ERole.DIRECTOR,
       redirectTo: ROLE_DASHBOARDS[ERole.DIRECTOR],
+    }
+  }
+
+  // Educator dashboard - now enabled
+  if (roleInfo.hasEducatorAccess) {
+    return {
+      isAuthorized: true,
+      userRole: ERole.EDUCATOR,
+      redirectTo: ROLE_DASHBOARDS[ERole.EDUCATOR],
     }
   }
 
@@ -108,44 +126,35 @@ export async function getPostAuthRedirect(userId: string): Promise<Authorization
     }
   }
 
-  // Educator dashboard - now enabled
-  if (roleInfo.hasEducatorAccess) {
-    return {
-      isAuthorized: true,
-      userRole: ERole.EDUCATOR,
-      redirectTo: ROLE_DASHBOARDS[ERole.EDUCATOR],
-    }
-  }
-
-  // Teacher dashboard - still in development
+  // Teacher dashboard - now disabled
   if (roleInfo.hasTeacherAccess) {
     return {
       isAuthorized: false,
       userRole: ERole.TEACHER,
       redirectTo: ROLE_DASHBOARDS[ERole.TEACHER],
-      message: 'Interface enseignant en cours de développement.',
+      message: 'Les enseignants utilisent l\'application sur leur téléphone.',
     }
   }
 
-  // Parent dashboard - still in development
+  // Parent dashboard - now disabled
   if (roleInfo.hasParentAccess) {
     return {
       isAuthorized: false,
       userRole: ERole.PARENT,
       redirectTo: ROLE_DASHBOARDS[ERole.PARENT],
-      message: 'Interface parent en cours de développement.',
+      message: 'Les parents utilisent l\'application sur leur téléphone.',
     }
   }
 
-  // Headmaster dashboard - still in development
-  if (roleInfo.hasHeadmasterAccess) {
-    return {
-      isAuthorized: false,
-      userRole: ERole.HEADMASTER,
-      redirectTo: ROLE_DASHBOARDS[ERole.HEADMASTER],
-      message: 'Interface proviseur en cours de développement.',
-    }
-  }
+  // // Headmaster dashboard - still in development
+  // if (roleInfo.hasHeadmasterAccess) {
+  //   return {
+  //     isAuthorized: false,
+  //     userRole: ERole.HEADMASTER,
+  //     redirectTo: ROLE_DASHBOARDS[ERole.HEADMASTER],
+  //     message: 'Interface proviseur en cours de développement.',
+  //   }
+  // }
 
   // No valid roles
   return {

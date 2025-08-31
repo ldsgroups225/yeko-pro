@@ -23,7 +23,12 @@ export function determinePrimaryRole(roles: ERole[]): ERole | null {
 /**
  * Creates a UserRoleInfo object from roles array
  */
-export function createUserRoleInfo(userId: string, roles: ERole[]): UserRoleInfo {
+export function createUserRoleInfo(
+  userId: string,
+  roles: ERole[],
+  schoolId: string,
+  gradeId: number | null = null,
+): UserRoleInfo {
   const primaryRole = determinePrimaryRole(roles)
 
   return {
@@ -37,6 +42,8 @@ export function createUserRoleInfo(userId: string, roles: ERole[]): UserRoleInfo
     hasAccountantAccess: roles.includes(ERole.ACCOUNTANT),
     hasCashierAccess: roles.includes(ERole.CASHIER),
     hasHeadmasterAccess: roles.includes(ERole.HEADMASTER),
+    schoolId,
+    gradeId,
     cachedAt: Date.now(),
   }
 }
@@ -65,6 +72,8 @@ export function createDefaultUserRoleInfo(userId: string): UserRoleInfo {
     hasAccountantAccess: false,
     hasCashierAccess: false,
     hasHeadmasterAccess: false,
+    schoolId: '',
+    gradeId: null,
     cachedAt: Date.now(),
   }
 }

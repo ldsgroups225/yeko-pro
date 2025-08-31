@@ -55,18 +55,18 @@ export function LoginForm() {
           try {
             const authResult = await getPostAuthRedirect(result.userId)
 
-            if (authResult.isAuthorized) {
+            if (authResult?.isAuthorized) {
               router.replace(authResult.redirectTo)
             }
             else {
               // Show the specific message from the authorization service
-              setError(authResult.message || 'Accès non autorisé')
+              setError(authResult?.message || 'Accès non autorisé')
               // Still redirect to show the full unauthorized page
               setTimeout(() => router.replace(authResult.redirectTo), 2000)
             }
           }
-          catch (roleError) {
-            console.error('Error checking authorization after login:', roleError)
+          catch {
+            // console.error('Error checking authorization after login:', roleError)
             // Fallback to /unauthorized for safety
             router.replace('/unauthorized')
           }

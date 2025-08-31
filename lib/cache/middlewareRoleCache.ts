@@ -1,6 +1,7 @@
 import type { RequestCookie } from 'next/dist/compiled/@edge-runtime/cookies'
 import type { UserRoleInfo } from '@/lib/types/auth'
 import { fetchUserRolesFromDBMiddleware } from '@/lib/services/roleService'
+import { ERole } from '@/types'
 
 // Simple in-memory cache for middleware
 // Note: This cache is per-worker and will be cleared on deployment
@@ -49,6 +50,27 @@ export async function getCachedUserRolesMiddleware(
   }
 
   return roleData
+}
+
+/**
+ * Lightweight check for no teacher or parent access (middleware-compatible)
+ */
+export async function getCachedNotTeacherOrParentAccessMiddleware(
+  userId: string,
+  cookies: RequestCookie[],
+  supabaseUrl: string,
+  supabaseAnonKey: string,
+): Promise<{ hasAccess: boolean, role: ERole | null }> {
+  const roleInfo = await getCachedUserRolesMiddleware(
+    userId,
+    cookies,
+    supabaseUrl,
+    supabaseAnonKey,
+  )
+
+  const hasAccess = roleInfo.hasHeadmasterAccess || roleInfo.hasDirectorAccess || roleInfo.hasEducatorAccess || roleInfo.hasAccountantAccess || roleInfo.hasCashierAccess
+  const role = roleInfo.hasHeadmasterAccess ? ERole.HEADMASTER : roleInfo.hasDirectorAccess ? ERole.DIRECTOR : roleInfo.hasEducatorAccess ? ERole.EDUCATOR : roleInfo.hasAccountantAccess ? ERole.ACCOUNTANT : roleInfo.hasCashierAccess ? ERole.CASHIER : null
+  return { hasAccess, role }
 }
 
 /**
