@@ -88,6 +88,46 @@ async function fetchStudentById(client: SupabaseClient, id: string): Promise<ISt
 }
 
 /**
+ * Links a parent to students based on phone number matching.
+ * Updates students with matching parent_phone to set parent_id.
+ * @param {string} studentId - The student ID
+ * @param {string} phone - The parent's phone number
+ * @returns {Promise<number>} - Number of students linked
+ */
+async function linkParentToStudentsByPhone(client: SupabaseClient, studentId: string, phone: string): Promise<void> {
+  try {
+    // Find parent with matching phone
+    const { data: parent, error: fetchError } = await client
+      .from('users')
+      .select('id')
+      .ilike('phone', phone)
+      .single()
+
+    if (fetchError) {
+      console.error('Error fetching parent by phone:', fetchError)
+      return
+    }
+
+    if (!parent) {
+      return
+    }
+
+    // Update matching students with parent_id
+    const { error: updateError } = await client
+      .from('students')
+      .update({ parent_id: parent.id })
+      .eq('id', studentId)
+
+    if (updateError) {
+      console.error('Error updating students parent_id:', updateError)
+    }
+  }
+  catch (error) {
+    console.error('Error linking parent to students:', error)
+  }
+}
+
+/**
  * Function to search for a student and a school based on a form
  * @param prevState - The previous state of the search
  * @param formData - The form data
@@ -222,12 +262,12 @@ export async function fetchTuitionFees(gradeId: number) {
  * @param formData.idNumber - Student's ID number (optional)
  * @param formData.medicalCondition - Student's medical condition (optional)
  * @param formData.avatarUrl - URL of student's avatar image (optional)
+ * @param formData.parentPhone - Parent's phone number
  * @param formData.secondParent - The second parent of the student (optional)
  * @param formData.secondParent.fullName - The full name of the second parent
  * @param formData.secondParent.gender - The gender of the second parent ('M' or 'F')
  * @param formData.secondParent.phone - The phone number of the second parent
  * @param formData.secondParent.type - The type of the second parent ('father', 'mother', or 'guardian')
- * @param parentId - The ID of the parent
  * @returns The newly created student
  */
 export async function createStudent(
@@ -239,6 +279,7 @@ export async function createStudent(
     address?: string
     idNumber?: string
     avatarUrl?: string
+    parentPhone: string
     medicalCondition: { description: string, severity: 'low' | 'medium' | 'high' }[]
     secondParent?: {
       fullName: string
@@ -247,7 +288,6 @@ export async function createStudent(
       type: 'father' | 'mother' | 'guardian'
     }
   },
-  parentId: string,
 ): Promise<IStudent> {
   try {
     const client = await createClient()
@@ -271,13 +311,14 @@ export async function createStudent(
         gender: formData.gender,
         date_of_birth: formData.birthDate,
         address: formData.address,
-        parent_id: parentId,
+        parent_id: '46cf18f8-1608-4fac-859b-f6ffb9e2f4ce',
+        parent_phone: `+225${formData.parentPhone}`,
         medical_condition: formData.medicalCondition,
         extra_parent: formData.secondParent
           ? {
               full_name: formData.secondParent.fullName,
               gender: formData.secondParent.gender,
-              phone: formData.secondParent.phone,
+              phone: `+225${formData.secondParent.phone}`,
               type: formData.secondParent.type,
             }
           : null,
@@ -289,6 +330,8 @@ export async function createStudent(
       console.error('Error creating student:', studentError)
       throw new Error('Impossible de créer l\'élève')
     }
+
+    await linkParentToStudentsByPhone(client, studentData.id, formData.parentPhone)
 
     const isBase64 = formData.avatarUrl?.startsWith('data:image')
     if (isBase64) {
@@ -373,7 +416,6 @@ export async function enrollStudent({
   isOrphan,
   hasCanteenSubscription,
   hasTransportSubscription,
-  otp,
 }: {
   studentId: string
   schoolId: string
@@ -382,7 +424,6 @@ export async function enrollStudent({
   isOrphan: boolean
   hasCanteenSubscription: boolean
   hasTransportSubscription: boolean
-  otp?: string
 }): Promise<void> {
   const client = await createClient()
 
@@ -415,13 +456,6 @@ export async function enrollStudent({
       throw new Error('Cet élève est déjà inscrit au cours de cette année scolaire, rendez-vous dans l\'école en question pour d\'ample modification')
     }
     throw new Error('Impossible de créer l\'inscription')
-  }
-
-  if (otp) {
-    await client
-      .from('parent_otp_requests')
-      .update({ is_used: true })
-      .eq('otp', otp)
   }
 }
 

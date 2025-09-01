@@ -7,23 +7,24 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { format } from 'date-fns'
 import fr from 'date-fns/locale/fr'
 import { AnimatePresence, motion } from 'framer-motion'
-import { CalendarIcon, ChevronDown, ChevronUp } from 'lucide-react'
-import { useState, useTransition } from 'react'
+import { CalendarIcon, ChevronDown, ChevronUp, Phone } from 'lucide-react'
+import { useRef, useState, useTransition } from 'react'
 import { useForm } from 'react-hook-form'
 import { ImageUpload } from '@/components/ImageUpload'
+import { PhoneInput } from '@/components/PhoneInput'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { Calendar } from '@/components/ui/calendar'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
-import { InputOTP, InputOTPGroup, InputOTPSeparator, InputOTPSlot } from '@/components/ui/input-otp'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { maxBirthDate, minBirthDate } from '@/constants'
 import { cn } from '@/lib/utils'
-import { checkOTP, createStudent } from '../actions'
+import { normalizeCIPhoneNumber } from '@/lib/utils/phoneUtils'
+import { createStudent } from '../actions'
 import { studentCreationSchema } from '../schemas'
 import { FormFieldWrapper } from './FormFieldWrapper'
 import { MedicalConditionInput } from './MedicalConditionInput'
@@ -39,12 +40,12 @@ export function StudentCreationForm({
 }: StudentCreationFormProps) {
   const [avatarUrl, setAvatarUrl] = useState<string | undefined>()
   const [error, setError] = useState<string | null>(null)
-  const [parentName, setParentName] = useState<string | null>(null)
 
-  const [isOtpChecking, startOtpChecking] = useTransition()
   const [isSubmitting, startSubmitting] = useTransition()
   const [showSecondParent, setShowSecondParent] = useState(false)
   const [hasMedicalCondition, setHasMedicalCondition] = useState<boolean>(false)
+
+  const phoneInputRef = useRef<any>(null)
 
   const studentForm = useForm<StudentCreationFormData>({
     resolver: zodResolver(studentCreationSchema),
@@ -56,64 +57,30 @@ export function StudentCreationForm({
       idNumber: undefined,
       address: '',
       medicalCondition: [],
+      parentPhone: '',
       secondParent: {
         fullName: '',
         phone: '',
         type: 'guardian',
         gender: 'M',
       },
-      otp: '',
-      parentId: '',
     },
   })
 
-  const verifyOTP = (otpValue: string | undefined) => {
-    if (!otpValue || otpValue.length !== 6) {
-      studentForm.setError('otp', { message: 'Code OTP invalide (6 chiffres).' })
-      return
-    }
-
-    startOtpChecking(async () => {
-      try {
-        setError(null)
-        studentForm.clearErrors('otp')
-
-        const { parentId, parentName } = await checkOTP(otpValue)
-
-        studentForm.setValue('parentId', parentId, { shouldValidate: true })
-        setParentName(parentName)
-      }
-      catch (error) {
-        const message = error instanceof Error ? error.message : 'Erreur de vérification OTP'
-        setError(message)
-        studentForm.setError('otp', { message: 'Code OTP incorrect ou expiré.' })
-        studentForm.setValue('parentId', '', { shouldValidate: true })
-        setParentName(null)
-      }
-    })
-  }
-
   const onSubmit: SubmitHandler<StudentCreationFormData> = (data) => {
-    if (!data.parentId) {
-      setError('Veuillez d\'abord vérifier le code OTP du parent.')
-      studentForm.setError('parentId', { message: 'Vérification OTP requise.' })
-      return
-    }
-
     startSubmitting(async () => {
       try {
         setError(null)
-
-        delete data.otp
 
         const payload = {
           ...data,
           birthDate: data.birthDate.toISOString(),
           avatarUrl,
           medicalCondition: data.medicalCondition,
+          parentPhone: normalizeCIPhoneNumber(data.parentPhone) || data.parentPhone,
         }
 
-        const student = await createStudent(payload, data.parentId)
+        const student = await createStudent(payload)
         onSuccess(student)
       }
       catch (error) {
@@ -122,7 +89,7 @@ export function StudentCreationForm({
     })
   }
 
-  const isLoading = isOtpChecking || isSubmitting
+  const isLoading = isSubmitting
 
   return (
     <Form {...studentForm}>
@@ -283,71 +250,30 @@ export function StudentCreationForm({
           )}
         </FormFieldWrapper>
 
-        {/* Display Parent Info - Keep specific structure */}
-        {/* FormFieldWrapper is not ideal here as we don't have a standard input */}
-        {/* We are just displaying info based on state and linking message to parentId */}
-        <FormField
-          control={studentForm.control}
-          name="parentId"
-          render={() => (
-            <FormItem>
-              {/* Manually place label/info */}
-              <div className="text-center text-sm text-muted-foreground">
-                {' '}
-                {/* Mimic label style */}
-                {isOtpChecking
-                  ? 'Vérification OTP...'
-                  : parentName
-                    ? (
-                        <p>
-                          Le parent
-                          {' '}
-                          <span className="font-semibold underline underline-offset-2">{parentName}</span>
-                          {' '}
-                          a été trouvé.
-                        </p>
-                      )
-                    : (
-                        <p>Parent (Vérification OTP requise)</p>
-                      )}
-              </div>
-              {/* Manually place message */}
-              {/* RHF automatically links FormMessage via FormField context */}
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        {/* Parent Phone Field */}
+        <div className="space-y-4">
+          <div className="flex items-center space-x-2 mb-4">
+            <Phone className="h-5 w-5 text-primary" />
+            <h3 className="text-lg font-semibold">Information du parent</h3>
+          </div>
 
-        {/* OTP Input Field using Wrapper */}
-        <FormFieldWrapper
-          control={studentForm.control}
-          name="otp"
-          label="Code Parent (OTP)"
-          description="Code à 6 chiffres généré dans l'application parent."
-          className="flex flex-col items-center justify-center"
-        >
-          {({ field }) => (
-            <InputOTP
-              maxLength={6}
-              {...field}
-              value={field.value ?? ''}
-              disabled={isLoading}
-              onComplete={verifyOTP}
-            >
-              <InputOTPGroup>
-                <InputOTPSlot index={0} />
-                <InputOTPSlot index={1} />
-                <InputOTPSlot index={2} />
-              </InputOTPGroup>
-              <InputOTPSeparator />
-              <InputOTPGroup>
-                <InputOTPSlot index={3} />
-                <InputOTPSlot index={4} />
-                <InputOTPSlot index={5} />
-              </InputOTPGroup>
-            </InputOTP>
-          )}
-        </FormFieldWrapper>
+          <FormFieldWrapper
+            control={studentForm.control}
+            name="parentPhone"
+            label="Numéro de téléphone du parent"
+            description="Le numéro de téléphone permet de lier automatiquement l'élève à son parent."
+          >
+            {({ field }) => (
+              <PhoneInput
+                ref={phoneInputRef}
+                placeholder="+225 XX XX XX XX"
+                value={field.value}
+                onChange={field.onChange}
+                disabled={isLoading}
+              />
+            )}
+          </FormFieldWrapper>
+        </div>
 
         {/* Medical Condition Section */}
         <div className="space-y-2">
@@ -565,7 +491,7 @@ export function StudentCreationForm({
           </Button>
           <Button
             type="submit"
-            disabled={isLoading || !studentForm.formState.isValid || !parentName /* Also disable if parent not verified */}
+            disabled={isLoading || !studentForm.formState.isValid}
           >
             {isSubmitting ? 'Création...' : 'Créer l\'élève'}
           </Button>
