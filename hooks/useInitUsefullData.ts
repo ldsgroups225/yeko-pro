@@ -2,6 +2,7 @@
 
 import { useCallback, useRef } from 'react'
 import { unstable_batchedUpdates } from 'react-dom'
+import { fetchUserProfileClientSide } from '@/services/initializeDataService'
 import useGradeStore from '@/store/gradeStore'
 import useSchoolYearStore from '@/store/schoolYearStore'
 import useSubjectStore from '@/store/subjectStore'
@@ -9,7 +10,7 @@ import useUserStore from '@/store/userStore'
 
 export function useInitUsefulData() {
   // Select only the functions needed, which are stable references from Zustand
-  const fetchUser = useUserStore(state => state.fetchUser)
+  const setUser = useUserStore(state => state.setUser)
   const fetchGrades = useGradeStore(state => state.fetchGrades)
   const fetchSubjects = useSubjectStore(state => state.fetchSubjects)
   const fetchSchoolYears = useSchoolYearStore(state => state.fetchSchoolYears)
@@ -27,7 +28,7 @@ export function useInitUsefulData() {
 
     try {
       // Fetch user profile first. fetchUser should handle not fetching if already loaded.
-      const user = await fetchUser()
+      const user = await fetchUserProfileClientSide()
 
       if (!user) {
         // No authenticated user found
@@ -36,6 +37,7 @@ export function useInitUsefulData() {
       }
 
       // User fetched successfully
+      setUser(user)
 
       // Proceed only if user is successfully fetched and has necessary info
       if (user?.school?.cycleId) {

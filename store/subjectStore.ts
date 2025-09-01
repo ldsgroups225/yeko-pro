@@ -1,6 +1,6 @@
 import type { ISubject } from '@/types'
 import { create } from 'zustand'
-import { fetchSchoolSubjectIds, fetchSubjects, saveSchoolSubjects, saveSchoolSubjectsForYear } from '@/services'
+import { fetchSchoolSubjectIds, fetchSubjects, saveSchoolSubjects, saveSchoolSubjectsForYear } from '@/services/initializeDataService'
 
 // Define the state interface
 interface SubjectState {

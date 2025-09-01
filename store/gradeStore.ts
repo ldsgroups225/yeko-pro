@@ -1,6 +1,6 @@
 import type { IGrade } from '@/types'
 import { create } from 'zustand'
-import { fetchGrades } from '@/services'
+import { fetchGrades } from '@/services/initializeDataService'
 
 // Define the state interface
 interface GradeState {
