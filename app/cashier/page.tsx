@@ -1,111 +1,73 @@
-import { Clock, CreditCard, Receipt, Users } from 'lucide-react'
-import { Badge } from '@/components/ui/badge'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Suspense } from 'react'
+import { Card, CardContent } from '@/components/ui/card'
+import { DashboardStats } from './_components/DashboardStats'
+import { EndOfDayReport } from './_components/EndOfDayReport'
+import { RecentTransactions } from './_components/RecentTransactions'
 
-export default async function CashierPage() {
+export default function CashierPage() {
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       {/* Welcome Section */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Tableau de Bord Caisse</h1>
-          <p className="text-gray-600 mt-2">
-            Bienvenue dans votre espace de gestion des paiements
-          </p>
+      {/* <div className="text-center">
+        <h1 className="text-3xl font-bold text-foreground mb-2">
+          Bienvenue sur votre Tableau de Bord
+        </h1>
+        <p className="text-muted-foreground">
+          Gérez les paiements et transactions des étudiants en toute simplicité
+        </p>
+      </div> */}
+
+      {/* Dashboard Stats */}
+      <Suspense fallback={(
+        <Card
+          className="border-border/30 shadow-glass bg-card/25 backdrop-blur-lg"
+          style={{
+            backdropFilter: 'blur(12px)',
+            WebkitBackdropFilter: 'blur(12px)',
+          }}
+        >
+          <CardContent className="p-8">
+            <div className="flex items-center justify-center">
+              <div className="animate-spin h-8 w-8 border-2 border-muted/30 border-t-primary rounded-full"></div>
+              <span className="ml-3 text-card-foreground">Chargement des statistiques...</span>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+      >
+        <DashboardStats />
+      </Suspense>
+
+      {/* Main Dashboard Grid */}
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
+        {/* Left Column - Recent Transactions */}
+        <div className="space-y-8">
+          <Suspense fallback={(
+            <Card
+              className="border-border/30 shadow-glass bg-card/25 backdrop-blur-lg"
+              style={{
+                backdropFilter: 'blur(12px)',
+                WebkitBackdropFilter: 'blur(12px)',
+              }}
+            >
+              <CardContent className="p-8">
+                <div className="flex items-center justify-center">
+                  <div className="animate-spin h-8 w-8 border-2 border-muted/30 border-t-primary rounded-full"></div>
+                  <span className="ml-3 text-card-foreground">Chargement des transactions...</span>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+          >
+            <RecentTransactions />
+          </Suspense>
         </div>
-        <Badge variant="secondary" className="px-4 py-2">
-          <CreditCard className="w-4 h-4 mr-2" />
-          Caissier(ère)
-        </Badge>
+
+        {/* Right Column - End of Day Report */}
+        <div className="space-y-8">
+          <EndOfDayReport />
+        </div>
       </div>
-
-      {/* Quick Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Encaissements Aujourd'hui</CardTitle>
-            <CreditCard className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">À venir</div>
-            <p className="text-xs text-muted-foreground">
-              Fonctionnalité en développement
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Transactions</CardTitle>
-            <Receipt className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">À venir</div>
-            <p className="text-xs text-muted-foreground">
-              Fonctionnalité en développement
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Étudiants Payés</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">À venir</div>
-            <p className="text-xs text-muted-foreground">
-              Fonctionnalité en développement
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Heures de Service</CardTitle>
-            <Clock className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">À venir</div>
-            <p className="text-xs text-muted-foreground">
-              Fonctionnalité en développement
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Main Content */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Interface Caisse</CardTitle>
-          <CardDescription>
-            Votre tableau de bord de caisse est en cours de développement.
-            Les fonctionnalités suivantes seront bientôt disponibles :
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <h4 className="font-medium">Gestion des Paiements</h4>
-              <ul className="text-sm text-gray-600 space-y-1">
-                <li>• Encaissement des frais scolaires</li>
-                <li>• Gestion des acomptes</li>
-                <li>• Paiements échelonnés</li>
-                <li>• Remboursements</li>
-              </ul>
-            </div>
-            <div className="space-y-2">
-              <h4 className="font-medium">Outils & Rapports</h4>
-              <ul className="text-sm text-gray-600 space-y-1">
-                <li>• Génération de reçus</li>
-                <li>• Historique des transactions</li>
-                <li>• Rapports journaliers</li>
-                <li>• Suivi des impayés</li>
-              </ul>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
     </div>
   )
 }

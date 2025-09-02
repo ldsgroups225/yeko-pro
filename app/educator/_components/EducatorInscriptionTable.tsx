@@ -16,6 +16,7 @@ import {
   Phone,
   User,
 } from 'lucide-react'
+import { nanoid } from 'nanoid'
 import { useState } from 'react'
 import { toast } from 'sonner'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
@@ -192,8 +193,8 @@ export function EducatorInscriptionTable({
       <Card className="border-0 bg-gradient-to-br from-background/95 via-card/90 to-accent/20 backdrop-blur-sm shadow-sm">
         <CardContent className="p-6">
           <div className="space-y-4">
-            {Array.from({ length: 5 }).map((_, index) => (
-              <div key={index} className="flex items-center space-x-4">
+            {Array.from({ length: 5 }).map(() => (
+              <div key={nanoid()} className="flex items-center space-x-4">
                 <Skeleton className="h-12 w-12 rounded-full" />
                 <div className="space-y-2 flex-1">
                   <Skeleton className="h-4 w-[250px]" />

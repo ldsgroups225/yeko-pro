@@ -615,9 +615,10 @@ export async function searchExistingStudent(data: StudentSearchFormData): Promis
 /**
  * Links a parent to students based on phone number matching.
  * Updates students with matching parent_phone to set parent_id.
+ * @param {SupabaseClient} client - The Supabase client
  * @param {string} studentId - The student ID
  * @param {string} phone - The parent's phone number
- * @returns {Promise<number>} - Number of students linked
+ * @returns {Promise<void>} - Promise that resolves when linking is complete
  */
 async function linkParentToStudentsByPhone(client: SupabaseClient, studentId: string, phone: string): Promise<void> {
   try {
@@ -662,12 +663,12 @@ async function linkParentToStudentsByPhone(client: SupabaseClient, studentId: st
  * @param formData.idNumber - Student's ID number (optional)
  * @param formData.medicalCondition - Student's medical condition (optional)
  * @param formData.avatarUrl - URL of student's avatar image (optional)
+ * @param formData.parentPhone - The phone number of the parent
  * @param formData.secondParent - The second parent of the student (optional)
  * @param formData.secondParent.fullName - The full name of the second parent
  * @param formData.secondParent.gender - The gender of the second parent ('M' or 'F')
  * @param formData.secondParent.phone - The phone number of the second parent
  * @param formData.secondParent.type - The type of the second parent ('father', 'mother', or 'guardian')
- * @param parentId - The ID of the parent
  * @returns The newly created student
  */
 export async function createOrUpdateStudent(

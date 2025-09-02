@@ -366,6 +366,7 @@ export default function GlobalError({
             {/* Error details (expandable) */}
             <div className="error-details">
               <button
+                type="button"
                 className="details-toggle"
                 onClick={(e) => {
                   const target = e.target as HTMLButtonElement

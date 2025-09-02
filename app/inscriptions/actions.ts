@@ -90,9 +90,10 @@ async function fetchStudentById(client: SupabaseClient, id: string): Promise<ISt
 /**
  * Links a parent to students based on phone number matching.
  * Updates students with matching parent_phone to set parent_id.
+ * @param {SupabaseClient} client - The Supabase client
  * @param {string} studentId - The student ID
  * @param {string} phone - The parent's phone number
- * @returns {Promise<number>} - Number of students linked
+ * @returns {Promise<void>} - Promise that resolves when linking is complete
  */
 async function linkParentToStudentsByPhone(client: SupabaseClient, studentId: string, phone: string): Promise<void> {
   try {
