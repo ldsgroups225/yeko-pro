@@ -10,6 +10,7 @@ export interface SchoolMember {
   fullName: string
   avatarUrl: string | null
   roles: ERole[]
+  grade: number | null
   primaryRole: ERole | null
   createdAt: string
   lastActiveAt: string | null
@@ -42,6 +43,7 @@ export class SchoolService {
       .select(`
       user_id,
       role_id,
+      grade_id,
       users!user_roles_user_id_fkey(
         id,
         email,
@@ -63,15 +65,16 @@ export class SchoolService {
       return []
 
     // Group users by user_id and collect their roles
-    const userMap = new Map<string, { user: any, roles: ERole[] }>()
+    const userMap = new Map<string, { user: any, roles: ERole[], grade: number | null }>()
 
     for (const member of allMembers) {
       const userId = member.user_id
       const role = member.role_id as ERole
+      const grade = member.grade_id
       const user = member.users
 
       if (!userMap.has(userId)) {
-        userMap.set(userId, { user, roles: [] })
+        userMap.set(userId, { user, roles: [], grade })
       }
       userMap.get(userId)!.roles.push(role)
     }
@@ -82,7 +85,7 @@ export class SchoolService {
     )
 
     // Transform into SchoolMember objects
-    return relevantMembers.map(({ user, roles }) => {
+    return relevantMembers.map(({ user, roles, grade }) => {
       const uniqueRoles = Array.from(new Set(roles))
       const primaryRole = uniqueRoles.includes(ERole.DIRECTOR)
         ? ERole.DIRECTOR
@@ -96,6 +99,7 @@ export class SchoolService {
         fullName: `${user.first_name || ''} ${user.last_name || ''}`.trim() || user.email,
         avatarUrl: user.avatar_url,
         roles: uniqueRoles,
+        grade,
         primaryRole,
         createdAt: user.created_at ?? new Date().toISOString(),
         lastActiveAt: user.updated_at,

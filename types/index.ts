@@ -52,6 +52,27 @@ export function roleToString(role: ERole): string {
 }
 
 /**
+ * Converts an ERole enum value to its French string representation.
+ *
+ * @param {ERole} role - The role enum value to convert.
+ * @returns {string} The French string representation of the role.
+ * @throws {Error} If an invalid role is provided.
+ *
+ * @example
+ * const roleString = roleToString(ERole.PARENT);
+ * console.log(roleString); // Output: 'Parent'
+ */
+export const roleToFrenchName: Record<ERole, string> = {
+  [ERole.DIRECTOR]: 'Directeur',
+  [ERole.TEACHER]: 'Enseignant',
+  [ERole.PARENT]: 'Parent',
+  [ERole.CASHIER]: 'Caissier / Caissière',
+  [ERole.EDUCATOR]: 'Éducateur',
+  [ERole.ACCOUNTANT]: 'Comptable',
+  [ERole.HEADMASTER]: 'Proviseur',
+}
+
+/**
  * Converts a string representation of a role to its corresponding ERole enum value.
  *
  * @param {string} roleString - The string representation of the role.
@@ -78,6 +99,22 @@ export function stringToRole(roleString: string): ERole | undefined {
   }
 
   return stringRoleMap[roleString]
+}
+
+export const gradeToFrenchName: Record<number, string> = {
+  1: 'CP1',
+  2: 'CP2',
+  3: 'CE1',
+  4: 'CE2',
+  5: 'CM1',
+  6: 'CM2',
+  7: '6ème',
+  8: '5ème',
+  9: '4ème',
+  10: '3ème',
+  11: '2ème',
+  12: '1ère',
+  13: 'Tle',
 }
 
 export interface ISchoolDTO {

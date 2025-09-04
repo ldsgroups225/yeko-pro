@@ -1,6 +1,6 @@
 import type { ERole } from '@/types'
 import { Resend } from 'resend'
-import { roleToString } from '@/types'
+import { roleToFrenchName } from '@/types'
 
 export interface EmailTemplate {
   subject: string
@@ -14,6 +14,7 @@ export interface InvitationEmailData {
   schoolCode: string
   userExists: boolean
   role: ERole
+  gradeName?: string
 }
 
 /**
@@ -32,19 +33,21 @@ export class EmailService {
    * Generate invitation email template
    */
   private generateInvitationEmail(data: InvitationEmailData): EmailTemplate {
-    const { otp, schoolName, schoolCode, userExists, role } = data
-    const roleText = roleToString(role)
+    const { otp, schoolName, schoolCode, userExists, role, gradeName } = data
+    const roleText = roleToFrenchName[role]
 
     const subject = `Invitation à rejoindre ${schoolName} sur Yeko Pro`
 
     const htmlContent = userExists
-      ? this.generateExistingUserTemplate(otp, schoolName, schoolCode, roleText)
-      : this.generateNewUserTemplate(otp, schoolName, schoolCode, roleText)
+      ? this.generateExistingUserTemplate(otp, schoolName, schoolCode, roleText, gradeName)
+      : this.generateNewUserTemplate(otp, schoolName, schoolCode, roleText, gradeName)
 
     return { subject, html: htmlContent }
   }
 
-  private generateExistingUserTemplate(otp: string, schoolName: string, schoolCode: string, roleText: string): string {
+  private generateExistingUserTemplate(otp: string, schoolName: string, schoolCode: string, roleText: string, gradeName?: string): string {
+    const gradeText = gradeName ? ` de niveau ${gradeName}` : ''
+
     return `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
       <div style="text-align: center; margin-bottom: 30px;">
@@ -57,7 +60,7 @@ export class EmailService {
         
         <p style="color: #374151; line-height: 1.6;">
           Bonjour,<br><br>
-          Vous avez été invité(e) à rejoindre <strong>${schoolName}</strong> (${schoolCode}) sur Yeko Pro avec le rôle de <strong>${roleText}</strong>.
+          Vous avez été invité(e) à rejoindre <strong>${schoolName}</strong> (${schoolCode}) sur Yeko Pro avec le rôle de <strong>${roleText}</strong>${gradeText}.
         </p>
         
         <div style="background-color: #dbeafe; padding: 20px; border-radius: 6px; margin: 20px 0; text-align: center;">
@@ -85,7 +88,9 @@ export class EmailService {
     `
   }
 
-  private generateNewUserTemplate(otp: string, schoolName: string, schoolCode: string, roleText: string): string {
+  private generateNewUserTemplate(otp: string, schoolName: string, schoolCode: string, roleText: string, gradeName?: string): string {
+    const gradeText = gradeName ? ` de niveau ${gradeName}` : ''
+
     return `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
       <div style="text-align: center; margin-bottom: 30px;">
@@ -98,7 +103,7 @@ export class EmailService {
         
         <p style="color: #374151; line-height: 1.6;">
           Bonjour,<br><br>
-          Vous avez été invité(e) à rejoindre <strong>${schoolName}</strong> (${schoolCode}) sur Yeko Pro avec le rôle de <strong>${roleText}</strong>.
+          Vous avez été invité(e) à rejoindre <strong>${schoolName}</strong> (${schoolCode}) sur Yeko Pro avec le rôle de <strong>${roleText}</strong>${gradeText}.
         </p>
         
         <div style="background-color: #fef3c7; padding: 20px; border-radius: 6px; margin: 20px 0;">

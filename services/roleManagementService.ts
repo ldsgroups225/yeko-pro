@@ -14,6 +14,8 @@ export type { SchoolMember } from '@/lib/services/schoolService'
 export interface InvitationRequest {
   email: string
   role: ERole
+  grade?: number
+  gradeName?: string
   schoolId: string
 }
 
@@ -84,6 +86,7 @@ export async function inviteUserToSchool(request: InvitationRequest): Promise<In
 
   // Generate OTP
   const otp = generateOTP()
+  const useFor = request.grade ? `${request.role.toString()}---${request.grade}` : request.role.toString()
 
   // Save invitation to database
   const { error: inviteError } = await supabase
@@ -94,7 +97,8 @@ export async function inviteUserToSchool(request: InvitationRequest): Promise<In
       created_by: userId,
       is_used: false,
       email: request.email.toLowerCase(),
-      use_for: request.role.toString(),
+      // can be null or ERole only or ERole---Grade like [1, 2, 3, ]
+      use_for: useFor,
     })
 
   if (inviteError) {
@@ -110,6 +114,7 @@ export async function inviteUserToSchool(request: InvitationRequest): Promise<In
       schoolCode: schoolInfo.code,
       userExists,
       role: request.role,
+      gradeName: request.gradeName,
     })
 
     return {
@@ -187,12 +192,14 @@ export async function validateOTPAndAddUser(otp: string): Promise<{ success: boo
   }
 
   try {
-    // Add user role with school_id
-    const roleToAssign = invitation.use_for ? Number.parseInt(invitation.use_for, 10) : ERole.DIRECTOR
+    const [roleId, gradeId] = invitation.use_for!.split('---')
+    const roleToAssign = Number.parseInt(roleId, 10)
+    const gradeToAssign = Number.parseInt(gradeId, 10)
 
     await userRoleService.assignRole({
       userId: user.id,
       roleId: roleToAssign,
+      gradeId: gradeToAssign,
       schoolId: invitation.school_id,
     })
 

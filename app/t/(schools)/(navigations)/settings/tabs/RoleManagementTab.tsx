@@ -42,7 +42,7 @@ import {
 
   updateUserRole,
 } from '@/services/roleManagementService'
-import { ERole } from '@/types'
+import { ERole, gradeToFrenchName } from '@/types'
 import { ConfirmActionModal } from '../components/ConfirmActionModal'
 import { InviteUserModal } from '../components/InviteUserModal'
 import { OTPConfirmModal } from '../components/OTPConfirmModal'
@@ -332,6 +332,7 @@ export default function RoleManagementTab() {
                   <TableRow>
                     <TableHead>Utilisateur</TableHead>
                     <TableHead>Rôle</TableHead>
+                    <TableHead>Niveau</TableHead>
                     <TableHead>Ajouté le</TableHead>
                     <TableHead>Dernière activité</TableHead>
                     <TableHead className="w-[50px]">Actions</TableHead>
@@ -365,6 +366,9 @@ export default function RoleManagementTab() {
                             </TableCell>
                             <TableCell>
                               {getRoleBadge(member.primaryRole)}
+                            </TableCell>
+                            <TableCell>
+                              {member.grade ? gradeToFrenchName[member.grade] : 'Tout'}
                             </TableCell>
                             <TableCell>
                               <div className="flex items-center gap-1 text-sm text-muted-foreground">
