@@ -35,8 +35,10 @@ function generateOTP(): string {
  * Get school members with non-parent and non-teacher roles
  */
 export async function getSchoolMembers(schoolId: string, _schoolYearId: number): Promise<SchoolMember[]> {
-  const authService = await createAuthorizationService()
-  const schoolService = await createSchoolService()
+  const [authService, schoolService] = await Promise.all([
+    createAuthorizationService(),
+    createSchoolService(),
+  ])
 
   const userId = await authService.getAuthenticatedUserId()
   await authService.verifyDirectorAccess(userId, schoolId)
@@ -48,9 +50,11 @@ export async function getSchoolMembers(schoolId: string, _schoolYearId: number):
  * Invite a new user to the school
  */
 export async function inviteUserToSchool(request: InvitationRequest): Promise<InvitationResult> {
-  const supabase = await createClient()
-  const authService = await createAuthorizationService()
-  const emailService = createEmailService()
+  const [supabase, authService, emailService] = await Promise.all([
+    createClient(),
+    createAuthorizationService(),
+    createEmailService(),
+  ])
 
   const userId = await authService.getAuthenticatedUserId()
   const schoolInfo = await authService.getDirectorSchoolInfo(userId)
