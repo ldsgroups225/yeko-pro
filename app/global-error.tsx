@@ -1,6 +1,6 @@
 'use client' // Error boundaries must be Client Components
 
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 
 /**
  * Global Error boundary for Yeko Pro
@@ -14,6 +14,8 @@ export default function GlobalError({
   error: Error & { digest?: string }
   reset: () => void
 }) {
+  const [showModal, setShowModal] = useState(false)
+
   useEffect(() => {
     // Log error to monitoring service
     console.error('Global error occurred:', error)
@@ -22,17 +24,54 @@ export default function GlobalError({
     // trackError(error, 'global-error')
   }, [error])
 
+  useEffect(() => {
+    // Auto-refresh after 30 seconds if user doesn't interact
+    const refreshTimeout = setTimeout(() => {
+      if (typeof window !== 'undefined') {
+        setShowModal(true)
+      }
+    }, 30000)
+
+    // Add click handler to clear timeout
+    const handleClick = () => clearTimeout(refreshTimeout)
+    document.addEventListener('click', handleClick)
+
+    // Add keyboard shortcuts
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Cmd/Ctrl + R to refresh
+      if ((e.metaKey || e.ctrlKey) && e.key === 'r') {
+        e.preventDefault()
+        window.location.reload()
+      }
+
+      // Cmd/Ctrl + H to go home
+      if ((e.metaKey || e.ctrlKey) && e.key === 'h') {
+        e.preventDefault()
+        window.location.href = '/'
+      }
+    }
+
+    document.addEventListener('keydown', handleKeyDown)
+
+    // Cleanup
+    return () => {
+      clearTimeout(refreshTimeout)
+      document.removeEventListener('click', handleClick)
+      document.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [])
+
   return (
     <html lang="fr" className="h-full">
       <head>
         <title>Erreur Système - Yeko Pro</title>
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/logo2.png" />
-        <style dangerouslySetInnerHTML={{
-          __html: `
-            /* Inline critical CSS for error page */
-            * {
-              box-sizing: border-box;
+        <style jsx global>
+          {`
+          /* Critical CSS for error page */
+          * {
+            box-sizing: border-box;
               margin: 0;
               padding: 0;
             }
@@ -296,9 +335,8 @@ export default function GlobalError({
               color: hsl(var(--muted-foreground));
               opacity: 0.7;
             }
-          `,
-        }}
-        />
+          `}
+        </style>
       </head>
       <body>
         {/* Logo */}
@@ -415,36 +453,35 @@ export default function GlobalError({
 
         {/* Footer */}
         <div className="footer">
-          © 2024 Yeko Pro - La transparence éducative
+          &copy; 2024 Yeko Pro - La transparence &eacute;ducative
         </div>
 
-        <script dangerouslySetInnerHTML={{
-          __html: `
-            // Auto-refresh after 30 seconds if user doesn't interact
-            let refreshTimeout = setTimeout(function() {
-              if (confirm('Voulez-vous rafraîchir automatiquement la page ?')) {
-                window.location.reload();
-              }
-            }, 30000);
-            
-            // Clear timeout if user interacts with the page
-            document.addEventListener('click', function() {
-              clearTimeout(refreshTimeout);
-            });
-            
-            // Add keyboard shortcuts
-            document.addEventListener('keydown', function(e) {
-              if (e.key === 'r' || e.key === 'R') {
-                e.preventDefault();
-                ${reset}();
-              } else if (e.key === 'h' || e.key === 'H') {
-                e.preventDefault();
-                window.location.href = '/';
-              }
-            });
-          `,
-        }}
-        />
+        <script />
+        <script type="text/javascript" src="/js/error-handler.js" />
+        {showModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white p-6 rounded-lg max-w-md w-full">
+              <h3 className="text-lg font-medium mb-4">Rafraîchissement automatique</h3>
+              <p className="mb-4">Voulez-vous rafraîchir automatiquement la page ?</p>
+              <div className="flex justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => window.location.reload()}
+                  className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                >
+                  Oui
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowModal(false)}
+                  className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
+                >
+                  Non
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </body>
     </html>
   )

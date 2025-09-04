@@ -5,7 +5,6 @@ import React from 'react'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { useGoogleAuthSimple } from '@/hooks/useGoogleAuth'
 
 /**
  * Composant d'affichage d'erreur OAuth avec différents niveaux de détail
@@ -199,52 +198,6 @@ export const OAuthErrorDisplay: React.FC<OAuthErrorDisplayProps> = ({
       </AlertDescription>
     </Alert>
   )
-}
-
-/**
- * Hook pour utiliser l'affichage d'erreur OAuth avec retry automatique
- */
-export function useOAuthErrorHandler() {
-  const { error, clearError, googleSignIn, googleSignUp } = useGoogleAuthSimple()
-
-  const handleRetry = async (mode: 'signin' | 'signup' = 'signin') => {
-    clearError()
-    const authFunction = mode === 'signin' ? googleSignIn : googleSignUp
-    return await authFunction()
-  }
-
-  const renderError = (
-    variant: 'inline' | 'card' | 'full' = 'inline',
-    options: {
-      showRetry?: boolean
-      showDetails?: boolean
-      mode?: 'signin' | 'signup'
-    } = {},
-  ) => {
-    const { showRetry = true, showDetails = false, mode = 'signin' } = options
-
-    if (!error)
-      return null
-
-    return (
-      <OAuthErrorDisplay
-        error={error}
-        variant={variant}
-        showRetry={showRetry}
-        showDetails={showDetails}
-        onRetry={() => handleRetry(mode)}
-        onDismiss={clearError}
-      />
-    )
-  }
-
-  return {
-    hasError: !!error,
-    error,
-    clearError,
-    handleRetry,
-    renderError,
-  }
 }
 
 /**

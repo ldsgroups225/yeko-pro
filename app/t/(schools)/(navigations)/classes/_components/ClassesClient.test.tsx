@@ -1,5 +1,6 @@
 import type { IClass, IGrade } from '@/types'
-import { fireEvent, render, screen } from '@testing-library/react'
+import { fireEvent, screen } from '@testing-library/dom'
+import { render } from '@testing-library/react'
 import React from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import ClassesClient from './ClassesClient'

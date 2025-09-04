@@ -10,7 +10,6 @@ import { useForm } from 'react-hook-form'
 import {
   GoogleSignInButton,
   SocialAuthDivider,
-  useOAuthErrorDisplay,
 } from '@/components/GoogleSignInButton'
 import { SubmitButton } from '@/components/SubmitButton'
 import { Alert, AlertTitle } from '@/components/ui/alert'
@@ -26,6 +25,7 @@ import {
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { useUser } from '@/hooks'
+import { useOAuthErrorDisplay } from '@/hooks/useOAuthErrorDisplay'
 import { getPostAuthRedirect } from '@/services/authorizationService'
 import { loginSchema } from '@/validations'
 

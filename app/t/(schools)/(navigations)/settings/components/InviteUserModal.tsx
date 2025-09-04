@@ -24,7 +24,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { useToast } from '@/components/ui/use-toast'
 import { inviteUserToSchool } from '@/services/roleManagementService'
 import useGradeStore from '@/store/gradeStore'
 import { ERole } from '@/types'

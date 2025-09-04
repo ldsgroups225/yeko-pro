@@ -31,7 +31,7 @@ const paymentFormSchema = z.object({
 
 type PaymentFormValues = z.infer<typeof paymentFormSchema>
 
-interface PaymentFormProps {
+export interface PaymentFormProps {
   defaultAmount?: number
   onSubmit: (values: PaymentFormValues) => Promise<void>
 }

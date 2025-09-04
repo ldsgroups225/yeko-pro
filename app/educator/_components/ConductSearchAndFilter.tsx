@@ -42,12 +42,7 @@ export function ConductSearchAndFilter({ students, initialSearchTerm = '', initi
     }
   }, [initialFilters, setFilters])
 
-  // Initialize search term from URL parameters on mount
-  useEffect(() => {
-    if (initialSearchTerm && initialSearchTerm !== searchTerm) {
-      setSearchTerm(initialSearchTerm)
-    }
-  }, [initialSearchTerm, searchTerm])
+  // Search term is already initialized from props, no need for useEffect
 
   // Update URL when filters change
   const updateURL = useDebouncedCallback((newFilters: Partial<IConductQueryParams>) => {
