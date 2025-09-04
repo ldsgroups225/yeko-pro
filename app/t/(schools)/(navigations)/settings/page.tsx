@@ -16,7 +16,7 @@ import TuitionSettingsTab from './tabs/TuitionSettingsTab'
 export default function SettingsPage() {
   // const { user } = useUser()
   // const [isLoading, setIsLoading] = useState(false)
-  const [storageUsed, _setStorageUsed] = useState(65)
+  // const [storageUsed, _setStorageUsed] = useState(65)
 
   // const handleSchoolUpdate = async (event: { preventDefault: () => void }) => {
   //   event.preventDefault()
@@ -27,7 +27,7 @@ export default function SettingsPage() {
 
   return (
     <div className="space-y-3 px-6 py-4">
-      <Card className="bg-muted">
+      {/* <Card className="bg-muted">
         <CardContent className="py-1.5">
           <div className="flex items-center justify-between">
             <div className="space-y-1">
@@ -40,7 +40,7 @@ export default function SettingsPage() {
             </p>
           </div>
         </CardContent>
-      </Card>
+      </Card> */}
 
       <Tabs defaultValue="school" className="space-y-3">
         <TabsList className="grid w-full grid-cols-3 lg:grid-cols-6">
