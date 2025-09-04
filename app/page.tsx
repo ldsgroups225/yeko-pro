@@ -77,7 +77,7 @@ export default function PageMarketing() {
       title: 'Gestion des effectifs',
       icon: PersonIcon,
       description:
-        'Gérez efficacement les dossiers des élèves, l&apos;assiduité et les performances.',
+        'Gérez efficacement les dossiers des élèves, l\'assiduité et les performances.',
     },
     {
       title: 'Organisation des classes',
@@ -95,19 +95,19 @@ export default function PageMarketing() {
       title: 'Suivi des performances',
       icon: BarChartIcon,
       description:
-        'Suivez et analysez les métriques de performance des élèves et de l&apos;établissement.',
+        'Suivez et analysez les métriques de performance des élèves et de l\'établissement.',
     },
     {
       title: 'Gestion de la ponctualité',
       icon: ClockIcon,
       description:
-        'Suivez l&apos;assiduité et la ponctualité des élèves et du personnel.',
+        'Suivez l\'assiduité et la ponctualité des élèves et du personnel.',
     },
     {
       title: 'Communication',
       icon: ChatBubbleIcon,
       description:
-        'Facilitez la communication entre l&apos;école, les enseignants et les parents.',
+        'Facilitez la communication entre l\'école, les enseignants et les parents.',
     },
   ]
 
@@ -115,13 +115,13 @@ export default function PageMarketing() {
     {
       role: 'director',
       quote:
-        'Yeko Pro a révolutionné notre façon de gérer l&apos;école. Le tableau de bord complet et l&apos;interface intuitive ont considérablement amélioré notre efficacité.',
-      author: '- Sarah Johnson, Directrice d&apos;école',
+        'Yeko Pro a révolutionné notre façon de gérer l\'école. Le tableau de bord complet et l\'interface intuitive ont considérablement amélioré notre efficacité.',
+      author: '- Sarah Johnson, Directrice d\'école',
     },
     {
       role: 'enseignant',
       quote:
-        'En tant qu&apos;enseignant, Yeko Pro a grandement facilité le suivi des progrès des élèves et la communication avec les parents. C&apos;est un outil indispensable dans mon travail quotidien.',
+        'En tant qu\'enseignant, Yeko Pro a grandement facilité le suivi des progrès des élèves et la communication avec les parents. C\'est un outil indispensable dans mon travail quotidien.',
       author: '- Marc Dupont, Professeur de lycée',
     },
     {
