@@ -288,7 +288,7 @@ export async function fetchUserProfileClientSide(): Promise<IUserProfileDTO> {
     const userId = await getUserId()
 
     if (!userId) {
-      throw new Error('Unauthorized')
+      throw new Error('Vous n\'êtes pas authentifié')
     }
 
     // Get user basic profile and ALL roles (removed DIRECTOR restriction)
@@ -299,7 +299,7 @@ export async function fetchUserProfileClientSide(): Promise<IUserProfileDTO> {
       .single()
 
     if (profileError) {
-      throw new Error('Profile not found')
+      throw new Error('Profil non trouvé')
     }
 
     // Get user roles using the authorization service
@@ -349,7 +349,6 @@ export async function fetchUserProfileClientSide(): Promise<IUserProfileDTO> {
 
     const hasAccess = hasDirectorAccess || hasCashierAccess || hasAccountantAccess || hasEducatorAccess || hasHeadmasterAccess
 
-    // Use school_id from roleInfo instead of profile
     if (hasAccess && roleInfo.schoolId) {
       try {
         const [schoolResult, studentCountResult] = await Promise.all([
@@ -358,7 +357,7 @@ export async function fetchUserProfileClientSide(): Promise<IUserProfileDTO> {
             .eq('id', roleInfo.schoolId)
             .single(),
           supabase.from('student_school_class')
-            .select('*', { count: 'estimated' })
+            .select('*', { count: 'exact', head: true })
             .eq('school_id', roleInfo.schoolId)
             .eq('enrollment_status', 'accepted')
             .is('is_active', true),
@@ -384,9 +383,9 @@ export async function fetchUserProfileClientSide(): Promise<IUserProfileDTO> {
           }
         }
       }
-      catch (error) {
+      catch {
         // Non-critical error - user profile still works without school data
-        console.warn('Failed to load school data:', error)
+        // console.warn('Failed to load school data:', error)
       }
     }
 
@@ -394,12 +393,11 @@ export async function fetchUserProfileClientSide(): Promise<IUserProfileDTO> {
   }
   catch (error) {
     // Re-throw known errors with their original messages
-    if (error instanceof Error && (error.message === 'Unauthorized' || error.message === 'Profile not found')) {
+    if (error instanceof Error && (error.message === 'Vous n\'êtes pas authentifié' || error.message === 'Profil non trouvé')) {
       throw error
     }
 
     // Handle unexpected errors
-    console.error('Unexpected error in fetchUserProfile:', error)
-    throw new Error('Failed to fetch user profile')
+    throw new Error('Oups, une erreur s\'est produite')
   }
 }
