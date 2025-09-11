@@ -4,6 +4,7 @@ import type { SupabaseClient } from '@/lib/supabase/server'
 import type { ICandidature, IGradeNote, IPonctualite } from '@/types'
 import { revalidatePath } from 'next/cache'
 import { NOTE_LABELS, NOTE_TYPE } from '@/constants'
+import { createAuthorizationService } from '@/lib/services/authorizationService'
 import { createClient } from '@/lib/supabase/server'
 import { formatFullName } from '@/lib/utils'
 import { ERole } from '@/types'
@@ -28,54 +29,94 @@ interface DashboardMetrics {
   }
 }
 
-async function checkAuthUserId(client: SupabaseClient): Promise<string> {
-  const { data: user, error: userError } = await client.auth.getUser()
-  if (userError) {
-    console.error('Error fetching user:', userError)
-    throw new Error('Vous n\'êtes pas autorisé à accéder à cette page')
+async function getStudentPopulation({
+  client,
+  schoolId,
+  schoolYearId,
+  schoolYearEndYear,
+}: {
+  client: SupabaseClient
+  schoolId: string
+  schoolYearId: number
+  schoolYearEndYear: number
+}): Promise<{ total: number, yearOverYearGrowth: number }> {
+  // Helper to get an exact count for a given school_year_id
+  const countStudentsForSchoolYear = async (schoolYearId: number) => {
+    const { error, count } = await client
+      .from('student_school_class')
+      .select('*', { count: 'exact', head: true })
+      .eq('school_id', schoolId)
+      .eq('enrollment_status', 'accepted')
+      .is('is_active', true)
+      .eq('school_year_id', schoolYearId)
+
+    if (error)
+      throw error
+    return count ?? 0
   }
-  return user.user.id
-}
 
-async function getDirectorSchoolId(client: SupabaseClient, userId: string): Promise<string> {
-  const { data: userSchool, error: userSchoolError } = await client
-    .from('user_roles')
-    .select('school_id')
-    .eq('user_id', userId)
-    .eq('role_id', ERole.DIRECTOR)
-    .single()
-  if (userSchoolError) {
-    console.error('Error fetching user school:', userSchoolError)
-    throw new Error('Seul un directeur peut accéder à cette page')
+  try {
+    // fetch current and most-recent non-current (last) school years in parallel
+    const { data: lastSchoolYear, error: lastErr } = await client
+      .from('school_years')
+      .select('id, end_year')
+      .is('is_current', false)
+      .order('end_year', { ascending: false })
+      .limit(1)
+      .maybeSingle()
+
+    if (lastErr) {
+      console.error('Error fetching school years:', lastErr?.message)
+      return { total: 0, yearOverYearGrowth: 0 }
+    }
+
+    if ((lastSchoolYear?.end_year === schoolYearEndYear || (lastSchoolYear?.end_year === schoolYearEndYear + 1))) {
+      throw new Error('L\'année scolaire actuelle est la même que l\'année scolaire précédente')
+    }
+
+    // If both school-year rows are actually the same (same id), only fetch one count
+    let currentYearStudentCount = 0
+    let lastYearStudentCount = 0
+
+    if (!lastSchoolYear) {
+      currentYearStudentCount = await countStudentsForSchoolYear(schoolYearId)
+      lastYearStudentCount = currentYearStudentCount
+    }
+    else {
+      const [currCount, lastCount] = await Promise.all([
+        countStudentsForSchoolYear(schoolYearId),
+        countStudentsForSchoolYear(lastSchoolYear.id),
+      ])
+      currentYearStudentCount = currCount
+      lastYearStudentCount = lastCount
+    }
+
+    // Compute YoY growth. If lastYear is 0, growth is undefined -> return null
+    let yearOverYearGrowth: number | null = null
+    if (lastYearStudentCount > 0) {
+      yearOverYearGrowth = ((currentYearStudentCount - lastYearStudentCount) / lastYearStudentCount) * 100
+    }
+
+    return { total: currentYearStudentCount, yearOverYearGrowth: yearOverYearGrowth ?? 0 }
   }
-
-  if (!userSchool.school_id) {
-    throw new Error('Utilisateur non associé à un établissement scolaire')
-  }
-  return userSchool.school_id
-}
-
-async function getStudentPopulation(client: SupabaseClient, schoolId: string): Promise<{ total: number, yearOverYearGrowth: number }> {
-  const { error, count } = await client
-    .from('student_school_class')
-    .select('*', { count: 'estimated' })
-    .eq('school_id', schoolId)
-    .eq('enrollment_status', 'accepted')
-    .is('is_active', true)
-    // TODO: .eq('school_years_id', 2023)  // Filter by school year
-
-  if (error) {
-    console.error('Error fetching student population:', error.message)
+  catch (err) {
+    console.error('Error fetching student population:', err)
     return { total: 0, yearOverYearGrowth: 0 }
   }
-
-  return { total: count || 0, yearOverYearGrowth: 15 } // TODO: implement yearOverYearGrowth calculation
 }
 
-async function getStudentFiles(client: SupabaseClient, schoolId: string): Promise<{ pendingApplications: number, withoutParent: number, withoutClass: number }> {
-  const pendingApplicationsQs = client.from('student_school_class').select('student_id', { count: 'estimated' }).eq('school_id', schoolId).eq('enrollment_status', 'pending')
-  const withoutParentQs = client.from('student_school_class').select('students(parent_id)').eq('school_id', schoolId).is('students.parent_id', null)
-  const withoutClassQs = client.from('student_school_class').select('id', { count: 'estimated' }).eq('school_id', schoolId).is('class_id', null).eq('enrollment_status', 'accepted')
+async function getStudentFiles({
+  client,
+  schoolId,
+  schoolYearId,
+}: {
+  client: SupabaseClient
+  schoolId: string
+  schoolYearId: number
+}): Promise<{ pendingApplications: number, withoutParent: number, withoutClass: number }> {
+  const pendingApplicationsQs = client.from('student_school_class').select('student_id', { count: 'exact', head: true }).eq('school_id', schoolId).eq('school_year_id', schoolYearId).eq('enrollment_status', 'pending')
+  const withoutParentQs = client.from('student_school_class').select('students(parent_id)').eq('school_id', schoolId).eq('school_year_id', schoolYearId).is('students.parent_id', null)
+  const withoutClassQs = client.from('student_school_class').select('id', { count: 'exact', head: true }).eq('school_id', schoolId).eq('school_year_id', schoolYearId).is('class_id', null).eq('enrollment_status', 'accepted')
 
   const [
     { count: pendingApplications, error: pendingApplicationsError },
@@ -89,14 +130,19 @@ async function getStudentFiles(client: SupabaseClient, schoolId: string): Promis
 
   if (pendingApplicationsError || withoutParentError || withoutClassError) {
     console.error('Error fetching student files:', pendingApplicationsError?.message, withoutParentError?.message, withoutClassError?.message)
-    console.error('Error fetching student files:', withoutParentError?.message, withoutClassError?.message)
     return { pendingApplications: 0, withoutParent: 0, withoutClass: 0 }
   }
 
   return { pendingApplications: pendingApplications ?? 0, withoutParent: withoutParent ?? 0, withoutClass: withoutClass ?? 0 }
 }
 
-async function getTeachingStaff(client: SupabaseClient, schoolId: string): Promise<{ pendingApplications: number, withoutClass: number }> {
+async function getTeachingStaff({
+  client,
+  schoolId,
+}: {
+  client: SupabaseClient
+  schoolId: string
+}): Promise<{ pendingApplications: number, withoutClass: number }> {
   // Queries for counts
   const schoolTeacherCountQs = client.from('schools_teachers')
     .select('*', { count: 'exact', head: true })
@@ -141,13 +187,17 @@ async function getTeachingStaff(client: SupabaseClient, schoolId: string): Promi
   }
 }
 
-async function getSummaryAttendance(client: SupabaseClient, _schoolId: string): Promise<{ lateCount: number, absencesCount: number }> {
+async function getSummaryAttendance({
+  client,
+  schoolId,
+}: {
+  client: SupabaseClient
+  schoolId: string
+}): Promise<{ lateCount: number, absencesCount: number }> {
   const { data, error } = await client
     .from('attendances')
     .select('status')
-    // TODO: .eq('student.school_id', schoolId)
-    .or('status.eq.late,status.eq.absent')
-    .throwOnError()
+    .eq('school_id', schoolId)
 
   if (error) {
     console.error('Error fetching payments:', error)
@@ -176,11 +226,16 @@ export interface DetailedNote extends IGradeNote {
   details: NoteDetail[]
 }
 
-export async function getNoteDetails(noteId: string): Promise<DetailedNote> {
+export async function getNoteDetails({
+  noteId,
+  schoolId,
+  schoolYearId,
+}: {
+  noteId: string
+  schoolId: string
+  schoolYearId: number
+}): Promise<DetailedNote> {
   const supabase = await createClient()
-
-  const userId = await checkAuthUserId(supabase)
-  await getDirectorSchoolId(supabase, userId)
 
   const { data: note, error } = await supabase
     .from('notes')
@@ -207,6 +262,8 @@ export async function getNoteDetails(noteId: string): Promise<DetailedNote> {
       created_at
     `)
     .eq('id', noteId)
+    .eq('school_id', schoolId)
+    .eq('school_year_id', schoolYearId)
     .single()
 
   if (error) {
@@ -251,31 +308,40 @@ export async function getNoteDetails(noteId: string): Promise<DetailedNote> {
   }
 }
 
-export async function getDashboardMetrics(): Promise<DashboardMetrics> {
+export async function getDashboardMetrics(
+  {
+    schoolId,
+    schoolYearId,
+    schoolYearEndYear,
+  }: { schoolId: string, schoolYearId: number, schoolYearEndYear: number },
+): Promise<DashboardMetrics> {
   const supabase = await createClient()
 
-  const userId = await checkAuthUserId(supabase)
-  const schoolId = await getDirectorSchoolId(supabase, userId)
-
-  const studentPopulation = await getStudentPopulation(supabase, schoolId)
-  const studentFiles = await getStudentFiles(supabase, schoolId)
-  const teachingStaff = await getTeachingStaff(supabase, schoolId)
-  const attendance = await getSummaryAttendance(supabase, schoolId)
+  const [studentPopulation, studentFiles, teachingStaff, attendance] = await Promise.all([
+    getStudentPopulation({ client: supabase, schoolId, schoolYearId, schoolYearEndYear }),
+    getStudentFiles({ client: supabase, schoolId, schoolYearId }),
+    getTeachingStaff({ client: supabase, schoolId }),
+    getSummaryAttendance({ client: supabase, schoolId }),
+  ])
 
   return { attendance, studentPopulation, studentFiles, teachingStaff }
 }
 
-export async function getPonctualiteData(): Promise<IPonctualite[]> {
+export async function getPonctualiteData({
+  schoolId,
+  schoolYearId,
+}: {
+  schoolId: string
+  schoolYearId: number
+}): Promise<IPonctualite[]> {
   const supabase = await createClient()
-
-  const userId = await checkAuthUserId(supabase)
-  await getDirectorSchoolId(supabase, userId)
 
   const { data, error } = await supabase
     .from('attendances_report_view')
     .select('month, month_numeric, absences, lates')
+    .eq('school_years_id', schoolYearId)
+    .eq('school_id', schoolId)
   // TODO: .eq('student_id', 'student-uuid')
-  // TODO: .eq('school_years_id', 2023)  // Filter by school year
     .order('month_numeric', { ascending: true })
 
   if (error) {
@@ -301,16 +367,18 @@ export async function getPonctualiteData(): Promise<IPonctualite[]> {
   })) satisfies IPonctualite[] ?? []
 }
 
-export async function getCandidatures(): Promise<ICandidature[]> {
+export async function getCandidatures({
+  schoolId,
+}: {
+  schoolId: string
+}): Promise<ICandidature[]> {
   const supabase = await createClient()
-
-  const userId = await checkAuthUserId(supabase)
-  await getDirectorSchoolId(supabase, userId)
 
   // get teacher candidatures
   const teachersQs = supabase
     .from('schools_teachers')
     .select('status, created_at, teacher:users(id, first_name, last_name, email)')
+    .eq('school_id', schoolId)
     .eq('status', 'pending')
     .order('created_at', { ascending: true })
 
@@ -318,7 +386,9 @@ export async function getCandidatures(): Promise<ICandidature[]> {
   const studentsQs = supabase
     .from('student_school_class')
     .select('grade_id, enrollment_status, created_at, student:students(id, first_name, last_name)')
+    .eq('school_id', schoolId)
     .eq('enrollment_status', 'pending')
+    // .is('is_active', false) // TODO: check if this is needed
     .order('created_at', { ascending: true })
 
   // promise all
@@ -375,16 +445,17 @@ export async function getCandidatures(): Promise<ICandidature[]> {
   })
 }
 
-export async function getNotes(): Promise<IGradeNote[]> {
+export async function getNotes({
+  schoolId,
+}: {
+  schoolId: string
+}): Promise<IGradeNote[]> {
   const supabase = await createClient()
   const ALLOWED_NOTE_TYPES = [
     NOTE_TYPE.WRITING_QUESTION,
     NOTE_TYPE.CLASS_TEST,
     NOTE_TYPE.LEVEL_TEST,
   ]
-
-  const userId = await checkAuthUserId(supabase)
-  const schoolId = await getDirectorSchoolId(supabase, userId)
 
   const { data, error } = await supabase
     .from('notes')
@@ -438,24 +509,6 @@ export async function getNotes(): Promise<IGradeNote[]> {
   } satisfies IGradeNote))
 }
 
-export async function publishNote(noteId: string): Promise<void> {
-  const supabase = await createClient()
-
-  const userId = await checkAuthUserId(supabase)
-  await getDirectorSchoolId(supabase, userId)
-
-  const { error } = await supabase
-    .from('notes')
-    .update({ is_published: true })
-    .eq('id', noteId)
-    .throwOnError()
-
-  if (error) {
-    console.error('Error publishing notes:', error)
-    throw new Error('Échec de la publication des notes')
-  }
-}
-
 export async function handleCandidature(
   candidateId: string,
   candidateType: 'student' | 'teacher',
@@ -504,26 +557,17 @@ export async function handleCandidature(
 
 export async function getClassesByGrade(gradeId: number): Promise<{ id: string, name: string, remainingSeats: number }[]> {
   try {
-    const supabase = await createClient()
-    const userId = await checkAuthUserId(supabase)
-
-    // Fetch current school year and user's school ID in parallel
-    const [{ data: schoolYear, error: schoolYearError }, schoolId] = await Promise.all([
-      supabase
-        .from('school_years')
-        .select('id')
-        .eq('is_current', true)
-        .single(),
-      getDirectorSchoolId(supabase, userId),
+    const [supabase, authorizationService] = await Promise.all([
+      createClient(),
+      createAuthorizationService(),
     ])
 
-    if (schoolYearError || !schoolYear) {
-      throw new Error('Impossible de charger l\'année scolaire')
-    }
-
-    if (!schoolId) {
-      throw new Error('Impossible de déterminer l\'école')
-    }
+    const userId = await authorizationService.getAuthenticatedUserId()
+    const schoolInfo = await authorizationService.getUserSchoolInfo(userId, {
+      roleId: ERole.DIRECTOR,
+      includeRoleName: false,
+      withSchoolYear: true,
+    })
 
     // Fetch classes with their associated students
     const classesQs = supabase
@@ -534,17 +578,14 @@ export async function getClassesByGrade(gradeId: number): Promise<{ id: string, 
         max_student
       `)
       .eq('grade_id', gradeId)
-      .eq('school_id', schoolId)
-      // .eq('student_school_class.school_year_id', schoolYear.id)
-      // .eq('student_school_class.enrollment_status', 'accepted')
-      // .is('student_school_class.is_active', true)
+      .eq('school_id', schoolInfo.id)
 
     const seatUsedQs = supabase
       .from('student_school_class')
       .select('class_id', { count: 'exact', head: true })
       .eq('grade_id', gradeId)
-      .eq('school_id', schoolId)
-      .eq('school_year_id', schoolYear.id)
+      .eq('school_id', schoolInfo.id)
+      .eq('school_year_id', schoolInfo.schoolYear!.id)
       .eq('enrollment_status', 'accepted')
       .is('is_active', true)
 

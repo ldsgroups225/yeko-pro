@@ -9,11 +9,24 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import { createAuthorizationService } from '@/lib/services/authorizationService'
 import { formatDate } from '@/lib/utils'
 import { getNotes } from '@/services/dashboardService'
+import { ERole } from '@/types'
 
 export async function GradesTable() {
-  const notes = await getNotes()
+  const authorizationService = await createAuthorizationService()
+
+  const userId = await authorizationService.getAuthenticatedUserId()
+  const schoolInfo = await authorizationService.getUserSchoolInfo(userId, {
+    roleId: ERole.DIRECTOR,
+    includeRoleName: false,
+    withSchoolYear: true,
+  })
+
+  const notes = await getNotes({
+    schoolId: schoolInfo.id,
+  })
 
   return (
     <Card>

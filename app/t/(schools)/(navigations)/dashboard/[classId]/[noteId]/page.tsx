@@ -7,8 +7,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { NOTE_OPTIONS } from '@/constants'
+import { createAuthorizationService } from '@/lib/services/authorizationService'
 import { formatDate } from '@/lib/utils'
 import { getNoteDetails } from '@/services/dashboardService'
+import { ERole } from '@/types'
 
 interface PageProps {
   params: Promise<{
@@ -19,7 +21,21 @@ interface PageProps {
 
 export default async function NoteDetailsPage({ params }: PageProps) {
   const { noteId } = await params
-  const note = await getNoteDetails(noteId)
+
+  const authorizationService = await createAuthorizationService()
+
+  const userId = await authorizationService.getAuthenticatedUserId()
+  const schoolInfo = await authorizationService.getUserSchoolInfo(userId, {
+    roleId: ERole.DIRECTOR,
+    includeRoleName: false,
+    withSchoolYear: true,
+  })
+
+  const note = await getNoteDetails({
+    noteId,
+    schoolId: schoolInfo.id,
+    schoolYearId: schoolInfo.schoolYear!.id,
+  })
 
   if (!note) {
     redirect('/dashboard')

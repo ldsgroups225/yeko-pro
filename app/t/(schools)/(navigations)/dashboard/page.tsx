@@ -1,12 +1,32 @@
 import { BatteryPlus, School, Users, UserX } from 'lucide-react'
+import { createAuthorizationService } from '@/lib/services/authorizationService'
 import { getCandidatures, getDashboardMetrics, getPonctualiteData } from '@/services/dashboardService'
+import { ERole } from '@/types'
 import { Applications, Chart, GradesTable, MetricCard } from './_components'
 
 export default async function DashboardPage() {
+  const authorizationService = await createAuthorizationService()
+
+  const userId = await authorizationService.getAuthenticatedUserId()
+  const schoolInfo = await authorizationService.getUserSchoolInfo(userId, {
+    roleId: ERole.DIRECTOR,
+    includeRoleName: false,
+    withSchoolYear: true,
+  })
+
   const [metrics, ponctualite, candidatures] = await Promise.all([
-    getDashboardMetrics(),
-    getPonctualiteData(),
-    getCandidatures(),
+    getDashboardMetrics({
+      schoolId: schoolInfo.id,
+      schoolYearId: schoolInfo.schoolYear!.id,
+      schoolYearEndYear: schoolInfo.schoolYear!.end_year,
+    }),
+    getPonctualiteData({
+      schoolId: schoolInfo.id,
+      schoolYearId: schoolInfo.schoolYear!.id,
+    }),
+    getCandidatures({
+      schoolId: schoolInfo.id,
+    }),
   ])
 
   return (
