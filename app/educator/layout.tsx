@@ -1,6 +1,9 @@
 'use client'
 
+import { redirect } from 'next/navigation'
 import { UserProvider } from '@/providers/UserProvider'
+import useUserStore from '@/store/userStore'
+import { ERole } from '@/types'
 import { EducatorHeader } from './_components/EducatorHeader'
 
 interface Props {
@@ -8,6 +11,14 @@ interface Props {
 }
 
 export default function EducatorLayout({ children }: Props) {
+  const { user } = useUserStore()
+
+  if (user) {
+    if (user.roleId !== ERole.EDUCATOR) {
+      return redirect('/unauthorized')
+    }
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-background/50 to-background">
       <UserProvider>

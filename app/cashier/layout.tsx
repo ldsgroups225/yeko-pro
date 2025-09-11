@@ -1,8 +1,11 @@
 'use client'
 
 import type { StudentForPayment } from '@/types/accounting'
+import { redirect } from 'next/navigation'
 import { useState } from 'react'
 import { UserProvider } from '@/providers/UserProvider'
+import useUserStore from '@/store/userStore'
+import { ERole } from '@/types'
 import { CashierNavbar } from './_components/CashierNavbar'
 import { NewPaymentModal } from './_components/NewPaymentModal'
 import { StudentSearchModal } from './_components/StudentSearchModal'
@@ -34,10 +37,18 @@ function convertToStudentForPayment(student: StudentForPayment): StudentForPayme
 }
 
 export default function CashierLayout({ children }: Props) {
+  const { user } = useUserStore()
+
   const [searchModalOpen, setSearchModalOpen] = useState(false)
   const [paymentModalOpen, setPaymentModalOpen] = useState(false)
   // const [reportModalOpen, setReportModalOpen] = useState(false)
   const [selectedStudent, setSelectedStudent] = useState<StudentForPayment | undefined>()
+
+  if (user) {
+    if (user.roleId !== ERole.CASHIER) {
+      return redirect('/unauthorized')
+    }
+  }
 
   const handleSearchStudent = () => {
     setSearchModalOpen(true)
