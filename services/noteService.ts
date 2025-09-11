@@ -282,13 +282,18 @@ export async function getNotes(params?: NotesQueryParams) {
   return notes
 }
 
-export async function getClassesForNotes() {
+export async function getClassesForNotes({
+  schoolId,
+}: {
+  schoolId: string
+}) {
   const supabase = await createClient()
 
   const { data: classes } = await supabase
     .from('classes')
     .select('id, name')
     .eq('is_active', true)
+    .eq('school_id', schoolId)
     .order('grade_id')
 
   return classes || []
