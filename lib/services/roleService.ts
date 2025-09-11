@@ -2,6 +2,7 @@
 
 import type { ERole } from '@/types'
 import { createClient } from '@/lib/supabase/server'
+import { ROLE_PRIORITY } from '@/lib/types/auth'
 import { createDefaultUserRoleInfo, createUserRoleInfo } from '@/lib/utils/roleUtils'
 
 /**
@@ -13,22 +14,44 @@ export async function fetchUserRolesFromDB(userId: string) {
 
   const { data: userRoles, error } = await supabase
     .from('user_roles')
-    .select('role_id, school_id, grade_id')
+    .select('id, role_id, school_id, grade_id, created_at, created_by, updated_at, updated_by')
     .eq('user_id', userId)
+    .order('created_at', { ascending: true }) // Get the oldest role first as fallback
 
   if (error || !userRoles?.length) {
     return createDefaultUserRoleInfo(userId)
   }
 
+  // Map all roles and find the one with highest priority
   const roles = userRoles.map(ur => ur.role_id as ERole)
 
-  // Get school_id and grade_id from the first role entry (assuming they're consistent)
-  // In practice, you might want to handle multiple schools/grades per user differently
-  const firstRole = userRoles[0]
-  const schoolId = firstRole.school_id!
-  const gradeId = firstRole.grade_id
+  // Find the highest priority role based on ROLE_PRIORITY
+  let primaryRole: ERole | null = null
+  for (const priorityRole of ROLE_PRIORITY) {
+    if (roles.includes(priorityRole)) {
+      primaryRole = priorityRole
+      break
+    }
+  }
 
-  return createUserRoleInfo(userId, roles, schoolId, gradeId)
+  // If no role found in priority list, use the first one
+  if (!primaryRole && roles.length > 0) {
+    primaryRole = roles[0]
+  }
+
+  // Get the user role entry for the primary role
+  const primaryRoleEntry = userRoles.find(ur => ur.role_id === primaryRole) || userRoles[0]
+
+  if (!primaryRoleEntry.school_id) {
+    throw new Error('Vous n\'êtes pas associé à une école')
+  }
+
+  return createUserRoleInfo(
+    userId,
+    roles,
+    primaryRoleEntry.school_id,
+    primaryRoleEntry.grade_id || null,
+  )
 }
 
 /**
@@ -60,19 +83,38 @@ export async function fetchUserRolesFromDBMiddleware(
 
   const { data: userRoles, error } = await supabase
     .from('user_roles')
-    .select('role_id, school_id, grade_id')
+    .select('id, role_id, school_id, grade_id, created_at, created_by, updated_at, updated_by')
     .eq('user_id', userId)
+    .order('created_at', { ascending: true }) // Get the oldest role first as fallback
 
   if (error || !userRoles?.length) {
     return createDefaultUserRoleInfo(userId)
   }
 
+  // Map all roles and find the one with highest priority
   const roles = userRoles.map(ur => ur.role_id as ERole)
 
-  // Get school_id and grade_id from the first role entry
-  const firstRole = userRoles[0]
-  const schoolId = firstRole.school_id
-  const gradeId = firstRole.grade_id
+  // Find the highest priority role based on ROLE_PRIORITY
+  let primaryRole: ERole | null = null
+  for (const priorityRole of ROLE_PRIORITY) {
+    if (roles.includes(priorityRole)) {
+      primaryRole = priorityRole
+      break
+    }
+  }
 
-  return createUserRoleInfo(userId, roles, schoolId, gradeId)
+  // If no role found in priority list, use the first one
+  if (!primaryRole && roles.length > 0) {
+    primaryRole = roles[0]
+  }
+
+  // Get the user role entry for the primary role
+  const primaryRoleEntry = userRoles.find(ur => ur.role_id === primaryRole) || userRoles[0]
+
+  return createUserRoleInfo(
+    userId,
+    roles,
+    primaryRoleEntry.school_id || null,
+    primaryRoleEntry.grade_id || null,
+  )
 }
