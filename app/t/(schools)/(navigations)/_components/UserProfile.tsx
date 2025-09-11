@@ -52,7 +52,7 @@ export function UserProfile({ expanded }: UserProfileProps) {
             aria-label="Menu du profil"
           >
             <Avatar className="h-8 w-8 group-hover:scale-110 transition-all duration-300">
-              <AvatarImage src="/profile-pic.png" alt={user?.fullName ?? 'Photo de profil'} />
+              <AvatarImage src={user?.avatarUrl || '/profile-pic.png'} alt={user?.fullName ?? 'Photo de profil'} />
               <AvatarFallback>{userInitials}</AvatarFallback>
             </Avatar>
             {expanded && <span className="ml-2">{user?.fullName}</span>}
