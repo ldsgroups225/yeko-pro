@@ -59,7 +59,10 @@ export async function inviteUserToSchool(request: InvitationRequest): Promise<In
   ])
 
   const userId = await authService.getAuthenticatedUserId()
-  const schoolInfo = await authService.getDirectorSchoolInfo(userId)
+  const schoolInfo = await authService.getUserSchoolInfo(userId, {
+    roleId: ERole.DIRECTOR,
+    includeRoleName: false,
+  })
 
   // Check if user already exists
   const { data: existingUser } = await supabase
