@@ -2,8 +2,6 @@ import type { Metadata } from 'next'
 import { Suspense } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { fetchGrades } from '@/services/gradeService'
-import { fetchSchoolYears } from '@/services/schoolYearService'
-import { fetchSubjects } from '@/services/subjectService'
 import { fetchUserProfile } from '@/services/userService'
 import { ProgressReportFilters } from './_components/ProgressReportFilters'
 import { ProgressReportTable } from './_components/ProgressReportTable'
@@ -32,18 +30,12 @@ export default async function ProgressReportsPage({ searchParams }: PageProps) {
 
   const user = await fetchUserProfile()
 
-  const [grades, subjects, schoolYears] = await Promise.all([
-    fetchGrades(user.school.cycleId),
-    fetchSubjects(),
-    fetchSchoolYears(),
-  ])
-
-  const currentSchoolYear = schoolYears.find(sy => sy.isCurrent === true)
+  const grades = await fetchGrades(user.school.cycleId)
 
   const filters = {
     gradeId: params.gradeId ? Number(params.gradeId) : undefined,
     subjectId: params.subjectId,
-    schoolYearId: params.schoolYearId ? Number(params.schoolYearId) : currentSchoolYear?.id,
+    schoolYearId: params.schoolYearId ? Number(params.schoolYearId) : undefined,
     isCompleted: params.isCompleted === 'true' ? true : params.isCompleted === 'false' ? false : undefined,
   }
 
@@ -58,8 +50,6 @@ export default async function ProgressReportsPage({ searchParams }: PageProps) {
         <CardContent>
           <ProgressReportFilters
             grades={grades}
-            subjects={subjects}
-            schoolYears={schoolYears}
             initialFilters={filters}
           />
           <Suspense key={suspenseKey} fallback={<ProgressReportTableSkeleton />}>

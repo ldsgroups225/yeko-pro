@@ -14,7 +14,7 @@ interface SubjectState {
 interface SubjectActions {
   setSubjects: (subjects: ISubject[]) => void
   getSubjectById: (subjectId: string) => ISubject | undefined
-  fetchSubjects: () => Promise<void>
+  fetchSubjects: ({ schoolId }: { schoolId: string }) => Promise<void>
   clearSubjects: () => void
   setSelectedSubjects: (ids: string[]) => void
   loadSchoolSubjects: (schoolId: string) => Promise<void>
@@ -38,7 +38,7 @@ const useSubjectStore = create<SubjectState & SubjectActions>((set, get) => ({
     return subjects.find(subject => subject.id === subjectId)
   },
 
-  fetchSubjects: async () => {
+  fetchSubjects: async ({ schoolId }: { schoolId: string }) => {
     // Avoid fetching if subjects are already loaded
     const currentState = get()
     if (currentState.subjects.length > 0 && !currentState.error) {
@@ -50,7 +50,7 @@ const useSubjectStore = create<SubjectState & SubjectActions>((set, get) => ({
     set({ isLoading: true, error: null })
 
     try {
-      const data = await fetchSubjects()
+      const data = await fetchSubjects({ schoolId })
       set({ subjects: data, isLoading: false })
       // Subjects fetched successfully
     }

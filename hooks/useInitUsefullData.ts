@@ -47,7 +47,7 @@ export function useInitUsefulData() {
         await unstable_batchedUpdates(async () => {
           // Fetch other data in parallel
           await Promise.all([
-            fetchSubjects(),
+            fetchSubjects({ schoolId: user.school.id }),
             fetchSchoolYears(),
             fetchGrades(user.school.cycleId),
           ])

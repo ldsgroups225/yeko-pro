@@ -11,12 +11,22 @@ import { createClient } from '@/lib/supabase/server'
  * @throws {Error} If user is not authenticated ('Unauthorized')
  * @throws {Error} If there's an error fetching subjects ('Failed to fetch subjects')
  */
+interface SubjectRow {
+  id: string
+  name: string
+  gradeAndSeries?: Array<{
+    gradeId: number
+    seriesId: number | null
+  }>
+  [key: string]: unknown
+}
+
 export async function fetchSubjects(): Promise<ISubject[]> {
   const supabase = await createClient()
 
   const { data, error } = await supabase
     .from('subjects')
-    .select('id, name')
+    .select('*')
     .order('name')
     .throwOnError()
 
@@ -25,5 +35,10 @@ export async function fetchSubjects(): Promise<ISubject[]> {
     throw new Error('Failed to fetch subjects')
   }
 
-  return data ?? []
+  // Transform the data to match ISubject interface
+  return (data as SubjectRow[] || []).map((subject): ISubject => ({
+    id: subject.id,
+    name: subject.name,
+    gradeAndSeries: subject.gradeAndSeries || [],
+  }))
 }

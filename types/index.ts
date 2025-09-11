@@ -239,6 +239,10 @@ export interface IGrade {
 export interface ISubject {
   id: string
   name: string
+  gradeAndSeries: {
+    gradeId: number
+    seriesId: number | null
+  }[]
 }
 
 export interface IClass {

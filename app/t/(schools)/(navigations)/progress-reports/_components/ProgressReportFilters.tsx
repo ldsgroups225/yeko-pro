@@ -1,6 +1,6 @@
 'use client'
 
-import type { IGrade, ISchoolYear, ISubject } from '@/types'
+import type { IGrade } from '@/types'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { useCallback, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
@@ -12,11 +12,10 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { useSchoolYear } from '@/hooks'
+import useSubjectStore from '@/store/subjectStore'
 
 interface ProgressReportFiltersProps {
   grades: IGrade[]
-  subjects: ISubject[]
-  schoolYears: ISchoolYear[]
   initialFilters: {
     gradeId?: number
     subjectId?: string
@@ -27,13 +26,13 @@ interface ProgressReportFiltersProps {
 
 export function ProgressReportFilters({
   grades,
-  subjects,
   initialFilters,
 }: ProgressReportFiltersProps) {
   const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
 
+  const { subjects } = useSubjectStore()
   const { selectedSchoolYearId } = useSchoolYear()
 
   const createQueryString = useCallback(

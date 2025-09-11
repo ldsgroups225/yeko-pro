@@ -52,20 +52,46 @@ export async function fetchGrades(cycleId: string): Promise<IGrade[]> {
  * @throws {Error} If user is not authenticated ('Unauthorized')
  * @throws {Error} If there's an error fetching subjects ('Failed to fetch subjects')
  */
-export async function fetchSubjects(): Promise<ISubject[]> {
+export async function fetchSubjects({ schoolId }: { schoolId: string }): Promise<ISubject[]> {
   const supabase = createClient()
 
-  const { data, error } = await supabase
+  // Première requête pour obtenir les IDs des matières de l'école
+  const { data: schoolSubjects, error: schoolSubjectsError } = await supabase
+    .from('school_subjects')
+    .select('subject_id')
+    .eq('school_id', schoolId)
+    // .eq('school_year_id', schoolYearId) // TODO: Activer quand nécessaire
+
+  if (schoolSubjectsError) {
+    console.error('Error fetching school subjects:', schoolSubjectsError)
+    throw new Error('Failed to fetch school subjects')
+  }
+
+  if (!schoolSubjects || schoolSubjects.length === 0) {
+    return []
+  }
+
+  // Extraction des IDs des matières
+  const subjectIds = schoolSubjects.map(item => item.subject_id).filter((id): id is string => id !== null)
+
+  // Deuxième requête pour obtenir les détails des matières
+  const { data: subjects, error: subjectsError } = await supabase
     .from('subjects')
     .select('id, name')
+    .in('id', subjectIds)
     .order('name')
 
-  if (error) {
-    console.error('Error fetching subjects:', error)
+  if (subjectsError) {
+    console.error('Error fetching subjects:', subjectsError)
     throw new Error('Failed to fetch subjects')
   }
 
-  return data ?? []
+  // Mappage des données au format attendu
+  return subjects.map(subject => ({
+    id: subject.id,
+    name: subject.name,
+    gradeAndSeries: [], // Initialisé comme tableau vide, peut être rempli plus tard si nécessaire
+  }))
 }
 
 /**

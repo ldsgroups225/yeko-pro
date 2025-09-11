@@ -37,8 +37,10 @@ function SchoolSubjectsManager({ schoolId, schoolName }: SchoolSubjectsManagerPr
 
   // Load subjects on component mount
   useEffect(() => {
-    loadSubjects()
-  }, [])
+    if (schoolId) {
+      loadSubjects(schoolId)
+    }
+  }, [schoolId, loadSubjects])
 
   // Load school subjects when school year changes
   useEffect(() => {

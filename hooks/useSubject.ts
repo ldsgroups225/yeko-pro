@@ -7,7 +7,7 @@ interface ReturnType {
   isLoading: boolean
   error: string | null
   hasNoSubjects: boolean
-  loadSubjects: () => Promise<void>
+  loadSubjects: (schoolId: string) => Promise<void>
   getSubjectById: (subjectId: string) => ISubject | undefined
   clearSubjects: () => void
   selectedSubjectIds: string[]
@@ -65,11 +65,12 @@ export function useSubject(): ReturnType {
    * Loads subjects for a specific cycle.
    * Wraps the store's fetchSubjects function with error handling.
    *
+   * @param {string} schoolId - The ID of the school to load subjects for
    * @returns {Promise<void>}
    */
-  const loadSubjectsStable = useCallback(async (): Promise<void> => {
+  const loadSubjectsStable = useCallback(async (schoolId: string): Promise<void> => {
     try {
-      await fetchSubjects()
+      await fetchSubjects({ schoolId })
     }
     catch (error) {
       console.error('Failed to load subjects:', error)

@@ -3,6 +3,7 @@
     "incremental": true,
     "target": "es5",
     "jsx": "preserve",
+    "tsBuildInfoFile": ".tsbuildinfo",
     "lib": ["dom", "dom.iterable", "esnext"],
     "module": "esnext",
     "moduleResolution": "bundler",
