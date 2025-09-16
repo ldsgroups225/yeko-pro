@@ -11,6 +11,16 @@ import { formatFullName, parseMedicalCondition } from '@/lib/utils'
 import { uploadImageToStorage } from '@/services/uploadImageService'
 import { searchSchema } from './schemas'
 
+export interface TuitionFee {
+  id: string
+  annualFee: number
+  governmentAnnualFee: number
+  orphanDiscountAmount: number
+  canteenFee: number
+  transportationFee: number
+  firstInstallmentAmount: number
+}
+
 /**
  * Function to fetch a school by its code
  * @param client - SupabaseClient instance
@@ -226,16 +236,44 @@ export async function fetchGrades(schoolId: string) {
  * @param gradeId - The ID of the grade
  * @returns An array of tuition fees
  */
-export async function fetchTuitionFees(gradeId: number) {
+export async function fetchTuitionFees({
+  schoolId,
+  gradeId,
+}: {
+  schoolId: string
+  gradeId: number
+}): Promise<TuitionFee[]> {
   try {
     const client = await createClient()
     const { data, error } = await client.from('tuition_settings')
       .select('id, annual_fee, government_annual_fee, orphan_discount_amount, canteen_fee, transportation_fee')
+      .eq('school_id', schoolId)
       .eq('grade_id', gradeId)
 
     if (error) {
       console.error('Error fetching tuition fees:', error)
       throw new Error('Impossible de charger les frais de scolarité')
+    }
+
+    if (!data || data.length === 0) {
+      throw new Error('Aucun frais de scolarité trouvé pour ce niveau.')
+    }
+
+    const { data: firstInstallmentTemplate, error: firstInstallmentTemplateError } = await client.from('installment_templates')
+      .select('fixed_amount')
+      .eq('school_id', schoolId)
+      .eq('grade_id', gradeId)
+      .order('installment_number', { ascending: true })
+      .limit(1)
+      .maybeSingle()
+
+    if (firstInstallmentTemplateError) {
+      console.error('Error fetching first installment amount:', firstInstallmentTemplateError)
+      throw new Error('Impossible de charger les frais de scolarité')
+    }
+
+    if (!firstInstallmentTemplate) {
+      throw new Error('Les échelons des frais de scolarité pour ce niveau n\'ont pas été configurés.')
     }
 
     return data.map(fee => ({
@@ -245,10 +283,10 @@ export async function fetchTuitionFees(gradeId: number) {
       orphanDiscountAmount: fee.orphan_discount_amount,
       canteenFee: fee.canteen_fee,
       transportationFee: fee.transportation_fee,
-    }))
+      firstInstallmentAmount: firstInstallmentTemplate.fixed_amount ?? 0,
+    } satisfies TuitionFee))
   }
-  catch (error) {
-    console.error('Error in fetchTuitionFees:', error)
+  catch {
     throw new Error('Impossible de charger les frais de scolarité')
   }
 }

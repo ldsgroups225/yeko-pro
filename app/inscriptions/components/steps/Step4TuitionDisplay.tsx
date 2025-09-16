@@ -2,6 +2,7 @@
 
 'use client'
 
+import type { TuitionFee } from '../../actions'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -13,20 +14,12 @@ interface Step4TuitionDisplayProps {
   onBack: () => void
   onComplete: () => void
   onTermFeeSet: (fee: number) => void
+  schoolId: string
   gradeId: number | null
   isStateAssigned: boolean
   isOrphan: boolean
   hasCanteenSubscription: boolean
   hasTransportSubscription: boolean
-}
-
-interface TuitionFee {
-  id: string
-  annualFee: number
-  governmentAnnualFee: number
-  orphanDiscountAmount: number
-  canteenFee: number
-  transportationFee: number
 }
 
 interface TuitionFeeState {
@@ -39,6 +32,7 @@ export function Step4TuitionDisplay({
   onBack,
   onComplete,
   onTermFeeSet,
+  schoolId,
   gradeId,
   isStateAssigned,
   isOrphan,
@@ -76,7 +70,7 @@ export function Step4TuitionDisplay({
       }
 
       try {
-        const data = await fetchTuitionFees(gradeId)
+        const data = await fetchTuitionFees({ gradeId, schoolId })
         if (mounted) {
           if (data && data.length > 0) {
             setTuitionFeeState(prev => ({
@@ -172,7 +166,6 @@ export function Step4TuitionDisplay({
 
     // 5. Calculate Final Annual and Term Fees
     const finalAnnualFee = Math.max(0, currentTotal) // Ensure fee is not negative
-    const finalTermFee = Math.round(finalAnnualFee / 3) // Calculate term fee for the prop
 
     return {
       baseAnnualTuition,
@@ -180,7 +173,7 @@ export function Step4TuitionDisplay({
       canteenFeeApplied,
       transportFeeApplied,
       finalAnnualFee,
-      finalTermFee, // Include in return object
+      finalTermFee: tuitionFeeConfig.firstInstallmentAmount,
     }
   }, [tuitionFeeConfig, isStateAssigned, isOrphan, hasCanteenSubscription, hasTransportSubscription])
 

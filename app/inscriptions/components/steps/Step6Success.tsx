@@ -73,7 +73,7 @@ export function Step6Success({
                   {student.idNumber}
                 </p>
                 <p>
-                  <span className="text-muted-foreground">Montant payé:</span>
+                  <span className="text-muted-foreground">Prochaine scolarité:</span>
                   {' '}
                   <span className="font-semibold">
                     {amount.toLocaleString('fr-FR')}

@@ -94,6 +94,7 @@ export function RegistrationStepper({ steps }: RegistrationStepperProps) {
             onBack={handleStepBack}
             onComplete={() => handleStepComplete(3)}
             onTermFeeSet={handleTermFeeSet}
+            schoolId={school!.id}
             gradeId={selectedGradeId}
             isStateAssigned={isStateAssigned}
             isOrphan={isOrphan}
