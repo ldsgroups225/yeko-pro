@@ -266,37 +266,32 @@ export async function fetchTuitionFees({
   schoolId: string
   gradeId: number
 }): Promise<TuitionFee[]> {
-  try {
-    const client = await createClient()
-    const { data, error } = await client.from('tuition_settings')
-      .select('id, annual_fee, government_annual_fee, orphan_discount_amount, canteen_fee, transportation_fee')
-      .eq('school_id', schoolId)
-      .eq('grade_id', gradeId)
+  const client = await createClient()
+  const { data, error } = await client.from('tuition_settings')
+    .select('id, annual_fee, government_annual_fee, orphan_discount_amount, canteen_fee, transportation_fee')
+    .eq('school_id', schoolId)
+    .eq('grade_id', gradeId)
 
-    if (error) {
-      console.error('Error fetching tuition fees:', error)
-      throw new Error('Impossible de charger les frais de scolarité')
-    }
-
-    if (!data || data.length === 0) {
-      throw new Error('Aucun frais de scolarité trouvé pour ce niveau.')
-    }
-
-    const firstInstallmentAmount = await getFirstInstallmentAmount({ schoolId, gradeId })
-
-    return data.map(fee => ({
-      id: fee.id,
-      firstInstallmentAmount,
-      annualFee: fee.annual_fee,
-      canteenFee: fee.canteen_fee,
-      transportationFee: fee.transportation_fee,
-      governmentAnnualFee: fee.government_annual_fee,
-      orphanDiscountAmount: fee.orphan_discount_amount,
-    } satisfies TuitionFee))
-  }
-  catch {
+  if (error) {
+    console.error('Error fetching tuition fees:', error)
     throw new Error('Impossible de charger les frais de scolarité')
   }
+
+  if (!data || data.length === 0) {
+    throw new Error('Aucun frais de scolarité trouvé pour ce niveau.')
+  }
+
+  const firstInstallmentAmount = await getFirstInstallmentAmount({ schoolId, gradeId })
+
+  return data.map(fee => ({
+    id: fee.id,
+    firstInstallmentAmount,
+    annualFee: fee.annual_fee,
+    canteenFee: fee.canteen_fee,
+    transportationFee: fee.transportation_fee,
+    governmentAnnualFee: fee.government_annual_fee,
+    orphanDiscountAmount: fee.orphan_discount_amount,
+  } satisfies TuitionFee))
 }
 
 /**

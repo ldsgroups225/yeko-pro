@@ -95,7 +95,7 @@ export function Step4TuitionDisplay({
           setTuitionFeeState(prev => ({
             ...prev,
             isLoading: false,
-            error: 'Impossible de charger les frais de scolarité. Veuillez réessayer.',
+            error: err instanceof Error ? err.message : 'Impossible de charger les frais de scolarité. Veuillez réessayer.',
           }))
         }
       }
