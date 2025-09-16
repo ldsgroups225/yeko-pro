@@ -122,7 +122,7 @@ export function Step3GradeSelection({
         </CardHeader>
         <CardContent>
           <RadioGroup
-            value={selectedGradeId?.toString()}
+            value={selectedGradeId?.toString() || ''}
             onValueChange={handleGradeSelect}
             className="grid grid-cols-1 md:grid-cols-2 gap-4"
           >
