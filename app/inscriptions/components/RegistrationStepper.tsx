@@ -3,7 +3,7 @@
 'use client'
 
 import type { ISchool, IStudent } from '../types'
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { Stepper } from '@/components/ui/stepper'
 import { Step1Identification, Step2Confirmation, Step3GradeSelection, Step4TuitionDisplay, Step5Payment, Step6Success } from './steps'
 
@@ -17,16 +17,19 @@ interface RegistrationStepperProps {
 }
 
 export function RegistrationStepper({ steps }: RegistrationStepperProps) {
-  const [currentStep, setCurrentStep] = useState(0)
   const [school, setSchool] = useState<ISchool | null>(null)
   const [student, setStudent] = useState<IStudent | null>(null)
-  const [selectedGradeId, setSelectedGradeId] = useState<number | null>(null)
-  const [isStateAssigned, setIsStateAssigned] = useState(false)
+
   const [isOrphan, setIsOrphan] = useState(false)
-  const [hasCanteenSubscription, setHasCanteenSubscription] = useState(false)
-  const [hasTransportSubscription, setHasTransportSubscription] = useState(false)
-  const [searchAttempts, setSearchAttempts] = useState(0)
+  const [currentStep, setCurrentStep] = useState(0)
   const [termFee, setTermFee] = useState<number>(0)
+  const [searchAttempts, setSearchAttempts] = useState(0)
+  const [isStateAssigned, setIsStateAssigned] = useState(false)
+  const [hasCanteenSubscription, setHasCanteenSubscription] = useState(false)
+  const [selectedGradeId, setSelectedGradeId] = useState<number | null>(null)
+  const [hasTransportSubscription, setHasTransportSubscription] = useState(false)
+
+  const enrollmentIdRef = useRef<string>('')
 
   const handleStepComplete = (step: number) => {
     if (step === 5) {
@@ -54,70 +57,78 @@ export function RegistrationStepper({ steps }: RegistrationStepperProps) {
       case 0:
         return (
           <Step1Identification
-            onComplete={() => handleStepComplete(0)}
-            onSchoolFound={setSchool}
-            onStudentFound={setStudent}
             searchAttempts={searchAttempts}
+
+            onComplete={() => handleStepComplete(0)}
             setSearchAttempts={setSearchAttempts}
+            onStudentFound={setStudent}
+            onSchoolFound={setSchool}
           />
         )
       case 1:
         return (
           <Step2Confirmation
-            onComplete={() => handleStepComplete(1)}
-            onBack={handleStepBack}
             school={school}
             student={student}
+
+            onComplete={() => handleStepComplete(1)}
+            onBack={handleStepBack}
           />
         )
       case 2:
         return (
           <Step3GradeSelection
-            onComplete={() => handleStepComplete(2)}
-            onBack={handleStepBack}
-            onGradeSelect={setSelectedGradeId}
-            onStateAssignedChange={setIsStateAssigned}
-            onOrphanChange={setIsOrphan}
-            onCanteenSubscriptionChange={setHasCanteenSubscription}
-            onTransportSubscriptionChange={setHasTransportSubscription}
+            isOrphan={isOrphan}
+            schoolId={school!.id}
             selectedGradeId={selectedGradeId}
             isStateAssigned={isStateAssigned}
-            isOrphan={isOrphan}
             hasCanteenSubscription={hasCanteenSubscription}
             hasTransportSubscription={hasTransportSubscription}
-            schoolId={school?.id ?? ''}
+
+            onTransportSubscriptionChange={setHasTransportSubscription}
+            onCanteenSubscriptionChange={setHasCanteenSubscription}
+            onStateAssignedChange={setIsStateAssigned}
+            onComplete={() => handleStepComplete(2)}
+            onGradeSelect={setSelectedGradeId}
+            onOrphanChange={setIsOrphan}
+            onBack={handleStepBack}
           />
         )
       case 3:
         return (
           <Step4TuitionDisplay
-            onBack={handleStepBack}
-            onComplete={() => handleStepComplete(3)}
-            onTermFeeSet={handleTermFeeSet}
+            isOrphan={isOrphan}
             schoolId={school!.id}
             gradeId={selectedGradeId}
             isStateAssigned={isStateAssigned}
-            isOrphan={isOrphan}
             hasCanteenSubscription={hasCanteenSubscription}
             hasTransportSubscription={hasTransportSubscription}
+
+            onComplete={() => handleStepComplete(3)}
+            onTermFeeSet={handleTermFeeSet}
+            onBack={handleStepBack}
           />
         )
       case 4:
         return student && school
           ? (
               <Step5Payment
-                onBack={handleStepBack}
-                onComplete={() => handleStepComplete(4)}
                 amount={termFee}
-                studentId={student.id}
+                isOrphan={isOrphan}
                 schoolId={school.id}
+                studentId={student.id}
+                schoolName={school.name}
                 gradeId={selectedGradeId!}
                 isStateAssigned={isStateAssigned}
-                isOrphan={isOrphan}
                 hasCanteenSubscription={hasCanteenSubscription}
                 hasTransportSubscription={hasTransportSubscription}
                 studentName={`${student.firstName} ${student.lastName}`}
-                schoolName={school.name}
+
+                onBack={handleStepBack}
+                onComplete={(enrolledId) => {
+                  enrollmentIdRef.current = enrolledId
+                  handleStepComplete(4)
+                }}
               />
             )
           : null
@@ -125,10 +136,12 @@ export function RegistrationStepper({ steps }: RegistrationStepperProps) {
         return student && school
           ? (
               <Step6Success
-                student={student}
                 school={school}
                 amount={termFee}
+                student={student}
+                enrollmentId={enrollmentIdRef.current}
                 isStateAssigned={isStateAssigned}
+
                 onComplete={() => handleStepComplete(5)}
               />
             )

@@ -101,7 +101,7 @@ const ReceiptDisplay: React.FC<ReceiptDisplayProps> = ({ data }) => {
         </div>
 
         <div className={styles.paymentAmount}>
-          Montant Payé:
+          Prochaine scolarité:
           {' '}
           {data.paymentAmount.toLocaleString('fr-FR')}
           {' '}

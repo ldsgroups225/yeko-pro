@@ -10,6 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 interface Step6SuccessProps {
   student: IStudent
   school: ISchool
+  enrollmentId: string
   amount: number
   gradeId: number
   isStateAssigned: boolean
@@ -20,17 +21,18 @@ export function Step6Success({
   student,
   school,
   amount,
+  enrollmentId,
   isStateAssigned,
   onComplete,
 }: Omit<Step6SuccessProps, 'gradeId'>) {
   const handleDownloadReceipt = () => {
-    if (!student.id || !school.id) {
+    if (!student.id || !school.id || !enrollmentId.length) {
       console.error('Missing student or school ID for receipt generation')
       return
     }
 
     // Generate receipt ID using student ID, school ID, and timestamp
-    const receiptId = `${student.id}_${school.id}_${Date.now()}`
+    const receiptId = enrollmentId
     const receiptUrl = `/api/generate-receipt-pdf/${receiptId}`
 
     // Open the PDF in a new tab

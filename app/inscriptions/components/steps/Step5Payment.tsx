@@ -58,7 +58,7 @@ type PaymentFormData = z.infer<typeof paymentSchema>
 
 interface Step5PaymentProps {
   onBack: () => void
-  onComplete: () => void
+  onComplete: (enrollmentId: string) => void
   amount: number
   studentId: string
   schoolId: string
@@ -101,7 +101,7 @@ export function Step5Payment({
     setError(null)
 
     try {
-      await enrollStudent({
+      const enrollmentId = await enrollStudent({
         studentId,
         schoolId,
         gradeId,
@@ -113,7 +113,7 @@ export function Step5Payment({
 
       // TODO: Implement payment processing with selected method
       console.warn('Implement payment processing', data)
-      onComplete()
+      onComplete(enrollmentId)
     }
     catch (error) {
       console.error('Payment processing failed:', error)

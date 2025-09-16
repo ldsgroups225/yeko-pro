@@ -231,6 +231,29 @@ export async function fetchGrades(schoolId: string) {
   }
 }
 
+async function getFirstInstallmentAmount({ schoolId, gradeId }: { schoolId: string, gradeId: number }): Promise<number> {
+  const client = await createClient()
+
+  const { data: firstInstallmentTemplate, error: firstInstallmentTemplateError } = await client.from('installment_templates')
+    .select('fixed_amount')
+    .eq('school_id', schoolId)
+    .eq('grade_id', gradeId)
+    .order('installment_number', { ascending: true })
+    .limit(1)
+    .maybeSingle()
+
+  if (firstInstallmentTemplateError) {
+    console.error('Error fetching first installment amount:', firstInstallmentTemplateError)
+    throw new Error('Impossible de charger les frais de scolarité')
+  }
+
+  if (!firstInstallmentTemplate) {
+    throw new Error('Les échelons des frais de scolarité pour ce niveau n\'ont pas été configurés.')
+  }
+
+  return firstInstallmentTemplate.fixed_amount ?? 0
+}
+
 /**
  * Function to fetch tuition fees for a grade
  * @param gradeId - The ID of the grade
@@ -259,31 +282,16 @@ export async function fetchTuitionFees({
       throw new Error('Aucun frais de scolarité trouvé pour ce niveau.')
     }
 
-    const { data: firstInstallmentTemplate, error: firstInstallmentTemplateError } = await client.from('installment_templates')
-      .select('fixed_amount')
-      .eq('school_id', schoolId)
-      .eq('grade_id', gradeId)
-      .order('installment_number', { ascending: true })
-      .limit(1)
-      .maybeSingle()
-
-    if (firstInstallmentTemplateError) {
-      console.error('Error fetching first installment amount:', firstInstallmentTemplateError)
-      throw new Error('Impossible de charger les frais de scolarité')
-    }
-
-    if (!firstInstallmentTemplate) {
-      throw new Error('Les échelons des frais de scolarité pour ce niveau n\'ont pas été configurés.')
-    }
+    const firstInstallmentAmount = await getFirstInstallmentAmount({ schoolId, gradeId })
 
     return data.map(fee => ({
       id: fee.id,
+      firstInstallmentAmount,
       annualFee: fee.annual_fee,
-      governmentAnnualFee: fee.government_annual_fee,
-      orphanDiscountAmount: fee.orphan_discount_amount,
       canteenFee: fee.canteen_fee,
       transportationFee: fee.transportation_fee,
-      firstInstallmentAmount: firstInstallmentTemplate.fixed_amount ?? 0,
+      governmentAnnualFee: fee.government_annual_fee,
+      orphanDiscountAmount: fee.orphan_discount_amount,
     } satisfies TuitionFee))
   }
   catch {
@@ -463,7 +471,7 @@ export async function enrollStudent({
   isOrphan: boolean
   hasCanteenSubscription: boolean
   hasTransportSubscription: boolean
-}): Promise<void> {
+}): Promise<string> {
   const client = await createClient()
 
   const { data: schoolYearData, error: schoolYearError } = await client
@@ -476,7 +484,7 @@ export async function enrollStudent({
     throw new Error('Impossible de charger l\'année scolaire')
   }
 
-  const { error: enrollmentError } = await client
+  const { data: enrollment, error: enrollmentError } = await client
     .from('student_school_class')
     .insert({
       student_id: studentId,
@@ -488,14 +496,18 @@ export async function enrollStudent({
       is_subscribed_to_canteen: hasCanteenSubscription,
       is_subscribed_to_transportation: hasTransportSubscription,
     })
+    .select('id')
+    .single()
 
-  if (enrollmentError) {
+  if (enrollmentError || !enrollment.id) {
     console.error('Error creating enrollment:', enrollmentError)
-    if (enrollmentError.message === 'duplicate key value violates unique constraint "unique_academic_year"') {
+    if (enrollmentError?.message === 'duplicate key value violates unique constraint "unique_academic_year"') {
       throw new Error('Cet élève est déjà inscrit au cours de cette année scolaire, rendez-vous dans l\'école en question pour d\'ample modification')
     }
     throw new Error('Impossible de créer l\'inscription')
   }
+
+  return enrollment.id
 }
 
 /**
@@ -507,13 +519,8 @@ export async function getReceiptDataForPayment(receiptId: string): Promise<Recei
   const supabase = await createClient()
 
   try {
-    // Parse receiptId to extract payment/enrollment info
-    // Format: studentId_schoolId_timestamp
-    const parts = receiptId.split('_')
-    const [studentId, schoolId, _timestamp] = parts
-
-    if (!studentId || !schoolId || parts.length !== 3) {
-      console.error('Invalid receipt ID format:', receiptId)
+    if (!receiptId) {
+      console.error('Invalid receipt ID:', receiptId)
       return null
     }
 
@@ -533,10 +540,9 @@ export async function getReceiptDataForPayment(receiptId: string): Promise<Recei
           date_of_birth,
           address
         ),
-        class:classes!inner(
+        grade:grades!inner(
           id,
-          name,
-          grade:grades!inner(id, name)
+          name
         ),
         school:schools!inner(
           id,
@@ -550,15 +556,18 @@ export async function getReceiptDataForPayment(receiptId: string): Promise<Recei
           academic_year_name
         )
       `)
-      .eq('student.id', studentId)
-      .eq('school.id', schoolId)
-      .eq('enrollment_status', 'accepted')
-      .single()
+      .eq('id', receiptId) // receiptId is the id of the enrollment
+      .eq('enrollment_status', 'pending')
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle()
 
     if (enrollmentError || !enrollment) {
       console.error('Error fetching enrollment data:', enrollmentError)
       return null
     }
+
+    const firstInstallmentAmount = await getFirstInstallmentAmount({ schoolId: enrollment.school.id, gradeId: enrollment.grade.id })
 
     // Generate receipt data
     const receiptNumber = `REC-${Date.now().toString().slice(-8)}`
@@ -585,14 +594,14 @@ export async function getReceiptDataForPayment(receiptId: string): Promise<Recei
         : 'N/A',
       studentAddress: enrollment.student.address || 'N/A',
 
-      paymentAmount: 50000, // Default amount - should be dynamic based on actual payment
+      paymentAmount: firstInstallmentAmount,
       paymentMethod: 'Espèces',
       paymentDate: currentDate,
       paymentReference: `PAY-${receiptNumber}`,
       isStateAssigned: enrollment.is_government_affected || false,
 
-      gradeName: enrollment.class.grade.name,
-      academicLevel: enrollment.class.name,
+      gradeName: enrollment.grade.name,
+      academicLevel: enrollment.grade.name,
 
       paymentDescription: 'Frais d\'inscription scolaire',
       footerText: `${enrollment.school.name} - Reçu généré le ${currentDate}`,
