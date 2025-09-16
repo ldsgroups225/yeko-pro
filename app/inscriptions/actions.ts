@@ -256,6 +256,7 @@ async function getFirstInstallmentAmount({ schoolId, gradeId }: { schoolId: stri
 
 /**
  * Function to fetch tuition fees for a grade
+ * @param schoolId - The ID of the school
  * @param gradeId - The ID of the grade
  * @returns An array of tuition fees
  */

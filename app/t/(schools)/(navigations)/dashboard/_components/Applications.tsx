@@ -132,8 +132,7 @@ export function Applications({ applications }: IApplicationsProps) {
         toast.success('Candidature mise à jour')
       }
       catch (error) {
-        console.error(`Error ${payload.action}ing application:`, error)
-        toast.error('Une erreur est survenue lors de l\'action sur la candidature.')
+        toast.error(error instanceof Error ? error.message : 'Une erreur est survenue lors de l\'action sur la candidature.')
         setPendingRemovals(prev => prev.filter(id => id !== payload.application.candidateId))
       }
     })

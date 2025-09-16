@@ -530,10 +530,11 @@ export async function handleCandidature(
         class_id: action === 'accept' ? classId : null,
       })
       .eq('student_id', candidateId)
-      .throwOnError()
 
     if (error) {
-      console.error('Error handling student candidature:', error)
+      if (error.message.includes('La scolarité')) {
+        throw error.message
+      }
       throw new Error('Échec de la gestion de la candidature')
     }
 
